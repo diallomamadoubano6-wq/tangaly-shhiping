@@ -10,20 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPER_ADMIN
-  GERANT_USA
-  GERANT_GUINEE
-  AGENT
-  CLIENT
-}
-
 model User {
   id             String          @id @default(uuid())
   nom            String
   email          String          @unique
   password_hash  String
-  role           Role            @default(CLIENT)
+  role           String          @default("CLIENT")
   localisation   String?         @default("Conakry")
   agencyId       String?
   agency         Agency?         @relation(fields: [agencyId], references: [id])
@@ -69,7 +61,7 @@ model Shipment {
   receiverAddress String?
 
   // -- Infos colis & finances --
-  description     String?         @db.Text
+  description     String?
   boxes           Int?
   amountPaid      Float?
   paymentMethod   String?
@@ -97,7 +89,7 @@ model TrackingEvent {
   shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   shipmentId   String
   statut       String
-  commentaire  String?  @db.Text
+  commentaire  String?
   date         DateTime @default(now())
   userId       String?
   user         User?    @relation(fields: [userId], references: [id])
@@ -111,7 +103,7 @@ model TrackingEvent {
 model Service {
   id          String   @id @default(uuid())
   titre       String
-  description String   @db.Text
+  description String
   image       String?
   actif       Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -127,9 +119,9 @@ model Quote {
   origine      String
   destination  String
   poids_estime String?
-  message      String   @db.Text
+  message      String
   statut       String   @default("PENDING")
-  notes_admin  String?  @db.Text
+  notes_admin  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -138,8 +130,8 @@ model Page {
   id        String   @id @default(uuid())
   slug      String   @unique
   titre     String
-  contenu   String   @db.LongText
-  seo       String?  @db.Text
+  contenu   String
+  seo       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -162,7 +154,7 @@ model Notification {
   clientId     String?
   shipment     Shipment? @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   shipmentId   String?
-  message      String?   @db.Text
+  message      String?
   type         String?
   canal        String?
   destinataire String?
@@ -180,8 +172,8 @@ model Notification {
 model CmsSetting {
   id          String   @id @default(uuid())
   key         String   @unique
-  value       String   @db.Text
-  description String?  @db.Text
+  value       String
+  description String?
   updatedAt   DateTime @updatedAt
 }
 
@@ -205,8 +197,8 @@ model AuditLog {
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   action          String
   module          String
-  ancienne_valeur String?  @db.LongText
-  nouvelle_valeur String?  @db.LongText
+  ancienne_valeur String?
+  nouvelle_valeur String?
   date            DateTime @default(now())
   createdAt       DateTime @default(now())
 }
@@ -215,11 +207,11 @@ model Article {
   id        String   @id @default(uuid())
   titre     String
   slug      String   @unique
-  extrait   String?  @db.Text
-  contenu   String   @db.LongText
+  extrait   String?
+  contenu   String
   image     String?
   publie    Boolean  @default(false)
-  tags      String?  @db.Text
+  tags      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -227,7 +219,7 @@ model Article {
 model Faq {
   id        String   @id @default(uuid())
   question  String
-  reponse   String   @db.Text
+  reponse   String
   ordre     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -252,8 +244,8 @@ model SyncLog {
   entiteId      String
   action        String
   statut        String
-  payload       String?  @db.LongText
-  messageErreur String?  @db.Text
+  payload       String?
+  messageErreur String?
   createdAt     DateTime @default(now())
 }
 
