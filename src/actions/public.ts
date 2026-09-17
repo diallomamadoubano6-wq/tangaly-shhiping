@@ -3,12 +3,28 @@
 import { prisma } from '@/lib/prisma';
 
 export async function getHomeData() {
-  const services = await prisma.service.findMany({
-    where: { actif: true }
-  });
-  const faqs = await prisma.faq.findMany({
-    orderBy: { ordre: 'asc' }
-  });
+  let services: any[] = [];
+  let faqs: any[] = [];
+
+  try {
+    services = await prisma.service.findMany({
+      where: { actif: true }
+    });
+    faqs = await prisma.faq.findMany({
+      orderBy: { ordre: 'asc' }
+    });
+  } catch (error) {
+    console.warn("Could not query database during render/build, using fallback data:", error);
+  }
+
+  // Fallback services si la base de données est vide ou fraîchement déployée
+  const defaultServices = [
+    { id: '1', titre: 'Fret Aérien', description: 'Transport aérien express USA-Guinée en 48-72h.', image: '/images/service-air.jpg' },
+    { id: '2', titre: 'Fret Maritime', description: 'Groupage et conteneurs maritimes sécurisés.', image: '/images/service-sea.jpg' },
+    { id: '3', titre: 'Entreposage', description: 'Stockage sécurisé à New York et Conakry.', image: '/images/service-warehouse.jpg' },
+  ];
+
+  const effectiveServices = services.length > 0 ? services : defaultServices;
 
   return {
     data: {
@@ -29,10 +45,10 @@ export async function getHomeData() {
         { title: "Expédition", desc: "Transport maritime ou aérien." },
         { title: "Livraison", desc: "Retrait à Conakry ou livraison à domicile." }
       ],
-      services: services.map(s => ({
+      services: effectiveServices.map((s: any) => ({
         id: s.id,
         href: '/services',
-        image_url: s.image || '/images/service-default.jpg',
+        image_url: s.image || '/images/service-air.jpg',
         titre: s.titre,
         description: s.description
       })),
@@ -41,7 +57,7 @@ export async function getHomeData() {
         { title: "Rapidité", icon: "⚡", description: "Les meilleurs délais du marché." },
         { title: "Support", icon: "💬", description: "Une équipe à votre écoute 7j/7." }
       ],
-      faq: faqs.map(f => ({
+      faq: faqs.map((f: any) => ({
         q: f.question,
         a: f.reponse
       }))
