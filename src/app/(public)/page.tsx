@@ -5,7 +5,7 @@ import styles from './home.module.css';
 import Image from 'next/image';
 
 
-export const revalidate = 60; // Revalider toutes les 60 secondes
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Transport USA ↔ Guinée — Rapide, Fiable, Sécurisé',
