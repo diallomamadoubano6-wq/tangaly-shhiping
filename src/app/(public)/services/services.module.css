@@ -1,0 +1,54 @@
+.hero {
+  background: linear-gradient(135deg, var(--color-navy-900), var(--color-blue-900));
+  color: white;
+  padding: var(--space-16) 0 var(--space-12);
+  text-align: center;
+}
+.hero h1 { color: white; margin-bottom: var(--space-4); }
+.hero p { color: rgba(255,255,255,0.72); font-size: var(--text-lg); max-width: 540px; margin: 0 auto; }
+
+.page { padding: var(--space-12) 0 var(--space-16); }
+
+.grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-xs);
+  transition: var(--transition-normal);
+}
+.card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); border-color: var(--color-primary); }
+
+.cardTop { display: flex; align-items: center; gap: var(--space-4); }
+.icon { font-size: 2.4rem; flex-shrink: 0; }
+.cardTitle { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: 4px; }
+.prix { font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--color-primary); }
+
+.desc { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.7; flex: 1; }
+
+.features { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+.feature { font-size: var(--text-sm); color: var(--color-text-secondary); display: flex; align-items: center; gap: var(--space-2); }
+.feature::before { display: none; }
+
+.cta { margin-top: auto; justify-content: center; }
+
+.ctaBanner {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-blue-900));
+  color: white;
+  text-align: center;
+  padding: var(--space-16) 0;
+}
+.ctaBanner h2 { color: white; margin-bottom: var(--space-3); }
+.ctaBanner p { color: rgba(255,255,255,0.75); margin-bottom: var(--space-8); }

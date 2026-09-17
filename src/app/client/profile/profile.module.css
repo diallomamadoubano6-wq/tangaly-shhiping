@@ -1,0 +1,23 @@
+.page { display: flex; flex-direction: column; gap: var(--space-6); }
+.title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); margin: 0; }
+
+.grid { display: grid; grid-template-columns: 1fr; gap: var(--space-6); }
+@media (min-width: 1024px) { .grid { grid-template-columns: 3fr 2fr; } }
+
+.card { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: var(--space-5); }
+
+.cardHeader { display: flex; gap: var(--space-4); align-items: center; padding-bottom: var(--space-5); border-bottom: 1px solid var(--color-border); }
+.avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--color-primary), var(--color-blue-600)); color: white; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; flex-shrink: 0; }
+.cardTitle { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin: 0 0 var(--space-2); }
+.roleBadge { background: var(--color-blue-100); color: var(--color-primary); padding: 2px 10px; border-radius: 999px; font-size: var(--text-xs); font-weight: 600; }
+
+.sectionTitle { font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-text-primary); margin: 0; }
+
+.row { display: grid; grid-template-columns: 1fr; gap: 0 var(--space-5); }
+@media (min-width: 640px) { .row { grid-template-columns: 1fr 1fr; } }
+
+.successMsg { background: var(--color-green-100); color: var(--color-success); border: 1px solid #9ae6b4; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); font-weight: 500; }
+
+.dangerZone { background: var(--color-red-100); border: 1px solid #feb2b2; border-radius: var(--radius-lg); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.dangerTitle { font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--color-danger); }
+.dangerDesc { font-size: var(--text-sm); color: var(--color-text-secondary); }

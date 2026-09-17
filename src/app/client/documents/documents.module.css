@@ -1,0 +1,26 @@
+.page { display: flex; flex-direction: column; gap: var(--space-6); }
+.header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); }
+.title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); margin: 0; }
+.sub { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-1); }
+
+.controls { display: flex; flex-direction: column; gap: var(--space-4); }
+.search { max-width: 380px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.tab { padding: var(--space-2) var(--space-4); border: 1.5px solid var(--color-border); border-radius: var(--radius-full); background: none; font-size: var(--text-sm); color: var(--color-text-secondary); cursor: pointer; transition: var(--transition-fast); }
+.tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.tabActive { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+
+.docList { list-style: none; display: flex; flex-direction: column; gap: var(--space-3); }
+
+.docCard { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-4); transition: var(--transition-fast); flex-wrap: wrap; }
+.docCard:hover { box-shadow: var(--shadow-sm); border-color: var(--color-primary); }
+
+.docIcon { font-size: 2rem; flex-shrink: 0; width: 48px; height: 48px; background: var(--color-gray-50); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); }
+.docInfo { flex: 1; min-width: 200px; }
+.docName { font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--color-text-primary); margin-bottom: 4px; word-break: break-all; }
+.docMeta { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.docMeta span { font-size: var(--text-xs); color: var(--color-text-muted); }
+.docMeta strong { color: var(--color-primary); }
+
+.docActions { display: flex; gap: var(--space-2); flex-wrap: wrap; }

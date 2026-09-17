@@ -1,0 +1,36 @@
+.hero { background: linear-gradient(135deg, var(--color-navy-900), var(--color-blue-900)); padding: var(--space-16) 0; text-align: center; }
+.hero h1 { color: white; margin-bottom: var(--space-4); }
+.heroTag { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); font-size: var(--text-sm); padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); margin-bottom: var(--space-5); }
+.mission { font-size: var(--text-xl); color: rgba(255,255,255,0.75); font-style: italic; max-width: 600px; margin: 0 auto; }
+
+.section { padding: var(--space-16) 0; }
+.sectionAlt { background: var(--color-gray-50); }
+.sectionHeader { text-align: center; margin-bottom: var(--space-10); }
+.sectionHeader h2 { margin-bottom: var(--space-3); }
+.sectionHeader p { color: var(--color-text-secondary); max-width: 500px; margin: 0 auto; }
+
+.histoireLayout { display: grid; grid-template-columns: 1fr; gap: var(--space-10); align-items: center; }
+@media (min-width: 1024px) { .histoireLayout { grid-template-columns: 1fr 1fr; } }
+.histoireLayout h2 { margin-bottom: var(--space-4); }
+.lead { font-size: var(--text-lg); color: var(--color-text-secondary); line-height: 1.8; }
+
+.statsGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+.statBox { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; box-shadow: var(--shadow-xs); }
+.statVal { display: block; font-family: var(--font-display); font-size: var(--text-3xl); font-weight: var(--font-extrabold); color: var(--color-primary); }
+.statLbl { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.valeursGrid { list-style: none; display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
+@media (min-width: 640px) { .valeursGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .valeursGrid { grid-template-columns: repeat(4, 1fr); } }
+.valeurCard { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-xs); }
+.valeurIcon { font-size: 2rem; display: block; margin-bottom: var(--space-3); }
+.valeurCard h3 { font-size: var(--text-lg); font-weight: var(--font-bold); margin-bottom: var(--space-2); }
+.valeurCard p { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.6; }
+
+.equipeGrid { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+@media (min-width: 768px) { .equipeGrid { grid-template-columns: repeat(4, 1fr); } }
+.membreCard { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-6); text-align: center; box-shadow: var(--shadow-xs); transition: var(--transition-normal); }
+.membreCard:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.avatar { width: 72px; height: 72px; background: var(--color-blue-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto var(--space-4); }
+.membreNom { font-size: var(--text-base); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-1); }
+.membreRole { font-size: var(--text-sm); color: var(--color-text-muted); }

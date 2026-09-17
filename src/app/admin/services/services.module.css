@@ -1,0 +1,14 @@
+.servicesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.serviceCard { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; transition: box-shadow 0.2s; }
+.serviceCard:hover { box-shadow: var(--shadow-md); }
+.serviceCard.inactive { opacity: 0.5; }
+.imagePreview { width: 100%; height: 180px; overflow: hidden; background: var(--color-gray-100); }
+.imagePreview img { width: 100%; height: 100%; object-fit: cover; }
+.serviceInfo { padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.serviceInfo h3 { margin: 0; font-size: 1rem; }
+.serviceInfo p { margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
+.cardActions { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+.badgeActif { font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; background: #f0fff4; color: #16a34a; }
+.badgeInactif { font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; background: #fff1f2; color: #e11d48; }
+.imageEditPreview { width: 100%; height: 200px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-gray-100); }
+.imageEditPreview img { width: 100%; height: 100%; object-fit: cover; }

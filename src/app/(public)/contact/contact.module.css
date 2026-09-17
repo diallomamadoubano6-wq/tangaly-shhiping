@@ -1,0 +1,30 @@
+.hero { background: linear-gradient(135deg, var(--color-navy-900), var(--color-blue-900)); color: white; padding: var(--space-16) 0; text-align: center; }
+.hero h1 { color: white; margin-bottom: var(--space-3); }
+.hero p { color: rgba(255,255,255,0.72); }
+
+.page { padding: var(--space-12) 0 var(--space-16); }
+
+.layout { display: grid; grid-template-columns: 1fr; gap: var(--space-8); max-width: 1100px; margin: 0 auto; }
+@media (min-width: 1024px) { .layout { grid-template-columns: 3fr 2fr; } }
+
+.formWrap { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+.formTitle { font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-6); }
+.form { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 1fr; gap: 0 var(--space-6); }
+@media (min-width: 640px) { .row { grid-template-columns: 1fr 1fr; } }
+
+.infoPanel { display: flex; flex-direction: column; gap: var(--space-4); }
+.infoTitle { font-size: var(--text-xl); font-weight: var(--font-bold); margin-bottom: var(--space-4); }
+
+.contactList { list-style: none; display: flex; flex-direction: column; gap: var(--space-4); }
+.contactItem { display: flex; gap: var(--space-4); align-items: flex-start; padding: var(--space-4); background: var(--color-gray-50); border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
+.contactIcon { font-size: 1.5rem; flex-shrink: 0; }
+.contactItem strong { display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--color-text-primary); margin-bottom: 2px; }
+.contactItem a, .contactItem p { font-size: var(--text-sm); color: var(--color-primary); text-decoration: none; }
+.contactItem p { color: var(--color-text-secondary); }
+
+.divider { border: none; border-top: 1px solid var(--color-border); margin: var(--space-6) 0; }
+.adresseTitle { font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); }
+.adresseCard { background: var(--color-gray-50); border-radius: var(--radius-lg); padding: var(--space-4); border: 1px solid var(--color-border); margin-bottom: var(--space-3); }
+.adresseCard strong { display: block; margin-bottom: var(--space-1); }
+.adresseCard p { font-size: var(--text-sm); color: var(--color-text-secondary); }

@@ -1,0 +1,9 @@
+.seoList { display: flex; flex-direction: column; gap: 1.5rem; }
+.seoCard { background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: 1.5rem; }
+.seoHeader { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.pageName { margin: 0; font-size: 1.1rem; }
+.pageSlug { font-size: 0.8rem; color: var(--color-text-muted); background: var(--color-gray-50); padding: 2px 8px; border-radius: 4px; }
+.seoPreview { background: var(--color-gray-50); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; }
+.previewTitle { margin: 0; font-size: 1rem; color: #1a0dab; font-weight: 600; }
+.previewSlug { margin: 2px 0; font-size: 0.8rem; color: #006621; }
+.previewDesc { margin: 4px 0 0; font-size: 0.85rem; color: #545454; }
