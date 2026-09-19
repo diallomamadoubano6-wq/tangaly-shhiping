@@ -20,13 +20,25 @@ export default function DevisPage() {
     const fd = new FormData(form);
     
     try {
+      const zone = (fd.get('zone') as string) || 'USA → Guinée';
+      let origine = 'USA';
+      let destination = 'Guinée';
+      if (zone === 'Guinée → USA') {
+        origine = 'Guinée';
+        destination = 'USA';
+      } else if (zone.includes('→')) {
+        const parts = zone.split('→');
+        origine = parts[0]?.trim() || 'USA';
+        destination = parts[1]?.trim() || 'Guinée';
+      }
+
       const data = {
         client_nom:    fd.get('nom') as string,
         client_email:  fd.get('email') as string,
         client_tel:    fd.get('telephone') as string,
         service:       fd.get('service') as string,
-        origine:       fd.get('zone') as string,
-        destination:   'Guinée',
+        origine,
+        destination,
         poids_estime:  fd.get('poids') as string,
         message:       fd.get('description') as string,
       };

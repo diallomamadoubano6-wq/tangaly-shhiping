@@ -11,39 +11,39 @@ async function getServices() {
   // À connecter à l'API : fetch(`${process.env.API_URL}/api/services`)
   return [
     {
-      icon: '✈️', title: 'Fret Aérien', slug: 'fret-aerien',
-      description: 'La solution la plus rapide pour vos expéditions urgentes. Délai garanti sous 72h entre New York et Conakry.',
-      features: ['Livraison express 48-72h', 'Suivi en temps réel', 'Colis jusqu\'à 500 kg', 'Assurance incluse'],
+      icon: '✈️', title: 'Fret Aérien Express', slug: 'fret-aerien',
+      description: 'La solution la plus rapide pour vos expéditions urgentes entre les USA et la Guinée (dans les deux sens). Délai garanti sous 48-72h.',
+      features: ['Liaison USA ↔ Guinée', 'Livraison express 48-72h', 'Suivi en temps réel', 'Assurance incluse'],
       prix: 'À partir de 8$/kg',
     },
     {
       icon: '🚢', title: 'Fret Maritime', slug: 'fret-maritime',
-      description: 'La solution économique pour les grandes quantités. Conteneurs entiers (FCL) ou groupage (LCL).',
-      features: ['Prix au volume', 'Conteneurs FCL & LCL', 'Transit 15-21 jours', 'Dédouanement inclus'],
+      description: 'La solution économique pour les grandes quantités et conteneurs entre les États-Unis et le port de Conakry.',
+      features: ['Départs réguliers dans les 2 sens', 'Conteneurs FCL & LCL', 'Transit 15-21 jours', 'Dédouanement sécurisé'],
       prix: 'À partir de 350$/m³',
     },
     {
-      icon: '📦', title: 'Consolidation', slug: 'consolidation',
-      description: 'Regroupez vos petits envois avec d\'autres clients pour bénéficier de tarifs de groupe attractifs.',
-      features: ['Dès 50 kg', 'Tarif groupé avantageux', 'Collecte en entrepôt', 'Flexible et économique'],
+      icon: '📦', title: 'Consolidation & Groupage', slug: 'consolidation',
+      description: 'Regroupez vos petits colis pour bénéficier de tarifs de groupe attractifs, au départ des USA ou de la Guinée.',
+      features: ['Économies d\'échelle', 'Tarif groupé avantageux', 'Collecte à New York & Conakry', 'Flexible et sécurisé'],
       prix: 'À partir de 5$/kg',
     },
     {
       icon: '🏢', title: 'Solutions B2B', slug: 'b2b',
-      description: 'Contrats dédiés aux professionnels avec tarification préférentielle, suivi de compte et facturation mensuelle.',
+      description: 'Contrats dédiés aux professionnels et commerçants avec tarification préférentielle et suivi sur-mesure.',
       features: ['Tarifs préférentiels', 'Gestionnaire dédié', 'Facturation mensuelle', 'SLA garanti'],
       prix: 'Sur devis',
     },
     {
       icon: '🏠', title: 'Déménagement', slug: 'demenagement',
-      description: 'Transférez vos effets personnels et mobilier d\'une façon sécurisée et organisée.',
+      description: 'Installation aux USA ou retour en Guinée : transfert de vos effets personnels et mobilier en toute tranquillité.',
       features: ['Emballage professionnel', 'Transport sécurisé', 'Assurance tous risques', 'Livraison à domicile'],
       prix: 'Sur devis',
     },
     {
-      icon: '🛒', title: 'Shopping & Livraison', slug: 'shopping',
-      description: 'Achetez aux USA et faites livrer directement en Guinée. Notre adresse US devient votre adresse.',
-      features: ['Adresse US fournie', 'Réception & emballage', 'Consolidation achats', 'Livraison rapide'],
+      icon: '🛒', title: 'Shopping & Adresses Relais', slug: 'shopping',
+      description: 'Achetez aux USA ou expédiez depuis la Guinée : profitez de nos adresses relais dédiées à New York et Conakry.',
+      features: ['Adresses relais NY & Conakry', 'Réception & contrôle colis', 'Consolidation des achats', 'Expédition sécurisée'],
       prix: 'À partir de 10$/kg',
     },
   ];

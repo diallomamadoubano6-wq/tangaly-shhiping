@@ -25,7 +25,14 @@ export default function CMSHomepage() {
         getServices()
       ]);
 
-      if (config['hero']) setHero(typeof config['hero'] === 'string' ? JSON.parse(config['hero']) : config['hero']);
+      if (config['hero']) {
+        setHero(typeof config['hero'] === 'string' ? JSON.parse(config['hero']) : config['hero']);
+      } else {
+        setHero({
+          headline: "Expédiez vos colis entre les USA et la Guinée en toute sérénité",
+          subheadline: "La solution logistique de confiance pour tous vos envois : depuis les États-Unis vers la Guinée et depuis la Guinée vers les États-Unis."
+        });
+      }
       if (config['stats']) setStats(typeof config['stats'] === 'string' ? JSON.parse(config['stats']) : config['stats']);
       
       setServices(servicesData || []);

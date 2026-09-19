@@ -8,8 +8,8 @@ import Image from 'next/image';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Transport USA ↔ Guinée — Rapide, Fiable, Sécurisé',
-  description: 'TANGALY, la référence du transport et de la logistique entre les États-Unis et la Guinée. Suivi en temps réel, devis gratuit, équipe dédiée.',
+  title: 'Transport USA ↔ Guinée (Dans les 2 sens) — Rapide, Fiable, Sécurisé',
+  description: 'TANGALY, la référence du transport et de la logistique bilatérale entre les États-Unis et la Guinée. Expéditions dans les deux sens : USA ➔ Guinée et Guinée ➔ USA.',
 };
 
 import { getHomeData } from '@/actions/public';
@@ -40,7 +40,7 @@ export default async function HomePage() {
         </div>
         <div className={`container ${styles.heroContent}`}>
           <div className={styles.heroText}>
-            <div className={styles.heroTag}>Logistique Premium USA ↔ Guinée</div>
+            <div className={styles.heroTag}>Logistique Premium USA ↔ Guinée · Dans les 2 sens</div>
             <h1 className={styles.heroTitle}>{data.hero.headline}</h1>
             <p className={styles.heroSub}>{data.hero.subheadline}</p>
             <div className="flex gap-4 flex-wrap">
@@ -55,7 +55,7 @@ export default async function HomePage() {
 
           <div className={styles.trackingWidget}>
             <h2>Suivez votre colis</h2>
-            <p>Saisissez votre numéro de suivi TANGALY pour connaître son emplacement en temps réel.</p>
+            <p>Saisissez votre numéro de suivi TANGALY pour localiser votre colis en temps réel (départ USA ou départ Guinée).</p>
             <form className={styles.trackingForm} action="/tracking" method="get" role="search">
               <label htmlFor="tracking-hero" className="sr-only">Numéro de tracking</label>
               <div className="relative flex items-center">
@@ -194,10 +194,10 @@ export default async function HomePage() {
       <section className={styles.finalCta} aria-label="Appel à l&apos;action">
         <div className="container">
           <h2>Prêt à expédier avec TANGALY ?</h2>
-          <p>Obtenez votre adresse américaine dès maintenant ou demandez un devis sur-mesure.</p>
+          <p>Bénéficiez de nos adresses relais à New York et Conakry et expédiez vos colis en toute sérénité dans les deux sens.</p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/client/dashboard" className="btn btn-primary btn-lg">Créer un compte</Link>
-            <Link href="/devis" className="btn btn-outline btn-lg" style={{ borderColor: 'white', color: 'white' }}>Nous Contacter</Link>
+            <Link href="/client/dashboard" className="btn btn-primary btn-lg">Mon Espace</Link>
+            <Link href="/devis" className="btn btn-outline btn-lg" style={{ borderColor: 'white', color: 'white' }}>Demander un devis</Link>
           </div>
         </div>
       </section>
