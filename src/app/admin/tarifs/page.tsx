@@ -19,7 +19,7 @@ type Tarif = {
 };
 
 const SERVICES = ['Fret Aérien', 'Fret Maritime'];
-const ZONES = ['Conakry', 'Labé', 'Kindia', 'N\'Zérékoré', 'Kankan', 'Mamou', 'Dakar'];
+const ZONES = ['Conakry', 'Labé', 'Kindia', 'N\'Zérékoré', 'Kankan', 'Mamou'];
 
 export default function TarifsAdminPage() {
   const { addToast } = useToast();

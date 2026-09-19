@@ -5,7 +5,7 @@ import { submitQuote } from '@/actions/public';
 import styles from './devis.module.css';
 
 const SERVICES = ['Fret Aérien', 'Fret Maritime'];
-const ZONES = ['USA → Guinée', 'Guinée → USA', 'USA → Afrique de l\'Ouest', 'Autre'];
+const ZONES = ['USA → Guinée', 'Guinée → USA'];
 
 export default function DevisPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -21,16 +21,8 @@ export default function DevisPage() {
     
     try {
       const zone = (fd.get('zone') as string) || 'USA → Guinée';
-      let origine = 'USA';
-      let destination = 'Guinée';
-      if (zone === 'Guinée → USA') {
-        origine = 'Guinée';
-        destination = 'USA';
-      } else if (zone.includes('→')) {
-        const parts = zone.split('→');
-        origine = parts[0]?.trim() || 'USA';
-        destination = parts[1]?.trim() || 'Guinée';
-      }
+      const origine = zone === 'Guinée → USA' ? 'Guinée' : 'USA';
+      const destination = zone === 'Guinée → USA' ? 'USA' : 'Guinée';
 
       const data = {
         client_nom:    fd.get('nom') as string,
@@ -120,9 +112,9 @@ export default function DevisPage() {
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="zone" className="form-label">Zone *</label>
+                <label htmlFor="zone" className="form-label">Trajet (USA ↔ Guinée) *</label>
                 <select id="zone" name="zone" className="form-select" required>
-                  <option value="">-- Choisir une zone --</option>
+                  <option value="">-- Choisir le trajet --</option>
                   {ZONES.map((z) => <option key={z} value={z}>{z}</option>)}
                 </select>
               </div>
