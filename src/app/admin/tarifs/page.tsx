@@ -18,7 +18,7 @@ type Tarif = {
   actif: boolean;
 };
 
-const SERVICES = ['Fret Aérien', 'Fret Maritime', 'Consolidation', 'Solution B2B'];
+const SERVICES = ['Fret Aérien', 'Fret Maritime'];
 const ZONES = ['Conakry', 'Labé', 'Kindia', 'N\'Zérékoré', 'Kankan', 'Mamou', 'Dakar'];
 
 export default function TarifsAdminPage() {

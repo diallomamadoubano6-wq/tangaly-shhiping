@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { submitQuote } from '@/actions/public';
 import styles from './devis.module.css';
 
-const SERVICES = ['Fret Aérien', 'Fret Maritime', 'Consolidation', 'Solution B2B'];
+const SERVICES = ['Fret Aérien', 'Fret Maritime'];
 const ZONES = ['USA → Guinée', 'Guinée → USA', 'USA → Afrique de l\'Ouest', 'Autre'];
 
 export default function DevisPage() {

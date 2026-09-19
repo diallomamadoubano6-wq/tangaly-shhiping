@@ -13,10 +13,11 @@
   list-style: none;
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-6);
+  gap: var(--space-8);
+  max-width: 960px;
+  margin: 0 auto;
 }
-@media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 
 .card {
   background: var(--color-white);

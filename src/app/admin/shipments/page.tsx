@@ -10,7 +10,7 @@ import { getUsers } from '@/actions/users';
 import styles from './admin-tracking.module.css';
 import { QRCodeCanvas } from 'qrcode.react';
 
-const TRANSPORT_TYPES = ['Fret Aérien', 'Fret Maritime', 'Consolidation', 'Solution B2B'];
+const TRANSPORT_TYPES = ['Fret Aérien', 'Fret Maritime'];
 
 export default function AdminTrackingPage() {
   const { addToast } = useToast();

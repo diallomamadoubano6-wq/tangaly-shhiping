@@ -20,7 +20,7 @@ const MOCK_DATA = {
   ],
   recentQuotes: [
     { id: 'q1', ref: 'Q-441', service: 'Fret Aérien',  statut: 'PENDING',  date: '03/09/2026' },
-    { id: 'q2', ref: 'Q-438', service: 'Consolidation', statut: 'DELIVERED', date: '25/08/2026' },
+    { id: 'q2', ref: 'Q-438', service: 'Fret Maritime', statut: 'DELIVERED', date: '25/08/2026' },
   ],
 };
 

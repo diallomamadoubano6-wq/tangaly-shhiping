@@ -28,11 +28,10 @@ export async function getHomeData() {
     console.warn("Could not query database during render/build, using fallback data:", error);
   }
 
-  // Fallback services si la base de données est vide ou fraîchement déployée
+  // Services phares : Aérien et Maritime uniquement
   const defaultServices = [
     { id: '1', titre: 'Fret Aérien Express', description: 'Transport aérien rapide USA ↔ Guinée (dans les deux sens) en 48-72h.', image: '/images/service-air.jpg' },
     { id: '2', titre: 'Fret Maritime Sécurisé', description: 'Groupage et conteneurs maritimes réguliers entre les États-Unis et la Guinée.', image: '/images/service-sea.jpg' },
-    { id: '3', titre: 'Entreposage & Relais', description: 'Stockage sécurisé et adresses de dépôt à New York et Conakry.', image: '/images/service-warehouse.jpg' },
   ];
 
   const effectiveServices = services.length > 0 ? services : defaultServices;
