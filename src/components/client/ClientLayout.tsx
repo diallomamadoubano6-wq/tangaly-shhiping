@@ -5,16 +5,29 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
+import { 
+  LayoutDashboard, 
+  Package, 
+  ClipboardList, 
+  FileText, 
+  CreditCard, 
+  Bell, 
+  User as UserIcon, 
+  Search, 
+  LogOut, 
+  X, 
+  Menu 
+} from 'lucide-react';
 import styles from './ClientLayout.module.css';
 
 const navItems = [
-  { href: '/client/dashboard',  icon: '📊', label: 'Tableau de bord' },
-  { href: '/client/shipments',  icon: '📦', label: 'Mes expéditions' },
-  { href: '/client/quotes',     icon: '📋', label: 'Mes devis' },
-  { href: '/client/documents',  icon: '📄', label: 'Documents' },
-  { href: '/client/invoices',   icon: '💰', label: 'Factures' },
-  { href: '/client/notifications', icon: '🔔', label: 'Notifications' },
-  { href: '/client/profile',    icon: '👤', label: 'Mon profil' },
+  { href: '/client/dashboard',     Icon: LayoutDashboard, label: 'Tableau de bord' },
+  { href: '/client/shipments',     Icon: Package,         label: 'Mes expéditions' },
+  { href: '/client/quotes',        Icon: ClipboardList,   label: 'Mes devis' },
+  { href: '/client/documents',     Icon: FileText,        label: 'Documents' },
+  { href: '/client/invoices',      Icon: CreditCard,      label: 'Factures' },
+  { href: '/client/notifications', Icon: Bell,            label: 'Notifications' },
+  { href: '/client/profile',       Icon: UserIcon,        label: 'Mon profil' },
 ];
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -38,7 +51,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '40px' }} 
             />
           </Link>
-          <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu">✕</button>
+          <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu">
+            <X size={18} />
+          </button>
         </div>
 
         {/* Profil utilisateur */}
@@ -55,6 +70,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <ul role="list">
             {navItems.map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + '/');
+              const IconComponent = item.Icon;
               return (
                 <li key={item.href}>
                   <Link
@@ -63,7 +79,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     aria-current={active ? 'page' : undefined}
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <span className={styles.navIcon} aria-hidden="true">{item.icon}</span>
+                    <span className={styles.navIcon} aria-hidden="true">
+                      <IconComponent size={18} />
+                    </span>
                     <span>{item.label}</span>
                   </Link>
                 </li>
@@ -74,11 +92,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
         {/* Déconnexion */}
         <div className={styles.sidebarFooter}>
-          <Link href="/tracking" className={styles.trackingLink}>
-            🔍 Suivi public
+          <Link href="/tracking" className={styles.trackingLink} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Search size={16} /> Suivi public
           </Link>
-          <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: '/login' })}>
-            <span aria-hidden="true">🚪</span> Se déconnecter
+          <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: '/login' })} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LogOut size={16} /> Se déconnecter
           </button>
         </div>
       </aside>
@@ -98,7 +116,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             aria-label="Ouvrir le menu"
             aria-expanded={sidebarOpen}
           >
-            ☰
+            <Menu size={22} />
           </button>
           <span className={styles.headerTitle}>Espace Client</span>
           <div className={styles.headerAvatar}>{user?.nom?.charAt(0) ?? 'C'}</div>

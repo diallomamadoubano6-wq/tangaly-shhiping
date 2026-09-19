@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Users, Rocket, Globe, Lightbulb } from 'lucide-react';
 import styles from './about.module.css';
 
 export const metadata: Metadata = {
@@ -14,10 +15,10 @@ async function getAboutData() {
     histoire: 'TANGALY est née d\'un constat simple : les Guinéens de la diaspora et les entreprises échangeant entre les USA et la Guinée manquaient d\'un partenaire logistique fiable, transparent et réactif. Fondée à New York en 2018, TANGALY a grandi pour devenir la référence du transport bilatéral USA–Guinée.',
     mission: 'Connecter les continents par la logistique, avec intégrité et excellence.',
     valeurs: [
-      { icon: '🤝', titre: 'Confiance', description: 'Chaque engagement est tenu. Votre colis est traité comme le nôtre.' },
-      { icon: '🚀', titre: 'Rapidité', description: 'Délais optimisés grâce à nos partenariats aériens et maritimes privilégiés.' },
-      { icon: '🌍', titre: 'Proximité', description: 'Deux bureaux, une seule famille. USA et Guinée, nous sommes chez vous.' },
-      { icon: '💡', titre: 'Innovation', description: 'Suivi digital, notifications temps réel, CMS moderne. Nous investissons en technologie.' },
+      { Icon: Users, titre: 'Confiance', description: 'Chaque engagement est tenu. Votre colis est traité comme le nôtre.' },
+      { Icon: Rocket, titre: 'Rapidité', description: 'Délais optimisés grâce à nos partenariats aériens et maritimes privilégiés.' },
+      { Icon: Globe, titre: 'Proximité', description: 'Deux bureaux, une seule famille. USA et Guinée, nous sommes chez vous.' },
+      { Icon: Lightbulb, titre: 'Innovation', description: 'Suivi digital, notifications temps réel, CMS moderne. Nous investissons en technologie.' },
     ],
     chiffres: [
       { value: '2018', label: 'Année de fondation' },
@@ -78,13 +79,18 @@ export default async function AboutPage() {
             <p>Les principes qui guident chacune de nos actions au quotidien.</p>
           </div>
           <ul className={styles.valeursGrid} role="list">
-            {data.valeurs.map((v) => (
-              <li key={v.titre} className={styles.valeurCard}>
-                <span className={styles.valeurIcon} aria-hidden="true">{v.icon}</span>
-                <h3>{v.titre}</h3>
-                <p>{v.description}</p>
-              </li>
-            ))}
+            {data.valeurs.map((v) => {
+              const IconComponent = v.Icon;
+              return (
+                <li key={v.titre} className={styles.valeurCard}>
+                  <span className={styles.valeurIcon} aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <IconComponent size={28} className="text-primary" />
+                  </span>
+                  <h3>{v.titre}</h3>
+                  <p>{v.description}</p>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>

@@ -10,6 +10,8 @@ import {
   type ShipmentStatusCode,
 } from '@/lib/trackingStatuses';
 import { publicTracking } from '@/actions/public';
+import { Search, AlertTriangle, Plane, Mail, User, Phone } from 'lucide-react';
+import { StatusIcon } from '@/components/ui';
 import styles from './tracking.module.css';
 
 // Appel vers la Server Action
@@ -45,10 +47,10 @@ function StatusStepper({ currentStatut }: { currentStatut: string }) {
           >
             <div
               className={styles.stepBubble}
-              style={done ? { background: s.color, borderColor: s.color } : {}}
+              style={done ? { background: s.color, borderColor: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               aria-hidden="true"
             >
-              {done ? s.icon : <span className={styles.stepNum}>{i + 1}</span>}
+              {done ? <StatusIcon status={s.code} size={15} color="#ffffff" /> : <span className={styles.stepNum}>{i + 1}</span>}
             </div>
             {i < SHIPMENT_STATUSES.length - 1 && (
               <div className={`${styles.stepLine} ${done && i < currentIdx ? styles.stepLineDone : ''}`} aria-hidden="true" />
@@ -72,10 +74,10 @@ function TrackingTimeline({ events }: { events: any[] }) {
             <div className={styles.eventLeft}>
               <div
                 className={styles.eventDot}
-                style={{ background: isLatest ? info.color : '#e2e8f0', borderColor: isLatest ? info.color : '#e2e8f0' }}
+                style={{ background: isLatest ? info.color : '#e2e8f0', borderColor: isLatest ? info.color : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 aria-hidden="true"
               >
-                {isLatest && <span>{info.icon}</span>}
+                {isLatest && <StatusIcon status={ev.statut} size={11} color="#ffffff" />}
               </div>
               {i < events.length - 1 && <div className={styles.eventLine} />}
             </div>
@@ -155,17 +157,18 @@ export default function TrackingPage() {
             className="btn btn-primary btn-lg"
             disabled={isPending || !numero.trim()}
             aria-busy={isPending}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
-            {isPending ? <span className="spinner" aria-hidden="true" /> : '🔍'}
+            {isPending ? <span className="spinner" aria-hidden="true" /> : <Search size={18} />}
             {isPending ? 'Recherche...' : 'Suivre'}
           </button>
         </form>
 
         {/* Message d'erreur */}
         {error && (
-          <div className={styles.errorBox} role="alert">
-            <span>⚠️</span>
-            <p>{error}</p>
+          <div className={styles.errorBox} role="alert" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} />
+            <p style={{ margin: 0 }}>{error}</p>
           </div>
         )}
 
@@ -180,8 +183,8 @@ export default function TrackingPage() {
                   <p className={styles.resultLabel}>Numéro de tracking</p>
                   <h2 className={styles.resultTrackingNum}>{result.tracking_number}</h2>
                 </div>
-                <div className={styles.resultStatusBadge} style={{ color: statusInfo.color, background: statusInfo.bgColor }}>
-                  <span className={styles.resultStatusIcon}>{statusInfo.icon}</span>
+                <div className={styles.resultStatusBadge} style={{ color: statusInfo.color, background: statusInfo.bgColor, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <StatusIcon status={result.statut} size={15} color={statusInfo.color} />
                   <span>{statusInfo.label}</span>
                 </div>
               </div>
@@ -194,7 +197,9 @@ export default function TrackingPage() {
                     <span className={styles.metaCityVal}>{result.origine}</span>
                   </div>
                   <div className={styles.metaRouteLine} aria-hidden="true">
-                    <span className={styles.metaPlane}>✈</span>
+                    <span className={styles.metaPlane} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Plane size={16} />
+                    </span>
                   </div>
                   <div className={styles.metaCity}>
                     <span className={styles.metaCityLabel}>Destination</span>
@@ -229,9 +234,15 @@ export default function TrackingPage() {
           <div className={styles.helpSection}>
             <h3>Comment trouver mon numéro de tracking ?</h3>
             <ul className={styles.helpList}>
-              <li>📧 Il vous a été envoyé par email lors de la création de votre expédition.</li>
-              <li>👤 Il est disponible dans votre espace client, rubrique "Mes expéditions".</li>
-              <li>📱 Notre équipe peut vous le communiquer par WhatsApp au +1 (555) 000-0000.</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Mail size={16} className="text-primary" /> Il vous a été envoyé par email lors de la création de votre expédition.
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <User size={16} className="text-primary" /> Il est disponible dans votre espace client, rubrique "Mes expéditions".
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Phone size={16} className="text-primary" /> Notre équipe peut vous le communiquer par WhatsApp au +1 (555) 000-0000.
+              </li>
             </ul>
           </div>
         )}

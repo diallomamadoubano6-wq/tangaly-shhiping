@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -71,8 +72,9 @@ export default function LoginPage() {
         <p className={styles.sub}>Accédez à vos expéditions, documents et factures.</p>
 
         {error && (
-          <div className={styles.errorBox} role="alert" aria-live="assertive">
-            <span aria-hidden="true">⚠️</span> {error}
+          <div className={styles.errorBox} role="alert" aria-live="assertive" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertCircle size={18} className="text-amber-500" aria-hidden="true" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -116,8 +118,9 @@ export default function LoginPage() {
                 className={styles.pwdToggle}
                 onClick={() => setShowPwd(!showPwd)}
                 aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {showPwd ? '🙈' : '👁️'}
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>

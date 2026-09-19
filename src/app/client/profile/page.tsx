@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { Save, KeyRound, LogOut, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import styles from './profile.module.css';
 
 export default function ClientProfilePage() {
@@ -53,7 +54,9 @@ export default function ClientProfilePage() {
             </div>
 
             {saved && (
-              <div className={styles.successMsg} role="status">✅ Profil mis à jour avec succès.</div>
+              <div className={styles.successMsg} role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Profil mis à jour avec succès.
+              </div>
             )}
 
             <form onSubmit={handleSave}>
@@ -77,7 +80,9 @@ export default function ClientProfilePage() {
                   <input id="p-adr" className="form-input" value={form.adresse} onChange={(e) => setForm({ ...form, adresse: e.target.value })} />
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary">💾 Enregistrer les modifications</button>
+              <button type="submit" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Save size={16} /> Enregistrer les modifications
+              </button>
             </form>
           </div>
         </section>
@@ -85,10 +90,14 @@ export default function ClientProfilePage() {
         {/* Sécurité */}
         <section aria-labelledby="security-title">
           <div className={styles.card}>
-            <h2 id="security-title" className={styles.sectionTitle}>🔒 Sécurité du compte</h2>
+            <h2 id="security-title" className={styles.sectionTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={20} className="text-primary" /> Sécurité du compte
+            </h2>
 
             {pwdSaved && (
-              <div className={styles.successMsg} role="status">✅ Mot de passe mis à jour.</div>
+              <div className={styles.successMsg} role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Mot de passe mis à jour.
+              </div>
             )}
 
             <form onSubmit={handlePwdSave}>
@@ -104,7 +113,9 @@ export default function ClientProfilePage() {
                 <label htmlFor="p-conf" className="form-label">Confirmer le nouveau mot de passe</label>
                 <input id="p-conf" type="password" className="form-input" value={pwdForm.confirm} onChange={(e) => setPwdForm({ ...pwdForm, confirm: e.target.value })} required />
               </div>
-              <button type="submit" className="btn btn-outline">🔑 Changer le mot de passe</button>
+              <button type="submit" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <KeyRound size={16} /> Changer le mot de passe
+              </button>
             </form>
 
             <hr className="divider" />
@@ -112,7 +123,9 @@ export default function ClientProfilePage() {
             <div className={styles.dangerZone}>
               <h3 className={styles.dangerTitle}>Zone de danger</h3>
               <p className={styles.dangerDesc}>La déconnexion mettra fin à votre session sur cet appareil.</p>
-              <button className="btn btn-danger btn-sm" onClick={logout}>🚪 Se déconnecter</button>
+              <button className="btn btn-danger btn-sm" onClick={logout} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <LogOut size={15} /> Se déconnecter
+              </button>
             </div>
           </div>
         </section>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Phone, Mail, MapPin } from 'lucide-react';
 import styles from './Footer.module.css';
 
 const footerLinks = {
@@ -72,10 +73,10 @@ export default function Footer() {
           <div>
             <h3 className={styles.colTitle}>Contact</h3>
             <address className={styles.address}>
-              <p>📞 +1 (555) 000-0000</p>
-              <p>📧 contact@tangaly.com</p>
-              <p>🇺🇸 New York, USA</p>
-              <p>🇬🇳 Conakry, Guinée</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={14} className="text-primary" /> +1 (555) 000-0000</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={14} className="text-primary" /> contact@tangaly.com</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={14} className="text-primary" /> New York, USA</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={14} className="text-primary" /> Conakry, Guinée</p>
             </address>
           </div>
         </div>

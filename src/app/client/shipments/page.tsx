@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getStatusInfo, SHIPMENT_STATUSES } from '@/lib/trackingStatuses';
 import { getClientShipments } from '@/actions/client';
+import { Package, X, Search, FileText } from 'lucide-react';
+import { StatusIcon } from '@/components/ui';
 import styles from './shipments.module.css';
 
 export default function ClientShipmentsPage() {
@@ -81,8 +83,9 @@ export default function ClientShipmentsPage() {
                 >
                   <div className={styles.cardTop}>
                     <span className={styles.trackingNum}>{s.tracking_number}</span>
-                    <span className={styles.statusBadge} style={{ color: info.color, background: info.bgColor }}>
-                      {info.icon} {info.label}
+                    <span className={styles.statusBadge} style={{ color: info.color, background: info.bgColor, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <StatusIcon status={s.statut} size={13} color={info.color} />
+                      <span>{info.label}</span>
                     </span>
                   </div>
                   <p className={styles.cardRoute}>{s.origine} → {s.destination}</p>
@@ -96,7 +99,9 @@ export default function ClientShipmentsPage() {
             );
           }) : (
             <li className={styles.empty}>
-              <span>📦</span>
+              <span style={{ display: 'inline-flex', padding: 12, background: 'var(--color-gray-100)', borderRadius: '999px', color: 'var(--color-primary)' }}>
+                <Package size={32} />
+              </span>
               <p>Aucune expédition trouvée.</p>
             </li>
           )}
@@ -107,7 +112,9 @@ export default function ClientShipmentsPage() {
           <div className={styles.detail} aria-label="Détail de l'expédition">
             <div className={styles.detailHeader}>
               <h2 className={styles.detailTracking}>{selected.tracking_number}</h2>
-              <button className={styles.detailClose} onClick={() => setSelected(null)} aria-label="Fermer le détail">✕</button>
+              <button className={styles.detailClose} onClick={() => setSelected(null)} aria-label="Fermer le détail">
+                <X size={18} />
+              </button>
             </div>
 
             {/* Statut */}
@@ -115,7 +122,9 @@ export default function ClientShipmentsPage() {
               const info = getStatusInfo(selected.statut);
               return (
                 <div className={styles.detailStatus} style={{ background: info.bgColor }}>
-                  <span className={styles.detailStatusIcon}>{info.icon}</span>
+                  <span className={styles.detailStatusIcon} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: info.color }}>
+                    <StatusIcon status={selected.statut} size={24} color={info.color} />
+                  </span>
                   <div>
                     <p className={styles.detailStatusLabel} style={{ color: info.color }}>{info.labelFr}</p>
                     <p className={styles.detailStatusDesc}>{info.description}</p>
@@ -136,11 +145,11 @@ export default function ClientShipmentsPage() {
 
             {/* Actions */}
             <div className={styles.detailActions}>
-              <Link href={`/tracking?numero=${selected.tracking_number}`} className="btn btn-primary btn-sm">
-                🔍 Suivi détaillé
+              <Link href={`/tracking?numero=${selected.tracking_number}`} className="btn btn-primary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Search size={15} /> Suivi détaillé
               </Link>
-              <Link href="/client/documents" className="btn btn-outline btn-sm">
-                📄 Voir les documents
+              <Link href="/client/documents" className="btn btn-outline btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <FileText size={15} /> Voir les documents
               </Link>
             </div>
           </div>

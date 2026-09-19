@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Plane, Ship, Package, Building2, ShieldCheck, Zap, MessageSquareText, BadgeDollarSign, MapPin, Search, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Plane, Ship, Package, Building2, ShieldCheck, Zap, MessageSquareText, BadgeDollarSign, MapPin, Search, CheckCircle2, ArrowRight, ArrowLeftRight } from 'lucide-react';
 import styles from './home.module.css';
 import Image from 'next/image';
 
@@ -155,9 +155,11 @@ export default async function HomePage() {
               <Image src="/images/why-us.jpg" alt="Equipe logistique TANGALY" fill sizes="(max-width: 1024px) 100vw, 50vw" />
             </div>
             <ul className={styles.whyContent} role="list">
-              {data.whyUs.map((w) => (
+              {data.whyUs.map((w, idx) => (
                 <li key={w.title} className={styles.whyItem}>
-                  <span className={styles.whyIcon} aria-hidden="true">{w.icon}</span>
+                  <span className={styles.whyIcon} aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {idx === 0 ? <ArrowLeftRight size={24} /> : idx === 1 ? <ShieldCheck size={24} /> : <MessageSquareText size={24} />}
+                  </span>
                   <div className={styles.whyText}>
                     <h3>{w.title}</h3>
                     <p>{w.description}</p>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { submitQuote } from '@/actions/public';
+import { CheckCircle2, Send, Zap, BadgePercent, PhoneCall } from 'lucide-react';
 import styles from './devis.module.css';
 
 const SERVICES = ['Fret Aérien', 'Fret Maritime'];
@@ -24,23 +25,21 @@ export default function DevisPage() {
       const origine = zone === 'Guinée → USA' ? 'Guinée' : 'USA';
       const destination = zone === 'Guinée → USA' ? 'USA' : 'Guinée';
 
-      const data = {
-        client_nom:    fd.get('nom') as string,
-        client_email:  fd.get('email') as string,
-        client_tel:    fd.get('telephone') as string,
-        service:       fd.get('service') as string,
+      const res = await submitQuote({
+        client_nom: fd.get('nom') as string,
+        client_email: fd.get('email') as string,
+        client_tel: (fd.get('telephone') as string) || '',
+        service: fd.get('service') as string,
         origine,
         destination,
-        poids_estime:  fd.get('poids') as string,
-        message:       fd.get('description') as string,
-      };
-      
-      const res = await submitQuote(data);
+        poids_estime: (fd.get('poids') as string) || '',
+        message: fd.get('description') as string,
+      });
 
-      if (!res.success) {
-        setError(res.message || 'Une erreur est survenue. Veuillez réessayer.');
-      } else {
+      if (res.success) {
         setSubmitted(true);
+      } else {
+        setError('Une erreur est survenue.');
       }
     } catch (err) {
       setError('Erreur de connexion au serveur.');
@@ -54,7 +53,9 @@ export default function DevisPage() {
       <section className={styles.page}>
         <div className="container">
           <div className={`state-container ${styles.successState}`}>
-            <span className="state-icon">✅</span>
+            <span className="state-icon" style={{ display: 'inline-flex', justifyContent: 'center' }}>
+              <CheckCircle2 size={48} className="text-emerald-500" />
+            </span>
             <h2 className="state-title">Demande envoyée !</h2>
             <p>Notre équipe a bien reçu votre demande de devis. Vous serez contacté sous 24 heures ouvrées.</p>
             <button className="btn btn-outline" onClick={() => setSubmitted(false)}>
@@ -144,24 +145,33 @@ export default function DevisPage() {
               <span className="form-hint">Minimum 20 caractères. Plus vous êtes précis, plus notre offre sera adaptée.</span>
             </div>
 
-            <button type="submit" className={`btn btn-primary btn-lg ${styles.submitBtn}`} disabled={loading}>
-              {loading ? <span className="spinner" aria-hidden="true" /> : null}
-              {loading ? 'Envoi en cours...' : '📨 Envoyer ma demande'}
+            <button type="submit" className={`btn btn-primary btn-lg ${styles.submitBtn}`} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {loading ? <span className="spinner" aria-hidden="true" /> : <Send size={18} />}
+              <span>{loading ? 'Envoi en cours...' : 'Envoyer ma demande'}</span>
             </button>
           </form>
 
           {/* Sidebar info */}
           <aside className={styles.sidebar} aria-label="Informations complémentaires">
             <div className={styles.infoCard}>
-              <h3>⚡ Réponse rapide</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Zap size={18} className="text-amber-500" />
+                <span>Réponse rapide</span>
+              </h3>
               <p>Notre équipe répond à chaque demande sous <strong>24 heures ouvrées</strong>.</p>
             </div>
             <div className={styles.infoCard}>
-              <h3>💰 Devis sans engagement</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BadgePercent size={18} className="text-emerald-500" />
+                <span>Devis sans engagement</span>
+              </h3>
               <p>Votre demande de devis est totalement <strong>gratuite et sans engagement</strong>.</p>
             </div>
             <div className={styles.infoCard}>
-              <h3>📞 Besoin d'aide ?</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <PhoneCall size={18} className="text-blue-500" />
+                <span>Besoin d'aide ?</span>
+              </h3>
               <p>Notre équipe est disponible par téléphone au <strong>+1 (555) 000-0000</strong> ou par WhatsApp.</p>
             </div>
           </aside>

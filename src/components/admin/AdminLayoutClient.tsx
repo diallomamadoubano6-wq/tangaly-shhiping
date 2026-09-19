@@ -37,7 +37,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
               <Menu size={22} />
             </button>
             <div className={styles.headerLeft}>
-              <h1>Bonjour, Administrateur ! 👋</h1>
+              <h1>Bonjour, Administrateur !</h1>
               <p>Bienvenue dans le centre de contrôle.</p>
             </div>
           </div>

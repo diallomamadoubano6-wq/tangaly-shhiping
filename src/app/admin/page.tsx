@@ -1,5 +1,5 @@
 import styles from './admin.module.css';
-import { Package, Truck, CheckCircle, Trophy, Wallet, Search, MapPin, Building2, BarChart2, FileText, Phone, Mail } from 'lucide-react';
+import { Package, Truck, CheckCircle, Trophy, Wallet, Search, MapPin, Building2, BarChart2, FileText, Phone, Mail, Target, DollarSign, Clock, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { getAdminDashboardStats } from '@/actions/admin';
 import { getStatusInfo } from '@/lib/trackingStatuses';
@@ -198,15 +198,24 @@ export default async function AdminDashboard() {
             </div>
             <div className={styles.taskList}>
                <div className={styles.taskItem}>
-                  <div style={{display:'flex', alignItems:'center', gap:8}}>📦 Colis à recevoir aujourd'hui</div>
+                  <div style={{display:'flex', alignItems:'center', gap:8}}>
+                    <Package size={16} color="#2563eb" />
+                    <span>Colis à recevoir aujourd'hui</span>
+                  </div>
                   <span className={`${styles.taskBadge} ${styles.blue}`}>8</span>
                </div>
                <div className={styles.taskItem}>
-                  <div style={{display:'flex', alignItems:'center', gap:8}}>💰 Paiements en attente</div>
+                  <div style={{display:'flex', alignItems:'center', gap:8}}>
+                    <CreditCard size={16} color="#d97706" />
+                    <span>Paiements en attente</span>
+                  </div>
                   <span className={`${styles.taskBadge} ${styles.yellow}`}>12</span>
                </div>
                <div className={styles.taskItem}>
-                  <div style={{display:'flex', alignItems:'center', gap:8}}>📄 Factures à envoyer</div>
+                  <div style={{display:'flex', alignItems:'center', gap:8}}>
+                    <FileText size={16} color="#9333ea" />
+                    <span>Factures à envoyer</span>
+                  </div>
                   <span className={`${styles.taskBadge} ${styles.purple}`}>7</span>
                </div>
             </div>
@@ -229,9 +238,18 @@ export default async function AdminDashboard() {
                   </div>
                </div>
                <div style={{fontSize: 13, lineHeight: '24px'}}>
-                  <div style={{color:'#64748b'}}>🎯 Objectif : <b>5,000,000 GNF</b></div>
-                  <div style={{color:'#10b981'}}>💰 Collecté : <b>3,862,500 GNF</b></div>
-                  <div style={{color:'#f59e0b'}}>⏳ Reste : <b>1,137,500 GNF</b></div>
+                  <div style={{color:'#64748b', display: 'flex', alignItems: 'center', gap: 6}}>
+                    <Target size={15} />
+                    <span>Objectif : <b>5,000,000 GNF</b></span>
+                  </div>
+                  <div style={{color:'#10b981', display: 'flex', alignItems: 'center', gap: 6}}>
+                    <DollarSign size={15} />
+                    <span>Collecté : <b>3,862,500 GNF</b></span>
+                  </div>
+                  <div style={{color:'#f59e0b', display: 'flex', alignItems: 'center', gap: 6}}>
+                    <Clock size={15} />
+                    <span>Reste : <b>1,137,500 GNF</b></span>
+                  </div>
                </div>
             </div>
          </div>

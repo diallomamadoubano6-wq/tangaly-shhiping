@@ -63,9 +63,9 @@ export async function getHomeData() {
         description: s.description
       })),
       whyUs: [
-        { title: "Liaison Bilatérale", icon: "🔄", description: "Départs réguliers dans les 2 sens : USA ➔ Guinée et Guinée ➔ USA." },
-        { title: "Sécurité & Traçabilité", icon: "🛡️", description: "Vos colis sont assurés, pesés avec rigueur et tracés en temps réel." },
-        { title: "Support Dédié 7j/7", icon: "💬", description: "Des équipes bilingues basées localement à New York et à Conakry." }
+        { title: "Liaison Bilatérale", icon: "repeat", description: "Départs réguliers dans les 2 sens : USA ➔ Guinée et Guinée ➔ USA." },
+        { title: "Sécurité & Traçabilité", icon: "shield", description: "Vos colis sont assurés, pesés avec rigueur et tracés en temps réel." },
+        { title: "Support Dédié 7j/7", icon: "message", description: "Des équipes bilingues basées localement à New York et à Conakry." }
       ],
       faq: faqs.map((f: any) => ({
         q: f.question,

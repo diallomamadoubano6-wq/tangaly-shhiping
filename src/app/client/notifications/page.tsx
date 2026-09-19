@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { RefreshCw, Package, Sparkles, CheckCircle2, Mail, Smartphone, Bell } from 'lucide-react';
 import styles from './notifications.module.css';
 
 const MOCK_NOTIFS = [
@@ -41,8 +42,8 @@ export default function NotificationsPage() {  const { data: session } = useSess
             <ul className={styles.notifList}>
               {notifs.map((n) => (
                 <li key={n.id} className={`${styles.notifItem} ${n.lu ? styles.notifRead : ''}`} onClick={() => markAsRead(n.id)}>
-                  <div className={styles.notifIcon}>
-                    {n.type === 'CHANGEMENT_STATUT' ? '🔄' : n.type === 'NOUVEAU_COLIS' ? '📦' : '🎉'}
+                  <div className={styles.notifIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {n.type === 'CHANGEMENT_STATUT' ? <RefreshCw size={18} /> : n.type === 'NOUVEAU_COLIS' ? <Package size={18} /> : <Sparkles size={18} />}
                   </div>
                   <div className={styles.notifBody}>
                     <p className={styles.notifMessage}>{n.message}</p>
@@ -64,12 +65,18 @@ export default function NotificationsPage() {  const { data: session } = useSess
             <h2 id="prefs-title" className={styles.sectionTitle}>Préférences</h2>
             <p className={styles.prefsDesc}>Choisissez comment vous souhaitez être informé de l'avancée de vos colis.</p>
             
-            {saved && <div className={styles.successMsg}>✅ Préférences enregistrées.</div>}
+            {saved && (
+              <div className={styles.successMsg} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Préférences enregistrées.
+              </div>
+            )}
 
             <form onSubmit={handleSavePrefs} className={styles.prefsForm}>
               <label className={styles.toggleRow}>
                 <div>
-                  <span className={styles.toggleLabel}>Emails ✉️</span>
+                  <span className={styles.toggleLabel} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Mail size={16} /> Emails
+                  </span>
                   <p className={styles.toggleSub}>Recevoir les mises à jour par email</p>
                 </div>
                 <input type="checkbox" checked={prefs.email} onChange={(e) => setPrefs({...prefs, email: e.target.checked})} className={styles.toggleInput} />
@@ -77,7 +84,9 @@ export default function NotificationsPage() {  const { data: session } = useSess
 
               <label className={styles.toggleRow}>
                 <div>
-                  <span className={styles.toggleLabel}>WhatsApp / SMS 📱</span>
+                  <span className={styles.toggleLabel} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Smartphone size={16} /> WhatsApp / SMS
+                  </span>
                   <p className={styles.toggleSub}>Alertes instantanées sur votre téléphone</p>
                 </div>
                 <input type="checkbox" checked={prefs.sms} onChange={(e) => setPrefs({...prefs, sms: e.target.checked})} className={styles.toggleInput} />
@@ -85,7 +94,9 @@ export default function NotificationsPage() {  const { data: session } = useSess
 
               <label className={styles.toggleRow}>
                 <div>
-                  <span className={styles.toggleLabel}>Notifications navigateur 🔔</span>
+                  <span className={styles.toggleLabel} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Bell size={16} /> Notifications navigateur
+                  </span>
                   <p className={styles.toggleSub}>Alertes lorsque vous êtes sur l'espace client</p>
                 </div>
                 <input type="checkbox" checked={prefs.push} onChange={(e) => setPrefs({...prefs, push: e.target.checked})} className={styles.toggleInput} />

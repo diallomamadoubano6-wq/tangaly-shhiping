@@ -1,5 +1,6 @@
 'use client';
 
+import { Clock, CheckCircle2, Download, CreditCard } from 'lucide-react';
 import styles from './invoices.module.css';
 
 const INVOICES = [
@@ -20,14 +21,18 @@ export default function ClientInvoicesPage() {
       {/* Résumé financier */}
       <div className={styles.summary}>
         <div className={styles.summaryCard} style={{ background: '#fff5f5', borderColor: '#feb2b2' }}>
-          <span className={styles.summaryIcon}>⏳</span>
+          <span className={styles.summaryIcon} style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center' }}>
+            <Clock size={24} />
+          </span>
           <div>
             <p className={styles.summaryLabel}>En attente de paiement</p>
             <p className={styles.summaryValue} style={{ color: 'var(--color-danger)' }}>${totalDue.toFixed(2)}</p>
           </div>
         </div>
         <div className={styles.summaryCard} style={{ background: 'var(--color-green-100)', borderColor: '#9ae6b4' }}>
-          <span className={styles.summaryIcon}>✅</span>
+          <span className={styles.summaryIcon} style={{ color: 'var(--color-success)', display: 'flex', alignItems: 'center' }}>
+            <CheckCircle2 size={24} />
+          </span>
           <div>
             <p className={styles.summaryLabel}>Total payé</p>
             <p className={styles.summaryValue} style={{ color: 'var(--color-success)' }}>${totalPaid.toFixed(2)}</p>
@@ -60,16 +65,24 @@ export default function ClientInvoicesPage() {
                   <td style={{ fontSize: '0.8rem' }}>{inv.echeance}</td>
                   <td>
                     {inv.statut === 'PAID' ? (
-                      <span className={styles.badgePaid}>✅ Payé</span>
+                      <span className={styles.badgePaid} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <CheckCircle2 size={12} /> Payé
+                      </span>
                     ) : (
-                      <span className={styles.badgePending}>⏳ En attente</span>
+                      <span className={styles.badgePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={12} /> En attente
+                      </span>
                     )}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <button className="btn btn-ghost btn-sm" aria-label={`Télécharger ${inv.ref}`}>⬇️ PDF</button>
+                      <button className="btn btn-ghost btn-sm" aria-label={`Télécharger ${inv.ref}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Download size={14} /> PDF
+                      </button>
                       {inv.statut === 'PENDING' && (
-                        <button className="btn btn-primary btn-sm" aria-label={`Payer ${inv.ref}`}>💳 Payer</button>
+                        <button className="btn btn-primary btn-sm" aria-label={`Payer ${inv.ref}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CreditCard size={14} /> Payer
+                        </button>
                       )}
                     </div>
                   </td>

@@ -48,7 +48,7 @@ export default function OperationsLayoutClient({ children }: { children: React.R
               <Menu size={22} />
             </button>
             <div className={styles.headerLeft}>
-              <h1>Bonjour, {user?.nom || 'Agent'} ! 👋</h1>
+              <h1>Bonjour, {user?.nom || 'Agent'} !</h1>
               <p>Bienvenue dans votre espace logistique & opérations.</p>
             </div>
           </div>

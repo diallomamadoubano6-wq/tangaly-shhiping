@@ -9,6 +9,7 @@ import { getShipments, createShipment, updateShipmentStatus, addShipmentEvent } 
 import { getUsers } from '@/actions/users';
 import styles from './admin-tracking.module.css';
 import { QRCodeCanvas } from 'qrcode.react';
+import { Edit3, MapPin, QrCode, Plus } from 'lucide-react';
 
 const TRANSPORT_TYPES = ['Fret Aérien', 'Fret Maritime'];
 
@@ -159,11 +160,12 @@ export default function AdminTrackingPage() {
           >
             <option value="">Tous les statuts</option>
             {SHIPMENT_STATUSES.map((s) => (
-              <option key={s.code} value={s.code}>{s.icon} {s.label}</option>
+              <option key={s.code} value={s.code}>{s.label}</option>
             ))}
           </select>
-          <button className="btn btn-primary" onClick={() => setCreateModal(true)}>
-            + Nouvelle expédition
+          <button className="btn btn-primary" onClick={() => setCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Plus size={16} />
+            <span>Nouvelle expédition</span>
           </button>
         </div>
       </div>
@@ -193,7 +195,7 @@ export default function AdminTrackingPage() {
                   <td style={{ fontSize: '0.8rem' }}>{s.type_transport}</td>
                   <td>
                     <span className={styles.statusBadge} style={{ color: getStatusInfo(s.statut).color, background: getStatusInfo(s.statut).bgColor }}>
-                      {getStatusInfo(s.statut).icon} {getStatusInfo(s.statut).label}
+                      {getStatusInfo(s.statut).label}
                     </span>
                   </td>
                   <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{new Date(s.createdAt).toLocaleDateString()}</td>
@@ -208,22 +210,28 @@ export default function AdminTrackingPage() {
                         className="btn btn-ghost btn-sm"
                         onClick={() => { setStatusModal({ open: true, shipment: s }); setNewStatut(s.statut); }}
                         title="Modifier le statut"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                       >
-                        ✏️ Statut
+                        <Edit3 size={13} />
+                        <span>Statut</span>
                       </button>
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => { setEventModal({ open: true, shipment: s }); setEventStatut(s.statut); }}
                         title="Ajouter un événement"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                       >
-                        📍 Événement
+                        <MapPin size={13} />
+                        <span>Événement</span>
                       </button>
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => setQrModal({ open: true, shipment: s })}
                         title="Afficher le Code QR"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                       >
-                        📱 QR
+                        <QrCode size={13} />
+                        <span>QR</span>
                       </button>
                     </div>
                   </td>

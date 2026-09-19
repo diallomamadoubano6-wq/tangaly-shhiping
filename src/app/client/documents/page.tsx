@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getClientDocuments } from '@/actions/client';
+import { FileText, Eye, Download, FolderArchive } from 'lucide-react';
 import styles from './documents.module.css';
 
 type DocType = 'all' | 'invoice' | 'bl' | 'customs' | 'receipt';
@@ -75,7 +76,9 @@ export default function ClientDocumentsPage() {
         <ul className={styles.docList} role="list" aria-label="Documents">
           {filtered.map((doc) => (
             <li key={doc.id} className={styles.docCard}>
-              <div className={styles.docIcon} aria-hidden="true">📄</div>
+              <div className={styles.docIcon} aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileText size={24} className="text-primary" />
+              </div>
               <div className={styles.docInfo}>
                 <p className={styles.docName}>{doc.nom}</p>
                 <div className={styles.docMeta}>
@@ -85,11 +88,11 @@ export default function ClientDocumentsPage() {
                 </div>
               </div>
               <div className={styles.docActions}>
-                <button className="btn btn-outline btn-sm" title="Aperçu" aria-label={`Aperçu de ${doc.nom}`}>
-                  👁️ Aperçu
+                <button className="btn btn-outline btn-sm" title="Aperçu" aria-label={`Aperçu de ${doc.nom}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Eye size={14} /> Aperçu
                 </button>
-                <button className="btn btn-primary btn-sm" title="Télécharger" aria-label={`Télécharger ${doc.nom}`}>
-                  ⬇️ Télécharger
+                <button className="btn btn-primary btn-sm" title="Télécharger" aria-label={`Télécharger ${doc.nom}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Download size={14} /> Télécharger
                 </button>
               </div>
             </li>
@@ -97,7 +100,9 @@ export default function ClientDocumentsPage() {
         </ul>
       ) : (
         <div className="state-container">
-          <span className="state-icon">📂</span>
+          <span className="state-icon" style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
+            <FolderArchive size={40} />
+          </span>
           <h3 className="state-title">Aucun document trouvé</h3>
           <p>Essayez avec d'autres termes ou filtres.</p>
         </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Send, Phone, MessageSquare, Mail, Clock } from 'lucide-react';
 import styles from './contact.module.css';
 
 export const metadata: Metadata = {
@@ -14,8 +15,8 @@ async function getContactInfo() {
     email: 'contact@tangaly.com',
     whatsapp: '+1 (555) 000-0000',
     adresses: [
-      { pays: '🇺🇸 États-Unis', adresse: '123 Atlantic Ave, Brooklyn, New York, NY 11201' },
-      { pays: '🇬🇳 Guinée', adresse: 'Avenue de la République, Conakry, Guinée' },
+      { pays: 'États-Unis', adresse: '123 Atlantic Ave, Brooklyn, New York, NY 11201' },
+      { pays: 'Guinée', adresse: 'Avenue de la République, Conakry, Guinée' },
     ],
     horaires: 'Lundi – Samedi : 8h00 – 20h00 (Heure de New York)',
   };
@@ -65,8 +66,9 @@ export default async function ContactPage() {
                   <label htmlFor="c-message" className="form-label">Message *</label>
                   <textarea id="c-message" name="message" className="form-textarea" required rows={6} placeholder="Décrivez votre demande..." />
                 </div>
-                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
-                  📨 Envoyer le message
+                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Send size={18} />
+                  <span>Envoyer le message</span>
                 </button>
               </form>
             </div>
@@ -77,28 +79,36 @@ export default async function ContactPage() {
 
               <ul className={styles.contactList}>
                 <li className={styles.contactItem}>
-                  <span className={styles.contactIcon}>📞</span>
+                  <span className={styles.contactIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Phone size={20} />
+                  </span>
                   <div>
                     <strong>Téléphone</strong>
                     <a href={`tel:${info.telephone}`}>{info.telephone}</a>
                   </div>
                 </li>
                 <li className={styles.contactItem}>
-                  <span className={styles.contactIcon}>💬</span>
+                  <span className={styles.contactIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MessageSquare size={20} />
+                  </span>
                   <div>
                     <strong>WhatsApp</strong>
                     <a href={`https://wa.me/${info.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener">{info.whatsapp}</a>
                   </div>
                 </li>
                 <li className={styles.contactItem}>
-                  <span className={styles.contactIcon}>📧</span>
+                  <span className={styles.contactIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Mail size={20} />
+                  </span>
                   <div>
                     <strong>Email</strong>
                     <a href={`mailto:${info.email}`}>{info.email}</a>
                   </div>
                 </li>
                 <li className={styles.contactItem}>
-                  <span className={styles.contactIcon}>🕐</span>
+                  <span className={styles.contactIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Clock size={20} />
+                  </span>
                   <div>
                     <strong>Horaires</strong>
                     <p>{info.horaires}</p>

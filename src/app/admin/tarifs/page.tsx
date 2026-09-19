@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Link2, Plus, MapPin, Trash2, Edit2 } from 'lucide-react';
 
 import Modal from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -28,14 +29,15 @@ export default function TarifsAdminPage() {
   const [modal, setModal] = useState<{ open: boolean; tarif: Partial<Tarif> | null; isNew: boolean }>({ open: false, tarif: null, isNew: false });
   const [saving, setSaving] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}`;
-  const getAuthHeader = () => ({ 'Authorization': 'Bearer fake-token-for-dev', 'Content-Type': 'application/json' });
-
   const fetchTarifs = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getTarifs();
-      setTarifs(data || []);
+      const res: any = await getTarifs();
+      if (Array.isArray(res)) {
+        setTarifs(res as Tarif[]);
+      } else if (res && res.data) {
+        setTarifs(res.data as Tarif[]);
+      }
     } catch (e) {
       addToast('error', 'Erreur chargement tarifs');
     }
@@ -55,7 +57,7 @@ export default function TarifsAdminPage() {
     setSaving(true);
     try {
       if (modal.isNew) {
-        await createTarif(modal.tarif);
+        await createTarif(modal.tarif as any);
         addToast('success', 'Tarif ajouté !');
       } else {
         const { id, ...updates } = modal.tarif as Tarif;
@@ -81,22 +83,28 @@ export default function TarifsAdminPage() {
     }
   };
 
-  // Grouper par zone
   const grouped = tarifs.reduce<Record<string, Tarif[]>>((acc, t) => {
-    if (!acc[t.zone]) acc[t.zone] = [];
+    acc[t.zone] = acc[t.zone] || [];
     acc[t.zone].push(t);
     return acc;
   }, {});
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0 }}>Tarifs & Zones</h2>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.title}>Grille Tarifaire</h2>
+          <p className={styles.subtitle}>Gérez les prix au kilo par zone et par mode de transport</p>
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-orange-light)', padding: '4px 12px', borderRadius: '999px' }}>
-            🔗 Affiché sur /devis
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-orange-light)', padding: '4px 12px', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Link2 size={13} />
+            <span>Affiché sur /devis</span>
           </span>
-          <button className="btn btn-primary" onClick={openCreate}>+ Nouveau tarif</button>
+          <button className="btn btn-primary" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Plus size={16} />
+            <span>Nouveau tarif</span>
+          </button>
         </div>
       </div>
 
@@ -104,7 +112,10 @@ export default function TarifsAdminPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {Object.entries(grouped).map(([zone, zoneTarifs]) => (
             <div key={zone} className={styles.zoneCard}>
-              <h3 className={styles.zoneTitle}>📍 {zone}</h3>
+              <h3 className={styles.zoneTitle} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MapPin size={18} className="text-blue-500" />
+                <span>{zone}</span>
+              </h3>
               <div className="table-container">
                 <div className="table-scroll">
                   <table className="table">
@@ -134,8 +145,13 @@ export default function TarifsAdminPage() {
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <button className="btn btn-ghost btn-sm" onClick={() => openEdit(t)}>Modifier</button>
-                              <button className="btn btn-sm" style={{ background: '#fff1f2', color: '#e11d48', border: 'none' }} onClick={() => handleDeleteTarif(t.id)}>✕</button>
+                              <button className="btn btn-ghost btn-sm" onClick={() => openEdit(t)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Edit2 size={13} />
+                                <span>Modifier</span>
+                              </button>
+                              <button className="btn btn-sm" style={{ background: '#fff1f2', color: '#e11d48', border: 'none', display: 'inline-flex', alignItems: 'center', padding: '6px 8px' }} onClick={() => handleDeleteTarif(t.id)} title="Supprimer">
+                                <Trash2 size={14} />
+                              </button>
                             </div>
                           </td>
                         </tr>

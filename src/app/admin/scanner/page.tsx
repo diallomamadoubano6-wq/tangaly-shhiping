@@ -6,7 +6,7 @@ import {
   Camera, CameraOff, Search, ArrowRight, Package, CheckCircle2, 
   Loader2, ScanBarcode, Clock, MapPin, User, Weight, 
   ExternalLink, Volume2, VolumeX, Sparkles, AlertCircle, 
-  RotateCw, Check, Copy, History, Trash2
+  RotateCw, Check, Copy, History, Trash2, Zap, Barcode, Tag
 } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -377,10 +377,10 @@ export default function AdminScannerPage() {
 
               {/* Supported formats */}
               <div className={styles.formatPills}>
-                <span className={styles.formatPill}>⚡ QR Code</span>
-                <span className={styles.formatPill}>📦 Code 128</span>
-                <span className={styles.formatPill}>🏷️ EAN-13</span>
-                <span className={styles.formatPill}>🔎 Recherche textuelle</span>
+                <span className={styles.formatPill} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Zap size={12} /> QR Code</span>
+                <span className={styles.formatPill} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Barcode size={12} /> Code 128</span>
+                <span className={styles.formatPill} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Tag size={12} /> EAN-13</span>
+                <span className={styles.formatPill} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Search size={12} /> Recherche textuelle</span>
               </div>
             </div>
           </div>
@@ -469,7 +469,7 @@ export default function AdminScannerPage() {
                         border: `1px solid ${getStatusInfo(shipment.statut).color}30`
                       }}
                     >
-                      {getStatusInfo(shipment.statut).icon} {getStatusInfo(shipment.statut).labelFr}
+                      {getStatusInfo(shipment.statut).labelFr}
                     </span>
                   </div>
 
@@ -603,7 +603,7 @@ export default function AdminScannerPage() {
                       border: `1px solid ${getStatusInfo(h.newStatus).color}30`
                     }}
                   >
-                    {getStatusInfo(h.newStatus).icon} {getStatusInfo(h.newStatus).label}
+                    {getStatusInfo(h.newStatus).label}
                   </span>
                   <ExternalLink size={14} color="#94a3b8" />
                 </div>

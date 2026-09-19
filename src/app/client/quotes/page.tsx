@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getClientQuotes } from '@/actions/client';
+import { Clock, MessageSquare, CheckCircle2, XCircle, Plus, X, Check } from 'lucide-react';
 import styles from './quotes.module.css';
 
-const STATUT_UI: Record<string, { label: string; bg: string; color: string }> = {
-  PENDING:   { label: '⏳ En attente', bg: '#fffff0', color: '#d69e2e' },
-  RESPONDED: { label: '💬 Répondu',   bg: '#e8f0fe', color: '#0052cc' },
-  ACCEPTED:  { label: '✅ Accepté',   bg: '#f0fff4', color: '#38a169' },
-  CANCELLED: { label: '❌ Annulé',   bg: '#fff5f5', color: '#e53e3e' },
+const STATUT_UI: Record<string, { label: string; bg: string; color: string; icon: any }> = {
+  PENDING:   { label: 'En attente', bg: '#fffff0', color: '#d69e2e', icon: Clock },
+  RESPONDED: { label: 'Répondu',   bg: '#e8f0fe', color: '#0052cc', icon: MessageSquare },
+  ACCEPTED:  { label: 'Accepté',   bg: '#f0fff4', color: '#38a169', icon: CheckCircle2 },
+  CANCELLED: { label: 'Annulé',   bg: '#fff5f5', color: '#e53e3e', icon: XCircle },
 };
 
 export default function ClientQuotesPage() {
@@ -35,7 +36,10 @@ export default function ClientQuotesPage() {
           <h1 className={styles.title}>Mes Demandes de Devis</h1>
           <p className={styles.sub}>{quotes.length} demande{quotes.length > 1 ? 's' : ''} au total</p>
         </div>
-        <Link href="/devis" className="btn btn-primary">+ Nouvelle demande</Link>
+        <Link href="/devis" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <Plus size={16} />
+          <span>Nouvelle demande</span>
+        </Link>
       </div>
 
       <div className={`${styles.listDetail} ${selected ? styles.listDetailOpen : ''}`}>
@@ -47,6 +51,7 @@ export default function ClientQuotesPage() {
             <li style={{ padding: '1rem', color: 'var(--color-text-muted)' }}>Aucune demande de devis.</li>
           ) : quotes.map((q) => {
             const ui = STATUT_UI[q.statut] ?? STATUT_UI.PENDING;
+            const Icon = ui.icon;
             return (
               <li key={q.id}>
                 <button
@@ -56,7 +61,10 @@ export default function ClientQuotesPage() {
                 >
                   <div className={styles.cardTop}>
                     <strong className={styles.quoteRef}>Devis</strong>
-                    <span className={styles.quoteBadge} style={{ background: ui.bg, color: ui.color }}>{ui.label}</span>
+                    <span className={styles.quoteBadge} style={{ background: ui.bg, color: ui.color, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Icon size={13} />
+                      <span>{ui.label}</span>
+                    </span>
                   </div>
                   <p className={styles.quoteService}>{q.service} — {q.origine} → {q.destination}</p>
                   <div className={styles.quoteMeta}>
@@ -72,15 +80,21 @@ export default function ClientQuotesPage() {
         {/* Détail */}
         {selected && !loading && (() => {
           const ui = STATUT_UI[selected.statut] ?? STATUT_UI.PENDING;
+          const Icon = ui.icon;
           return (
             <div className={styles.detail}>
               <div className={styles.detailHeader}>
                 <h2 className={styles.detailRef}>Détails</h2>
-                <button className={styles.closeBtn} onClick={() => setSelected(null)} aria-label="Fermer">✕</button>
+                <button className={styles.closeBtn} onClick={() => setSelected(null)} aria-label="Fermer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={18} />
+                </button>
               </div>
               <div className={styles.detailBody}>
                 <div className={styles.detailStatus} style={{ background: ui.bg }}>
-                  <p className={styles.detailStatusLabel} style={{ color: ui.color }}>{ui.label}</p>
+                  <p className={styles.detailStatusLabel} style={{ color: ui.color, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <Icon size={16} />
+                    <span>{ui.label}</span>
+                  </p>
                 </div>
                 <div className={styles.detailGrid}>
                   <div className={styles.detailItem}><span>Service</span><strong>{selected.service}</strong></div>
@@ -96,8 +110,14 @@ export default function ClientQuotesPage() {
                 </div>
                 {selected.statut === 'RESPONDED' && (
                   <div className={styles.detailActions}>
-                    <button className="btn btn-success btn-lg" style={{ flex: 1 }}>✅ Accepter l'offre</button>
-                    <button className="btn btn-outline btn-lg" style={{ flex: 1 }}>❌ Refuser</button>
+                    <button className="btn btn-success btn-lg" style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      <Check size={16} />
+                      <span>Accepter l'offre</span>
+                    </button>
+                    <button className="btn btn-outline btn-lg" style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      <X size={16} />
+                      <span>Refuser</span>
+                    </button>
                   </div>
                 )}
               </div>
