@@ -104,7 +104,7 @@ export default function TransfersPage() {
 
       {/* Soldes */}
       {wallets && (
-        <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:14, marginBottom:20}}>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:14, marginBottom:20}}>
           {(['agent_matam', 'admin'] as AccountId[]).map(id => (
             <div key={id} className={styles.kpiCard} style={{background: id === 'admin' ? '#faf5ff' : 'white'}}>
               <div className={styles.kpiHeader}>

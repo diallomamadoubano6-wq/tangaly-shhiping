@@ -122,7 +122,7 @@ export default function TrackingPage() {
               <Package size={18} color="#2563eb"/> Colis {shipment.tracking_number}
             </h3>
 
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:30, background:'#f8fafc', padding:16, borderRadius:8}}>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:16, marginBottom:30, background:'#f8fafc', padding:16, borderRadius:8}}>
               <div>
                 <p style={{margin:0, fontSize:12, color:'#64748b'}}>Origine</p>
                 <p style={{margin:0, fontSize:14, fontWeight:600}}>{shipment.origine}</p>

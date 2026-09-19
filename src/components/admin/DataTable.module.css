@@ -11,6 +11,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #edf2f7;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .tableTitle {
@@ -23,6 +25,7 @@
 .tableActions {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .searchInput {
@@ -42,6 +45,26 @@
   font-size: 0.875rem;
   cursor: pointer;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+  .tableActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .searchInput {
+    min-width: 0;
+    width: 100%;
+  }
+  .addButton {
+    width: 100%;
+  }
 }
 
 .tableWrapper {

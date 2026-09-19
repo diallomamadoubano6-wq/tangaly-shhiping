@@ -412,7 +412,7 @@ export default function InvoicesPage() {
         </div>
 
         <div className={styles.tableContainer}>
-          <table className={styles.table} style={{tableLayout: 'fixed', width: '100%'}}>
+          <table className={styles.table} style={{tableLayout: 'fixed', width: '100%', minWidth: 880}}>
             <thead>
               <tr>
                 <th style={{width: '140px'}}>Reçu N°</th>

@@ -1,0 +1,269 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  GERANT_USA
+  GERANT_GUINEE
+  AGENT
+  CLIENT
+}
+
+model User {
+  id             String          @id @default(uuid())
+  nom            String
+  email          String          @unique
+  password_hash  String
+  role           Role            @default(CLIENT)
+  localisation   String?         @default("Conakry")
+  agencyId       String?
+  agency         Agency?         @relation(fields: [agencyId], references: [id])
+  client         Client?
+  notifications  Notification[]
+  trackingEvents TrackingEvent[]
+  auditLogs      AuditLog[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Client {
+  id            String         @id @default(uuid())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String         @unique
+  telephone     String?
+  adresse       String?
+  agencyId      String?
+  agency        Agency?        @relation(fields: [agencyId], references: [id])
+  shipments     Shipment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  assoExpressId String?
+  notif_email   Boolean        @default(true)
+  notif_sms     Boolean        @default(true)
+  notifications Notification[]
+}
+
+model Shipment {
+  id              String          @id @default(uuid())
+  tracking_number String          @unique
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        String
+  origine         String
+  destination     String
+  type_transport  String
+  poids           Float?
+  volume          Float?
+
+  // -- Infos destinataire --
+  receiverName    String?
+  receiverPhone   String?
+  receiverAddress String?
+
+  // -- Infos colis & finances --
+  description     String?         @db.Text
+  boxes           Int?
+  amountPaid      Float?
+  paymentMethod   String?
+  freightCost     Float?
+  docFee          Float?
+  totalAmount     Float?
+  balance         Float?
+
+  statut          String          @default("PENDING")
+  tracking_events TrackingEvent[]
+  documents       Document[]
+  notifications   Notification[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  assoExpressId   String?
+  agencyId        String?
+  agency          Agency?         @relation(fields: [agencyId], references: [id])
+
+  @@index([tracking_number])
+  @@index([clientId])
+}
+
+model TrackingEvent {
+  id           String   @id @default(uuid())
+  shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipmentId   String
+  statut       String
+  commentaire  String?  @db.Text
+  date         DateTime @default(now())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+  localisation String?
+  photoUrl     String?
+
+  @@index([shipmentId])
+  @@index([userId])
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  titre       String
+  description String   @db.Text
+  image       String?
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Quote {
+  id           String   @id @default(uuid())
+  client_nom   String
+  client_email String
+  client_tel   String?
+  service      String
+  origine      String
+  destination  String
+  poids_estime String?
+  message      String   @db.Text
+  statut       String   @default("PENDING")
+  notes_admin  String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Page {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  titre     String
+  contenu   String   @db.LongText
+  seo       String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipmentId String
+  fichier    String
+  createdAt  DateTime @default(now())
+
+  @@index([shipmentId])
+}
+
+model Notification {
+  id           String    @id @default(uuid())
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String?
+  client       Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId     String?
+  shipment     Shipment? @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipmentId   String?
+  message      String?   @db.Text
+  type         String?
+  canal        String?
+  destinataire String?
+  sujet        String?
+  statut       String?
+  lu           Boolean   @default(false)
+  date_envoi   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([shipmentId])
+}
+
+model CmsSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?  @db.Text
+  updatedAt   DateTime @updatedAt
+}
+
+model Agency {
+  id        String     @id @default(uuid())
+  nom       String     @unique
+  pays      String
+  ville     String
+  adresse   String?
+  statut    String     @default("ACTIVE")
+  users     User[]
+  clients   Client[]
+  shipments Shipment[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action          String
+  module          String
+  ancienne_valeur String?  @db.LongText
+  nouvelle_valeur String?  @db.LongText
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+}
+
+model Article {
+  id        String   @id @default(uuid())
+  titre     String
+  slug      String   @unique
+  extrait   String?  @db.Text
+  contenu   String   @db.LongText
+  image     String?
+  publie    Boolean  @default(false)
+  tags      String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(uuid())
+  question  String
+  reponse   String   @db.Text
+  ordre     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tarif {
+  id        String   @id @default(uuid())
+  zone      String
+  service   String
+  prix_kg   Float
+  prix_min  Float
+  delai     String
+  devise    String   @default("USD")
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SyncLog {
+  id            String   @id @default(uuid())
+  entite        String
+  entiteId      String
+  action        String
+  statut        String
+  payload       String?  @db.LongText
+  messageErreur String?  @db.Text
+  createdAt     DateTime @default(now())
+}
+
+model Media {
+  id            String   @id @default(uuid())
+  originalName  String
+  mimeType      String
+  sizeOriginal  Int
+  sizeOptimized Int?
+  urlWebp       String
+  urlAvif       String?
+  createdAt     DateTime @default(now())
+}

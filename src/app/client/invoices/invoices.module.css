@@ -1,8 +1,8 @@
 .page { display: flex; flex-direction: column; gap: var(--space-6); }
 .title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); margin: 0; }
 
-.summary { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-@media (min-width: 768px) { .summary { max-width: 600px; } }
+.summary { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 640px) { .summary { grid-template-columns: 1fr 1fr; max-width: 600px; } }
 
 .summaryCard { border: 1px solid; border-radius: var(--radius-lg); padding: var(--space-5); display: flex; gap: var(--space-4); align-items: center; }
 .summaryIcon { font-size: 2rem; }

@@ -216,7 +216,7 @@ export default function NewShipmentPage() {
   };
 
   return (
-    <div className={styles.dashboard} style={{position: 'relative'}}>
+    <div style={{position: 'relative', width: '100%'}}>
       {/* Hide this entire section when printing */}
             
 
@@ -236,12 +236,12 @@ export default function NewShipmentPage() {
 
             {/* Direction Selector — visible uniquement pour Super Admin */}
             {(userRole === 'SUPER_ADMIN' || userRole === '') ? (
-              <div style={{display:'flex', gap:12, marginBottom:4}}>
+              <div style={{display:'flex', gap:12, marginBottom:4, flexWrap: 'wrap'}}>
                 <button
                   type="button"
                   onClick={() => setDirection('GN_USA')}
                   style={{
-                    flex:1, padding:'14px', borderRadius:12, cursor:'pointer', fontWeight:700, fontSize:15,
+                    flex: '1 1 200px', minWidth: 160, padding:'14px', borderRadius:12, cursor:'pointer', fontWeight:700, fontSize:15,
                     border: direction === 'GN_USA' ? '2px solid #2563eb' : '2px solid #e2e8f0',
                     background: direction === 'GN_USA' ? '#eff6ff' : 'white',
                     color: direction === 'GN_USA' ? '#2563eb' : '#64748b',
@@ -270,7 +270,7 @@ export default function NewShipmentPage() {
                   type="button"
                   onClick={() => setDirection('USA_GN')}
                   style={{
-                    flex:1, padding:'14px', borderRadius:12, cursor:'pointer', fontWeight:700, fontSize:15,
+                    flex: '1 1 200px', minWidth: 160, padding:'14px', borderRadius:12, cursor:'pointer', fontWeight:700, fontSize:15,
                     border: direction === 'USA_GN' ? '2px solid #2563eb' : '2px solid #e2e8f0',
                     background: direction === 'USA_GN' ? '#eff6ff' : 'white',
                     color: direction === 'USA_GN' ? '#2563eb' : '#64748b',
@@ -346,7 +346,7 @@ export default function NewShipmentPage() {
               {direction === 'GN_USA' ? 'Départ : Conakry — Arrivée : New York' : 'Départ : New York — Arrivée : Conakry'}
             </div>
 
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px'}}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px'}}>
               {/* Expéditeur */}
               <div style={{padding: '20px', border: '1px solid #e2e8f0', borderRadius: '12px', background: 'white'}}>
                 <h3 style={{display:'flex', alignItems:'center', gap:8, fontSize:16, marginBottom:20, color:'#0f172a'}}><User size={18} color="#2563eb"/> Informations de l'Expéditeur</h3>
@@ -354,17 +354,17 @@ export default function NewShipmentPage() {
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Téléphone *</label>
                     <div style={{position: 'relative'}}>
-                      <input type="tel" value={senderPhone} onChange={handlePhoneChange} placeholder="ex: 620..." style={{width:'100%', padding: '10px 12px', border: isKnownClient ? '2px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                      <input type="tel" value={senderPhone} onChange={handlePhoneChange} placeholder="ex: 620..." style={{width:'100%', padding: '10px 12px', border: isKnownClient ? '2px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                       {isKnownClient && <CheckCircle size={18} color="#10b981" style={{position: 'absolute', right: 10, top: 10}} />}
                     </div>
                   </div>
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Nom Complet *</label>
-                    <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="Nom complet" style={{width:'100%', padding: '10px 12px', border: isKnownClient ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownClient ? '#ecfdf5' : 'white', outline:'none'}} />
+                    <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="Nom complet" style={{width:'100%', padding: '10px 12px', border: isKnownClient ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownClient ? '#ecfdf5' : 'white', outline:'none', boxSizing:'border-box'}} />
                   </div>
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Adresse (Ville, Quartier)</label>
-                    <input type="text" value={senderAddress} onChange={(e) => setSenderAddress(e.target.value)} placeholder="Adresse" style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                    <input type="text" value={senderAddress} onChange={(e) => setSenderAddress(e.target.value)} placeholder="Adresse" style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                   </div>
                 </div>
               </div>
@@ -376,17 +376,17 @@ export default function NewShipmentPage() {
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Téléphone (USA/Guinée) *</label>
                     <div style={{position: 'relative'}}>
-                      <input type="tel" value={receiverPhone} onChange={handleReceiverPhoneChange} placeholder="Numéro du destinataire" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '2px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                      <input type="tel" value={receiverPhone} onChange={handleReceiverPhoneChange} placeholder="Numéro du destinataire" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '2px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                       {isKnownReceiver && <CheckCircle size={18} color="#10b981" style={{position: 'absolute', right: 10, top: 10}} />}
                     </div>
                   </div>
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Nom Complet *</label>
-                    <input type="text" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} placeholder="Nom complet" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownReceiver ? '#ecfdf5' : 'white', outline:'none'}} />
+                    <input type="text" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} placeholder="Nom complet" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownReceiver ? '#ecfdf5' : 'white', outline:'none', boxSizing:'border-box'}} />
                   </div>
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Adresse (Ville / État) *</label>
-                    <input type="text" value={receiverAddress} onChange={(e) => setReceiverAddress(e.target.value)} placeholder="ex: Bronx, NY" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownReceiver ? '#ecfdf5' : 'white', outline:'none'}} />
+                    <input type="text" value={receiverAddress} onChange={(e) => setReceiverAddress(e.target.value)} placeholder="ex: Bronx, NY" style={{width:'100%', padding: '10px 12px', border: isKnownReceiver ? '1px solid #10b981' : '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background: isKnownReceiver ? '#ecfdf5' : 'white', outline:'none', boxSizing:'border-box'}} />
                   </div>
                 </div>
               </div>
@@ -400,22 +400,22 @@ export default function NewShipmentPage() {
                   {/* Row 1: Description */}
                   <div>
                     <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Description des Marchandises *</label>
-                    <input type="text" value={description} onChange={e=>setDescription(e.target.value)} placeholder="Ex: Vêtements, chaussures, documents..." style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                    <input type="text" value={description} onChange={e=>setDescription(e.target.value)} placeholder="Ex: Vêtements, chaussures, documents..." style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                   </div>
 
                   {/* Row 2: Boxes, Weight, Transport */}
-                  <div style={{display:'grid', gridTemplateColumns: '1fr 1fr 1fr', gap:16}}>
+                  <div style={{display:'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap:16}}>
                     <div>
                       <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Nombre de Colis (Cartons)</label>
-                      <input type="number" min="1" value={boxes} onChange={e=>setBoxes(e.target.value)} style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                      <input type="number" min="1" value={boxes} onChange={e=>setBoxes(e.target.value)} style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                     </div>
                     <div>
                       <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Poids Total (kg) *</label>
-                      <input type="number" min="0" step="0.1" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="ex: 15.5" style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none'}} />
+                      <input type="number" min="0" step="0.1" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="ex: 15.5" style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, outline:'none', boxSizing:'border-box'}} />
                     </div>
                     <div>
                       <label style={{display:'block', fontSize:13, fontWeight:500, color:'#475569', marginBottom:6}}>Type de Transport</label>
-                      <select value={transportType} onChange={e=>setTransportType(e.target.value)} style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background:'white', outline:'none', cursor:'pointer'}}>
+                      <select value={transportType} onChange={e=>setTransportType(e.target.value)} style={{width:'100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize:14, background:'white', outline:'none', cursor:'pointer', boxSizing:'border-box'}}>
                         <option value="AERIEN">Fret Aérien (Rapide) - 12$/kg</option>
                         <option value="MARITIME">Fret Maritime (Éco) - 5$/kg</option>
                       </select>
@@ -426,7 +426,7 @@ export default function NewShipmentPage() {
                   <div style={{height: 1, background: '#e2e8f0', margin: '8px 0'}}></div>
 
                   {/* Row 3: Finances */}
-                  <div style={{display:'grid', gridTemplateColumns: '1fr 1fr', gap:24, alignItems: 'center'}}>
+                  <div style={{display:'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap:20, alignItems: 'center'}}>
                     <div style={{background: '#f8fafc', padding: 16, borderRadius: 8, border: '1px dashed #cbd5e1'}}>
                       <p style={{margin: '0 0 8px 0', fontSize: 13, color: '#64748b', textTransform: 'uppercase'}}>Récapitulatif Financier</p>
                       <div style={{display:'flex', justifyContent:'space-between', marginBottom: 4}}>
@@ -445,9 +445,9 @@ export default function NewShipmentPage() {
 
                     <div>
                       <label style={{display:'block', fontSize:14, fontWeight:600, color:'#0f172a', marginBottom:8}}>Montant Avancé & Mode de Paiement</label>
-                      <div style={{display:'flex', gap:12}}>
-                        <input type="number" min="0" value={amountPaid} onChange={e=>setAmountPaid(e.target.value)} placeholder="Ex: 50" style={{flex: 1, padding: '12px 16px', border: '2px solid #cbd5e1', borderRadius: '8px', fontSize:16, outline:'none'}} />
-                        <select value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value)} style={{flex: 1, padding: '12px 16px', border: '2px solid #cbd5e1', borderRadius: '8px', fontSize:14, background:'white', outline:'none', cursor:'pointer'}}>
+                      <div style={{display:'flex', gap:12, flexWrap:'wrap'}}>
+                        <input type="number" min="0" value={amountPaid} onChange={e=>setAmountPaid(e.target.value)} placeholder="Ex: 50" style={{flex: '1 1 120px', padding: '12px 16px', border: '2px solid #cbd5e1', borderRadius: '8px', fontSize:16, outline:'none', boxSizing:'border-box'}} />
+                        <select value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value)} style={{flex: '1 1 140px', padding: '12px 16px', border: '2px solid #cbd5e1', borderRadius: '8px', fontSize:14, background:'white', outline:'none', cursor:'pointer', boxSizing:'border-box'}}>
                           <option value="CASH">Espèces</option>
                           <option value="ZELLE">Zelle</option>
                           <option value="ORANGE_MONEY">Orange Money</option>
@@ -460,7 +460,7 @@ export default function NewShipmentPage() {
                 </div>
             </div>
 
-            <div style={{display: 'flex', justifyContent: 'flex-end', gap: 12}}>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: 12, flexWrap: 'wrap'}}>
                <button type="button" style={{padding: '12px 24px', background: 'transparent', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontWeight: 600}}>Annuler</button>
                <button type="button" onClick={handleSave} className={styles.primaryButton} disabled={isLoading}>
                  {isLoading ? 'Enregistrement...' : <><Printer size={18}/> Enregistrer & Imprimer</>}
@@ -472,8 +472,8 @@ export default function NewShipmentPage() {
 
       {/* RECU MODAL FOR WEB VIEW */}
       {showReceipt && (
-        <div className="no-print" style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: 50}}>
-           <div style={{background:'white', width:'500px', borderRadius:'16px', padding:'24px', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)', position:'relative'}}>
+        <div className="no-print" style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: 50, padding: 16}}>
+           <div style={{background:'white', width:'500px', maxWidth:'92vw', borderRadius:'16px', padding:'24px', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)', position:'relative', boxSizing:'border-box', maxHeight:'90vh', overflowY:'auto'}}>
               <button onClick={() => setShowReceipt(false)} style={{position:'absolute', right:16, top:16, background:'transparent', border:'none', cursor:'pointer'}}><X size={20} color="#64748b"/></button>
               
               <div style={{textAlign:'center', marginBottom: 24}}>

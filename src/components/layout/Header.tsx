@@ -17,7 +17,7 @@ const navLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [clientLink, setClientLink] = useState('/client/login');
+  const [clientLink, setClientLink] = useState('/login');
 
   useEffect(() => {
     // Vérifier si une session existe et rediriger vers le bon espace

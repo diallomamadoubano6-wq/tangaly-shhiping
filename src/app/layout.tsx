@@ -7,6 +7,8 @@ const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-int
 
 export const viewport: Viewport = {
   themeColor: '#0052cc',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export const metadata: Metadata = {

@@ -12,7 +12,7 @@ export default function CalculatorPage() {
   const priceGNF = priceUSD * 8500;
 
   return (
-    <div className={styles.dashboard}>
+    <>
       <div className={styles.cardHeader}>
         <div>
           <h2 className={styles.cardTitle}>Calculateur de Prix</h2>
@@ -30,14 +30,14 @@ export default function CalculatorPage() {
                </select>
             </div>
             
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:20}}>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:20}}>
                <div>
                   <label style={{display:'block', marginBottom:8, fontSize:14, fontWeight:500, color:'#334155'}}>Poids (kg)</label>
-                  <input type="number" min="0" value={weight} onChange={(e) => setWeight(Number(e.target.value))} style={{width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid #cbd5e1', fontSize:14}} />
+                  <input type="number" min="0" value={weight} onChange={(e) => setWeight(Number(e.target.value))} style={{width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid #cbd5e1', fontSize:14, boxSizing:'border-box'}} />
                </div>
                <div>
                   <label style={{display:'block', marginBottom:8, fontSize:14, fontWeight:500, color:'#334155'}}>Type de fret</label>
-                  <select style={{width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid #cbd5e1', fontSize:14, background:'white'}}>
+                  <select style={{width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid #cbd5e1', fontSize:14, background:'white', boxSizing:'border-box'}}>
                      <option>Aérien (Rapide)</option>
                      <option>Maritime (Éco)</option>
                   </select>
@@ -60,6 +60,6 @@ export default function CalculatorPage() {
             </div>
          </div>
       </div>
-    </div>
+    </>
   );
 }

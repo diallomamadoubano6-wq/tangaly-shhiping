@@ -6,6 +6,8 @@ import { Suspense, useState, useEffect } from 'react';
 import Modal from '@/components/ui/Modal';
 import { QRCodeCanvas } from 'qrcode.react';
 
+import { getShipments, updateShipmentStatus } from '@/actions/shipments';
+
 export default function ShipmentsPageWrapper() {
   return (
     <Suspense fallback={<div>Chargement...</div>}>
@@ -31,7 +33,7 @@ function ShipmentsPage() {
   const STATUS_LABELS: Record<string, string> = {
     CREATED: 'Enregistré',
     RECEIVED: 'Réceptionné',
-    PREPARING: 'En attente d\'expédition',
+    PREPARING: 'En préparation',
     SHIPPED: 'En transit',
     ARRIVED: 'Arrivé à destination',
     DELIVERED: 'Livré au destinataire',
@@ -40,13 +42,9 @@ function ShipmentsPage() {
 
   const fetchShipments = async () => {
     try {
-      const token = localStorage.getItem('tangaly_client_token') || '';
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (json.success) {
-         const formatted = json.data.map((s: any) => ({
+      const res = await getShipments();
+      if (res.success && res.data) {
+         const formatted = (res.data as any[]).map((s: any) => ({
            id: s.tracking_number,
            dbId: s.id,
            client: s.client?.user?.nom || 'Inconnu',
@@ -85,23 +83,13 @@ function ShipmentsPage() {
     if (!statusModal.shipment || !newStatus) return;
     
     try {
-      const token = localStorage.getItem('tangaly_client_token') || '';
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments/${statusModal.shipment.dbId}/status`, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ statut: newStatus })
-      });
-      
-      const json = await res.json();
-      if (json.success) {
+      const res = await updateShipmentStatus(statusModal.shipment.dbId, newStatus);
+      if (res.success) {
         setStatusModal({ open: false, shipment: null });
         setNewStatus('');
         fetchShipments(); // refresh
       } else {
-        alert(json.message || "Erreur lors de la mise à jour");
+        alert(res.message || "Erreur lors de la mise à jour");
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -133,21 +121,21 @@ function ShipmentsPage() {
   });
 
   return (
-    <div className={styles.dashboard}>
-      <div className={styles.cardHeader} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+    <>
+      <div className={styles.cardHeader} style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap: 16}}>
         <div>
           <h2 className={styles.cardTitle}>Liste des Expéditions</h2>
           <p className={styles.cardSubtitle}>Gérez et suivez tous les colis de l'agence.</p>
         </div>
-        <div style={{display:'flex', gap:12}}>
-           <div style={{position:'relative'}}>
+        <div style={{display:'flex', gap:12, flexWrap:'wrap', alignItems:'center'}}>
+           <div style={{position:'relative', flex: '1 1 200px', minWidth: 180}}>
              <div style={{position:'absolute', left:12, top:10}}><Search size={16} color="#94a3b8"/></div>
              <input 
                type="text" 
                placeholder="Rechercher (N°, Client)" 
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
-               style={{padding:'8px 12px 8px 36px', borderRadius:'8px', border:'1px solid #cbd5e1', outline:'none', fontSize:14, width:250}} 
+               style={{padding:'8px 12px 8px 36px', borderRadius:'8px', border:'1px solid #cbd5e1', outline:'none', fontSize:14, width:'100%', boxSizing:'border-box'}} 
              />
            </div>
            <select 
@@ -164,6 +152,7 @@ function ShipmentsPage() {
       </div>
       
       <div className={styles.chartCard} style={{padding: 0, overflow: 'hidden'}}>
+        <div className={styles.tableWrapper}>
          <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14}}>
             <thead style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: 13, textTransform: 'uppercase'}}>
                <tr>
@@ -218,7 +207,8 @@ function ShipmentsPage() {
                  </tr>
                ))}
             </tbody>
-         </table>
+          </table>
+        </div>
       </div>
 
       <Modal
@@ -279,6 +269,6 @@ function ShipmentsPage() {
         </form>
       </Modal>
 
-    </div>
+    </>
   );
 }

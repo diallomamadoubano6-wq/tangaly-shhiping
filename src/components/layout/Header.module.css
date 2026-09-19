@@ -113,6 +113,11 @@
 }
 .mobileLink:hover { background: var(--color-gray-50); color: var(--color-primary); }
 .mobileCta { margin-top: var(--space-4); width: 100%; }
+@media (min-width: 768px) {
+  .mobileCta {
+    display: none;
+  }
+}
 
 .mobileMenu {
   position: absolute;

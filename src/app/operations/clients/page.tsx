@@ -43,16 +43,16 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className={styles.dashboard}>
-      <div className={styles.cardHeader} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+    <>
+      <div className={styles.cardHeader} style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap: 16}}>
         <div>
           <h2 className={styles.cardTitle}>Gestion des Clients</h2>
           <p className={styles.cardSubtitle}>Annuaire des expéditeurs et destinataires.</p>
         </div>
-        <div style={{display:'flex', gap:16}}>
-          <div className={styles.searchBox} style={{display:'flex', alignItems:'center', background:'white', padding:'8px 12px', borderRadius:8, border:'1px solid #cbd5e1'}}>
+        <div style={{display:'flex', gap:12, flexWrap:'wrap', alignItems:'center'}}>
+          <div className={styles.searchBox} style={{display:'flex', alignItems:'center', background:'white', padding:'8px 12px', borderRadius:8, border:'1px solid #cbd5e1', flex:'1 1 200px', minWidth: 180}}>
             <Search size={18} color="#64748b" style={{marginRight:8}} />
-            <input type="text" placeholder="Rechercher (Nom, N° Tel)" style={{border:'none', outline:'none', background:'transparent'}} />
+            <input type="text" placeholder="Rechercher (Nom, N° Tel)" style={{border:'none', outline:'none', background:'transparent', width:'100%'}} />
           </div>
           <button onClick={() => setShowAddModal(true)} className={styles.primaryButton} >
             <UserPlus size={18} /> Nouveau Client
@@ -160,6 +160,6 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

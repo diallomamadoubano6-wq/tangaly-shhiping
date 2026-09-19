@@ -6,15 +6,18 @@ import { Package, Truck, CheckCircle, Trophy, Wallet, Search, MapPin, Phone, Mai
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
+import { getShipments } from '@/actions/shipments';
+
 type Shipment = {
   id: string;
   tracking_number: string;
   statut: string;
   client?: { user?: { nom: string } };
+  origine?: string;
   destination: string;
-  poids: number;
-  totalAmount: number;
-  amountPaid: number;
+  poids?: number;
+  totalAmount?: number;
+  amountPaid?: number;
 };
 
 export default function AgentDashboard() {
@@ -26,13 +29,9 @@ export default function AgentDashboard() {
   useEffect(() => {
     const fetchShipments = async () => {
       try {
-        const token = localStorage.getItem('tangaly_client_token') || '';
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (json.success) {
-          setShipments(json.data || []);
+        const res = await getShipments();
+        if (res.success && res.data) {
+          setShipments(res.data as any[]);
         }
       } catch (err) {
         console.error("Failed to load shipments", err);
@@ -169,36 +168,38 @@ export default function AgentDashboard() {
               <Link href="/operations/shipments" style={{color:'#2563eb', fontSize:12, fontWeight:500, textDecoration:'none'}}>Voir toutes les expéditions</Link>
             </div>
           </div>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>N° Expédition</th>
-                <th>Client</th>
-                <th>Destination</th>
-                <th>Poids</th>
-                <th>Statut</th>
-                <th>Montant</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={6} style={{textAlign:'center', padding:20}}>Chargement...</td></tr>
-              ) : shipments.length === 0 ? (
-                <tr><td colSpan={6} style={{textAlign:'center', padding:20}}>Aucune expédition</td></tr>
-              ) : (
-                shipments.slice(0, 5).map(s => (
-                  <tr key={s.id}>
-                    <td style={{fontWeight:500}}>{s.tracking_number}</td>
-                    <td>{s.client?.user?.nom || 'Inconnu'}</td>
-                    <td>{s.destination}</td>
-                    <td>{s.poids ? s.poids + ' kg' : '-'}</td>
-                    <td><span className={`${styles.statusBadge} ${getStatusStyle(s.statut)}`}>{getStatusLabel(s.statut)}</span></td>
-                    <td style={{fontWeight:600}}>${s.totalAmount || 0}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>N° Expédition</th>
+                  <th>Client</th>
+                  <th>Destination</th>
+                  <th>Poids</th>
+                  <th>Statut</th>
+                  <th>Montant</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={6} style={{textAlign:'center', padding:20}}>Chargement...</td></tr>
+                ) : shipments.length === 0 ? (
+                  <tr><td colSpan={6} style={{textAlign:'center', padding:20}}>Aucune expédition</td></tr>
+                ) : (
+                  shipments.slice(0, 5).map(s => (
+                    <tr key={s.id}>
+                      <td style={{fontWeight:500}}>{s.tracking_number}</td>
+                      <td>{s.client?.user?.nom || 'Inconnu'}</td>
+                      <td>{s.destination}</td>
+                      <td>{s.poids ? s.poids + ' kg' : '-'}</td>
+                      <td><span className={`${styles.statusBadge} ${getStatusStyle(s.statut)}`}>{getStatusLabel(s.statut)}</span></td>
+                      <td style={{fontWeight:600}}>${s.totalAmount || 0}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       

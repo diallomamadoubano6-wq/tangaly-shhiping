@@ -40,8 +40,11 @@ export default function LoginPage() {
       const session = await res.json();
       
       setLoading(false);
-      if (session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'AGENT') {
+      const role = session?.user?.role;
+      if (role === 'SUPER_ADMIN') {
         router.push('/admin');
+      } else if (['AGENT', 'GERANT_USA', 'GERANT_GUINEE'].includes(role)) {
+        router.push('/operations');
       } else {
         router.push('/client/dashboard');
       }
