@@ -153,16 +153,13 @@ export async function findShipmentByTracking(trackingNumber: string) {
 
     const shipment = await prisma.shipment.findFirst({
       where: {
-        tracking_number: {
-          equals: cleanNum,
-          mode: 'insensitive'
-        }
+        tracking_number: cleanNum
       },
       include: {
         client: {
           include: {
             user: {
-              select: { nom: true, prenom: true, email: true, telephone: true }
+              select: { nom: true, email: true }
             }
           }
         },
@@ -209,10 +206,7 @@ export async function scanShipmentAction(
 
     const shipment = await prisma.shipment.findFirst({
       where: {
-        tracking_number: {
-          equals: cleanNum,
-          mode: 'insensitive'
-        }
+        tracking_number: cleanNum
       }
     });
 
@@ -252,7 +246,7 @@ export async function scanShipmentAction(
         client: {
           include: {
             user: {
-              select: { nom: true, prenom: true, email: true, telephone: true }
+              select: { nom: true, email: true }
             }
           }
         },
