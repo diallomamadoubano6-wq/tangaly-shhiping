@@ -55,16 +55,51 @@ export async function createShipment(data: any) {
   
   try {
     const trackingNumber = generateTrackingNumber();
+
+    let actualClientId = data.clientId;
+    if (!actualClientId) {
+      const phone = data.senderPhone || '000000000';
+      const email = `client_${phone.replace(/\s+/g, '')}@tangaly.local`;
+      const clientUser = await prisma.user.upsert({
+        where: { email },
+        update: {},
+        create: {
+          nom: data.senderName || 'Client Inconnu',
+          email,
+          password_hash: '',
+          role: 'CLIENT',
+          client: {
+            create: {
+              telephone: phone,
+              adresse: data.senderAddress || ''
+            }
+          }
+        },
+        include: { client: true }
+      });
+      actualClientId = clientUser.client?.id;
+    }
     
     const shipment = await prisma.shipment.create({
       data: {
         tracking_number: trackingNumber,
-        clientId: data.clientId,
+        clientId: actualClientId,
         origine: data.origine,
         destination: data.destination,
         type_transport: data.type_transport,
-        poids: data.poids || null,
-        volume: data.volume || null,
+        poids: data.poids !== undefined && data.poids !== null && data.poids !== '' ? parseFloat(data.poids) : null,
+        volume: data.volume !== undefined && data.volume !== null && data.volume !== '' ? parseFloat(data.volume) : null,
+        receiverName: data.receiverName || null,
+        receiverPhone: data.receiverPhone || null,
+        receiverAddress: data.receiverAddress || null,
+        description: data.description || null,
+        boxes: data.boxes ? parseInt(data.boxes) : null,
+        amountPaid: data.amountPaid !== undefined && data.amountPaid !== null && data.amountPaid !== '' ? parseFloat(data.amountPaid) : null,
+        paymentMethod: data.paymentMethod || null,
+        freightCost: data.freightCost !== undefined && data.freightCost !== null && data.freightCost !== '' ? parseFloat(data.freightCost) : null,
+        docFee: data.docFee !== undefined && data.docFee !== null && data.docFee !== '' ? parseFloat(data.docFee) : null,
+        totalAmount: data.totalAmount !== undefined && data.totalAmount !== null && data.totalAmount !== '' ? parseFloat(data.totalAmount) : null,
+        balance: data.balance !== undefined && data.balance !== null && data.balance !== '' ? parseFloat(data.balance) : null,
         statut: 'PENDING',
         tracking_events: {
           create: {

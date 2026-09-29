@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createShipment } from '@/actions/shipments';
 import styles from '../operations.module.css';
 import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -102,18 +103,11 @@ export default function NewShipmentPage() {
         balance
       };
 
-      const token = (session as any)?.token || '';
+            const res = await createShipment(payload);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(payload)
-      });
+      if (!res.success) throw new Error(res.message || 'Erreur lors de la création');
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Erreur lors de la création');
-
-      setTrackingNumber(data.data.tracking_number);
+      setTrackingNumber(res.data.tracking_number);
       setShowReceipt(true);
     } catch (err: any) {
       setError(err.message);
@@ -477,7 +471,7 @@ export default function NewShipmentPage() {
               <button onClick={() => setShowReceipt(false)} style={{position:'absolute', right:16, top:16, background:'transparent', border:'none', cursor:'pointer'}}><X size={20} color="#64748b"/></button>
               
               <div style={{textAlign:'center', marginBottom: 24}}>
-                 <img src="/logo.png" alt="TANGALY" style={{height:40, marginBottom: 12}}/>
+                 <img src="/lo.jpeg" alt="TANGALY" style={{height:60, marginBottom: 12}}/>
                  <div style={{textAlign:'center'}}><img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${trackingNumber}`} alt="QR Code" style={{width: 80, height: 80, margin: '12px auto'}} /></div>
                  <h2 style={{margin:0, fontSize:18, color:'#0f172a', textTransform:'uppercase'}}>Reçu d'Expédition</h2>
                  <p style={{margin:0, fontSize:14, color:'#64748b'}}>Prêt à être imprimé selon votre format officiel.</p>
@@ -495,155 +489,209 @@ export default function NewShipmentPage() {
         </div>
       )}
 
-      {/* RECU OFFICIEL (PRINT ONLY) - This perfectly matches the photo */}
-      <div id="printable-receipt" className="print-only" style={{display: "none", fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto', color: 'black'}}>
+            {/* RECU OFFICIEL (PRINT ONLY) - This perfectly matches the photo */}
+      <div id="printable-receipt" className="print-only" style={{display: "none", fontFamily: 'Arial, sans-serif', padding: '0', maxWidth: '800px', margin: '0 auto', color: '#1f2937', backgroundColor: '#fff', fontSize: '13px'}}>
+         {/* TOP COLOR BAR */}
+         <div style={{display:'flex', height:'10px', width:'100%', marginBottom:'20px'}}>
+            <div style={{flex:1, backgroundColor:'#dc2626'}}></div>
+            <div style={{flex:1, backgroundColor:'#facc15'}}></div>
+            <div style={{flex:1, backgroundColor:'#16a34a'}}></div>
+         </div>
+
          {/* HEADER */}
-         <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: '10px'}}>
-            <div style={{textAlign: 'center', width: '25%'}}>
-               <h3 style={{color: '#1d4ed8', margin: '0 0 5px 0', fontSize: '18px'}}>USA</h3>
-               <p style={{margin:0, fontSize:'12px', fontWeight:'bold'}}>3429 3rd Ave.<br/>Bronx, NY 10456</p>
-               <br/>
-               <p style={{margin:0, fontSize:'12px', fontWeight:'bold'}}>28 Arlington Avenue<br/>Brooklyn, NY 11207</p>
-               <h3 style={{color: '#dc2626', margin: '5px 0 0 0', fontSize: '16px'}}>646-382-0065</h3>
-               <div style={{fontSize: '48px', marginTop: '10px'}}><img src="https://flagcdn.com/w80/us.png" alt="USA Flag" style={{width:"60px", marginTop:"10px"}}/></div>
+         <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', padding:'0 20px 10px 20px', borderBottom:'2px solid #1e3a8a', marginBottom:'20px'}}>
+            <div style={{width:'50%'}}>
+               <img src="/lo.jpeg" alt="TANGALY" style={{height:'90px', marginBottom:'10px'}}/>
+               <p style={{margin:0, fontSize:'11px', color:'#64748b'}}>Fret aérien USA ⇄ Guinée (Conakry) &middot; Air Freight USA ⇄ Guinea</p>
             </div>
-
-            <div style={{textAlign: 'center', width: '50%'}}>
-               <h2 style={{color: '#16a34a', margin: 0, textTransform: 'uppercase', letterSpacing: '1px'}}>Shipping Receipt</h2>
-               <div style={{border: '2px solid #dc2626', display: 'inline-block', padding: '5px 20px', marginTop: '5px'}}>
-                  <h2 style={{color: '#dc2626', margin: 0}}>No. {trackingNumber}</h2>
+            <div style={{width:'45%', textAlign:'right'}}>
+               <h2 style={{color:'#16a34a', fontSize:'14px', margin:'0 0 8px 0', textTransform:'uppercase'}}>REÇU D'EXPÉDITION &middot; SHIPPING RECEIPT</h2>
+               <div style={{border:'2px solid #dc2626', borderRadius:'8px', padding:'8px 12px', display:'inline-block'}}>
+                  <h2 style={{color:'#dc2626', margin:0, fontSize:'18px'}}>N° {trackingNumber}</h2>
                </div>
-               
-               <div style={{marginTop: '15px'}}>
-                  {/* Using generic text for logo to ensure it prints well if image fails, or use img if available */}
-                  <h1 style={{margin:0, color: '#1d4ed8', fontSize: '32px', fontStyle: 'italic', fontWeight: '900'}}>TANGALY</h1>
-                  <h4 style={{margin:0, color: '#dc2626', fontSize: '14px'}}>SHIPPING & LOGISTICS</h4>
-               </div>
-
-               <p style={{color: '#1d4ed8', fontSize: '12px', fontWeight: 'bold', borderTop: '1px solid #1d4ed8', borderBottom: '1px solid #1d4ed8', margin: '10px 0', padding: '4px 0'}}>
-                  AIR FREIGHT/USA ↔ GUINEA (CONAKRY)
-               </p>
-               
-               <h3 style={{color: '#1d4ed8', fontStyle: 'italic', margin: '5px 0'}}>Fast, Reliable & Secure</h3>
-
-               <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', marginTop: '10px', color: '#ea580c'}}>
-                  <div>Zelle: <br/><span style={{color: '#4c1d95'}}>347-819-5217</span></div>
-                  <div>Orange Money: <br/><span style={{color: '#ea580c'}}>611-62-53-27</span></div>
-               </div>
-            </div>
-
-            <div style={{textAlign: 'center', width: '25%'}}>
-               <h3 style={{color: '#1d4ed8', margin: '0 0 5px 0', fontSize: '16px'}}>Guinea (Conakry)</h3>
-               <p style={{margin:0, fontSize:'12px', fontWeight:'bold'}}>Cité Enco5</p>
-               <h3 style={{color: '#dc2626', margin: '5px 0 0 0', fontSize: '16px'}}>+224 626-98-52-54</h3>
-               <div style={{fontSize: '48px', marginTop: '10px'}}><img src="https://flagcdn.com/w80/gn.png" alt="Guinea Flag" style={{width:"60px", marginTop:"10px"}}/></div>
-               <div style={{textAlign: 'right', marginTop: '30px'}}>Date: <span style={{borderBottom: '1px solid black', padding: '0 20px'}}>{today}</span></div>
+               <div style={{marginTop:'8px', fontSize:'13px'}}>Date : <strong>{today}</strong></div>
             </div>
          </div>
 
-         {/* FORM FIELDS - Sender */}
-         <div style={{marginTop: '20px'}}>
-            <h4 style={{background: '#f1f5f9', fontStyle: 'italic', display: 'inline-block', padding: '2px 10px', margin: '0 0 5px 0', fontSize: '14px'}}>Sender Information / Informations de l'Expéditeur</h4>
-            
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Full Name / Nom Complet: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{senderName}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Phone / Téléphone: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{senderPhone}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '15px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Address / Adresse: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{senderAddress}</div>
-            </div>
+         <div style={{padding:'0 20px'}}>
+             {/* ADDRESS BOXES */}
+             <div style={{display:'flex', gap:'20px', marginBottom:'20px'}}>
+                <div style={{flex:1, backgroundColor:'#f8fafc', borderLeft:'6px solid #1e3a8a', padding:'12px', borderRadius:'0 8px 8px 0'}}>
+                   <h3 style={{color:'#1e3a8a', margin:'0 0 8px 0', fontSize:'14px', display:'flex', alignItems:'center', gap:'6px'}}>🇺🇸 USA</h3>
+                   <p style={{margin:0, lineHeight:'1.5', color:'#333'}}>
+                      3429 3rd Ave, Bronx, NY 10456<br/>
+                      28 Arlington Avenue, Brooklyn, NY 11207<br/>
+                      <strong>+1 (646) 382-0065</strong>
+                   </p>
+                </div>
+                <div style={{flex:1, backgroundColor:'#f8fafc', borderLeft:'6px solid #16a34a', padding:'12px', borderRadius:'0 8px 8px 0'}}>
+                   <h3 style={{color:'#16a34a', margin:'0 0 8px 0', fontSize:'14px', display:'flex', alignItems:'center', gap:'6px'}}>🇬🇳 Guinée (Conakry)</h3>
+                   <p style={{margin:0, lineHeight:'1.5', color:'#333'}}>
+                      Cité Enco 5<br/>
+                      <strong>+224 626 98 52 54</strong><br/>
+                      <span style={{fontSize:'11px'}}>Zelle : 347-819-6217 &middot; Orange Money : 611-62-83-27</span>
+                   </p>
+                </div>
+             </div>
 
-            {/* FORM FIELDS - Receiver */}
-            <h4 style={{background: '#f1f5f9', fontStyle: 'italic', display: 'inline-block', padding: '2px 10px', margin: '0 0 5px 0', fontSize: '14px'}}>Receiver Information / Informations du Destinataire</h4>
-            
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Full Name / Nom Complet: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{receiverName}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Phone / Téléphone: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{receiverPhone}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '15px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>City (Guinea) / Ville (Guinée): </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{receiverAddress}</div>
-            </div>
+             {/* SENDER & RECEIVER TABLES */}
+             <div style={{display:'flex', gap:'20px', marginBottom:'30px'}}>
+                {/* SENDER */}
+                <div style={{flex:1, border:'1px solid #e2e8f0', borderRadius:'6px', overflow:'hidden'}}>
+                   <div style={{backgroundColor:'#1e3a8a', color:'white', padding:'8px 12px', fontSize:'13px', fontWeight:'bold', textTransform:'uppercase'}}>EXPÉDITEUR &middot; SENDER</div>
+                   <table style={{width:'100%', borderCollapse:'collapse', fontSize:'13px'}}>
+                      <tbody>
+                         <tr>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', color:'#64748b', width:'40%'}}>Nom / Name</td>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', fontWeight:'bold'}}>{senderName}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', color:'#64748b'}}>Tél. / Phone</td>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', fontWeight:'bold'}}>{senderPhone}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'8px 12px', color:'#64748b'}}>Adresse / Address</td>
+                            <td style={{padding:'8px 12px', fontWeight:'bold'}}>{senderAddress}</td>
+                         </tr>
+                      </tbody>
+                   </table>
+                </div>
+                {/* RECEIVER */}
+                <div style={{flex:1, border:'1px solid #e2e8f0', borderRadius:'6px', overflow:'hidden'}}>
+                   <div style={{backgroundColor:'#16a34a', color:'white', padding:'8px 12px', fontSize:'13px', fontWeight:'bold', textTransform:'uppercase'}}>DESTINATAIRE &middot; RECEIVER</div>
+                   <table style={{width:'100%', borderCollapse:'collapse', fontSize:'13px'}}>
+                      <tbody>
+                         <tr>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', color:'#64748b', width:'40%'}}>Nom / Name</td>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', fontWeight:'bold'}}>{receiverName}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', color:'#64748b'}}>Tél. / Phone</td>
+                            <td style={{padding:'8px 12px', borderBottom:'1px solid #e2e8f0', fontWeight:'bold'}}>{receiverPhone}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'8px 12px', color:'#64748b'}}>Ville / City</td>
+                            <td style={{padding:'8px 12px', fontWeight:'bold'}}>{receiverAddress}</td>
+                         </tr>
+                      </tbody>
+                   </table>
+                </div>
+             </div>
 
-            {/* FORM FIELDS - Shipment Details */}
-            <h4 style={{background: '#e2e8f0', fontStyle: 'italic', display: 'inline-block', padding: '2px 10px', margin: '0 0 5px 0', fontSize: '14px'}}>Shipment Details / Détails de l'Envoi</h4>
-            
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Description of Goods / Description des Marchandises: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{description}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Number of Boxes / Nombre de Colis: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{boxes}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Total Weight (kg) / Poids Total (kg): </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>{weight}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Rate per kg / Tarif par kg: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>${ratePerKg}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Freight Cost / Coût du Fret: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>${freightCost}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Documentation Fee / Frais de Dossier: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px'}}>${docFee}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Total Amount / Montant Total: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px', fontWeight: 'bold'}}>${total}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '8px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Amount Paid / Montant Payé: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px', color: '#16a34a', fontWeight: 'bold'}}>${paid}</div>
-            </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', marginBottom: '15px'}}>
-               <span style={{fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap'}}>Balance Due / Reste à Payer: </span>
-               <div style={{flex: 1, borderBottom: '1px solid black', marginLeft: '5px', paddingLeft: '5px', fontSize: '14px', color: '#dc2626', fontWeight: 'bold'}}>${balance}</div>
-            </div>
+             {/* SHIPMENT DETAILS */}
+             <div style={{marginBottom:'30px'}}>
+                <h3 style={{color:'#1e3a8a', fontSize:'14px', textTransform:'uppercase', margin:'0 0 10px 0'}}>DÉTAILS DE L'ENVOI &middot; SHIPMENT DETAILS</h3>
+                <table style={{width:'100%', borderCollapse:'collapse', border:'1px solid #e2e8f0', textAlign:'left', fontSize:'13px'}}>
+                   <thead>
+                      <tr style={{backgroundColor:'#f8fafc'}}>
+                         <th style={{padding:'10px 12px', color:'#1e3a8a', borderBottom:'1px solid #e2e8f0'}}>DESCRIPTION</th>
+                         <th style={{padding:'10px 12px', color:'#1e3a8a', borderBottom:'1px solid #e2e8f0', textAlign:'center'}}>COLIS / BOXES</th>
+                         <th style={{padding:'10px 12px', color:'#1e3a8a', borderBottom:'1px solid #e2e8f0', textAlign:'center'}}>POIDS / WEIGHT</th>
+                         <th style={{padding:'10px 12px', color:'#1e3a8a', borderBottom:'1px solid #e2e8f0', textAlign:'right'}}>TARIF / RATE</th>
+                         <th style={{padding:'10px 12px', color:'#1e3a8a', borderBottom:'1px solid #e2e8f0', textAlign:'right'}}>FRET / FREIGHT</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      <tr>
+                         <td style={{padding:'12px', borderBottom:'1px solid #e2e8f0'}}>{description || '-'}</td>
+                         <td style={{padding:'12px', borderBottom:'1px solid #e2e8f0', textAlign:'center'}}>{boxes || 1}</td>
+                         <td style={{padding:'12px', borderBottom:'1px solid #e2e8f0', textAlign:'center'}}>{weight || 0} kg</td>
+                         <td style={{padding:'12px', borderBottom:'1px solid #e2e8f0', textAlign:'right'}}>${ratePerKg}/kg</td>
+                         <td style={{padding:'12px', borderBottom:'1px solid #e2e8f0', textAlign:'right', fontWeight:'bold'}}>${freightCost}</td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
 
-            {/* PAYMENT METHOD */}
-            <div style={{background: '#f1f5f9', padding: '10px', border: '1px solid #cbd5e1', marginBottom: '15px'}}>
-               <h4 style={{margin: '0 0 10px 0', textAlign: 'center', fontSize: '14px'}}>PAYMENT METHOD / MODE DE PAIEMENT:</h4>
-               <div style={{display: 'flex', justifyContent: 'space-around', fontSize: '14px', fontWeight: 'bold'}}>
-                  <div>☐ CASH / ESPÈCES<br/>☐ ZELLE</div>
-                  <div>☐ ORANGE MONEY<br/>☐ OTHER / AUTRE: <span style={{borderBottom: '1px solid black', padding: '0 40px'}}></span></div>
-               </div>
-            </div>
+             {/* BOTTOM SECTION */}
+             <div style={{display:'flex', gap:'40px', marginBottom:'40px'}}>
+                {/* PAYMENT METHOD & SIGNATURES */}
+                <div style={{flex:1}}>
+                   <div style={{border:'1px solid #e2e8f0', borderRadius:'6px', padding:'12px', marginBottom:'40px'}}>
+                      <h4 style={{color:'#1e3a8a', margin:'0 0 12px 0', fontSize:'13px', textTransform:'uppercase'}}>MODE DE PAIEMENT &middot; PAYMENT METHOD</h4>
+                      <div style={{display:'flex', flexWrap:'wrap', gap:'15px', fontSize:'13px'}}>
+                         <label style={{width:'45%', display:'flex', alignItems:'center', gap:'8px'}}>
+                            <div style={{width:'14px', height:'14px', border:'1px solid #64748b', borderRadius:'3px', backgroundColor: paymentMethod==='CASH'?'#16a34a':'white', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>{paymentMethod==='CASH'?'✓':''}</div>
+                            Espèces / Cash
+                         </label>
+                         <label style={{width:'45%', display:'flex', alignItems:'center', gap:'8px'}}>
+                            <div style={{width:'14px', height:'14px', border:'1px solid #64748b', borderRadius:'3px', backgroundColor: paymentMethod==='ZELLE'?'#16a34a':'white', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>{paymentMethod==='ZELLE'?'✓':''}</div>
+                            Zelle
+                         </label>
+                         <label style={{width:'45%', display:'flex', alignItems:'center', gap:'8px'}}>
+                            <div style={{width:'14px', height:'14px', border:'1px solid #64748b', borderRadius:'3px', backgroundColor: paymentMethod==='ORANGE_MONEY'?'#16a34a':'white', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>{paymentMethod==='ORANGE_MONEY'?'✓':''}</div>
+                            Orange Money
+                         </label>
+                         <label style={{width:'45%', display:'flex', alignItems:'center', gap:'8px'}}>
+                            <div style={{width:'14px', height:'14px', border:'1px solid #64748b', borderRadius:'3px', backgroundColor: paymentMethod==='OTHER'?'#16a34a':'white', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>{paymentMethod==='OTHER'?'✓':''}</div>
+                            Autre / Other
+                         </label>
+                      </div>
+                   </div>
+                   
+                   <div style={{display:'flex', justifyContent:'space-between', marginTop:'60px'}}>
+                      <div style={{width:'45%', borderTop:'1px solid #333', textAlign:'center', paddingTop:'8px', fontSize:'12px', color:'#64748b'}}>Signature client &middot; Customer</div>
+                      <div style={{width:'45%', borderTop:'1px solid #333', textAlign:'center', paddingTop:'8px', fontSize:'12px', color:'#64748b'}}>Cachet & signature &middot; Tangaly</div>
+                   </div>
+                </div>
 
-            {/* TERMS AND CONDITIONS */}
-            <div style={{textAlign: 'center', fontSize: '11px', marginBottom: '30px'}}>
-               <h4 style={{margin: '0 0 5px 0'}}>Terms & Conditions / Termes et Conditions:</h4>
-               <p style={{margin: 0}}>- Tangaly Shipping is not responsible for prohibited or illegal items.</p>
-               <p style={{margin: 0}}>- Tangaly Shipping is not liable for damage due to improper packaging.</p>
-               <p style={{margin: 0}}>- Estimated delivery time: 5-10 business days.</p>
-               <hr style={{margin: '5px auto', width: '50%', borderTop: '1px solid #cbd5e1'}} />
-               <p style={{margin: 0}}>- Tangaly Shipping n'est pas responsable des articles interdits ou illégaux.</p>
-               <p style={{margin: 0}}>- Tangaly Shipping n'est pas responsable des dommages dus à un mauvais emballage.</p>
-               <p style={{margin: 0}}>- Délai de livraison estimé : 5-10 jours ouvrables.</p>
-            </div>
+                {/* PRICING TABLE */}
+                <div style={{width:'260px'}}>
+                   <table style={{width:'100%', borderCollapse:'collapse', fontSize:'14px'}}>
+                      <tbody>
+                         <tr>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0'}}>Fret &middot; Freight</td>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0', textAlign:'right', fontWeight:'bold'}}>${freightCost}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0'}}>Frais de dossier &middot; Doc. fee</td>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0', textAlign:'right', fontWeight:'bold'}}>${docFee}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0', fontWeight:'bold'}}>Total</td>
+                            <td style={{padding:'10px', borderBottom:'1px solid #e2e8f0', textAlign:'right', fontWeight:'bold'}}>${total}</td>
+                         </tr>
+                         <tr>
+                            <td style={{padding:'10px', color:'#16a34a', fontWeight:'bold'}}>Payé &middot; Paid</td>
+                            <td style={{padding:'10px', textAlign:'right', color:'#16a34a', fontWeight:'bold'}}>${paid}</td>
+                         </tr>
+                         <tr>
+                            <td colSpan={2} style={{padding:0}}>
+                               <div style={{backgroundColor:'#dc2626', color:'white', padding:'12px', display:'flex', justifyContent:'space-between', borderRadius:'6px', marginTop:'8px'}}>
+                                  <span style={{fontWeight:'bold'}}>Reste à payer &middot; Balance</span>
+                                  <span style={{fontWeight:'bold', fontSize:'16px'}}>${balance}</span>
+                               </div>
+                            </td>
+                         </tr>
+                      </tbody>
+                   </table>
+                </div>
+             </div>
 
-            {/* SIGNATURES */}
-            <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '14px'}}>
-               <div style={{width: '40%', borderTop: '1px solid black', paddingTop: '5px', textAlign: 'center'}}>
-                  Agent Signature / Signature de l'Agent:
-               </div>
-               <div style={{width: '40%', borderTop: '1px solid black', paddingTop: '5px', textAlign: 'center'}}>
-                  Customer Signature / Signature du Client:
-               </div>
-            </div>
+             {/* FOOTER */}
+             <div style={{borderTop:'1px dashed #cbd5e1', paddingTop:'15px', display:'flex', gap:'20px', fontSize:'10px', color:'#64748b'}}>
+                <div style={{flex:1}}>
+                   <strong style={{color:'#333', display:'block', marginBottom:'4px'}}>Terms & Conditions</strong>
+                   <ul style={{margin:0, paddingLeft:'15px', lineHeight:'1.4'}}>
+                      <li>Tangaly Shipping is not responsible for prohibited or illegal items.</li>
+                      <li>Tangaly Shipping is not liable for damage due to improper packaging.</li>
+                      <li>Estimated delivery time: 5-10 business days.</li>
+                   </ul>
+                </div>
+                <div style={{flex:1}}>
+                   <strong style={{color:'#333', display:'block', marginBottom:'4px'}}>Termes et conditions</strong>
+                   <ul style={{margin:0, paddingLeft:'15px', lineHeight:'1.4'}}>
+                      <li>Tangaly Shipping n'est pas responsable des articles interdits ou illégaux.</li>
+                      <li>Tangaly Shipping n'est pas responsable des dommages dus à un mauvais emballage.</li>
+                      <li>Délai de livraison estimé : 5-10 jours ouvrables.</li>
+                   </ul>
+                </div>
+             </div>
+             
+             <div style={{textAlign:'center', marginTop:'30px', fontSize:'11px', paddingBottom:'20px'}}>
+                <span style={{color:'#1e3a8a', fontWeight:'bold'}}>Tangaly Shipping & Logistics</span> &middot; Rapide, fiable et sécurisé &middot; Fast, reliable & secure<br/>
+                <span style={{color:'#64748b'}}>Merci de votre confiance &middot; Thank you for your trust</span>
+             </div>
          </div>
       </div>
     </div>

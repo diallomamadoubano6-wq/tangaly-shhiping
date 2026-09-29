@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientAuthProvider } from '@/lib/clientAuth';
+import WhatsAppButton from '@/components/layout/WhatsAppButton';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className} suppressHydrationWarning={true}>
         <ClientAuthProvider>
           {children}
+          <WhatsAppButton />
         </ClientAuthProvider>
       </body>
     </html>
