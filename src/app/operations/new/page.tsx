@@ -107,7 +107,7 @@ export default function NewShipmentPage() {
 
       if (!res.success) throw new Error(res.message || 'Erreur lors de la création');
 
-      setTrackingNumber(res.data.tracking_number);
+      setTrackingNumber(res.data?.tracking_number || '');
       setShowReceipt(true);
     } catch (err: any) {
       setError(err.message);
