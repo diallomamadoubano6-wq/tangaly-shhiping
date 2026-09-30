@@ -107,6 +107,24 @@ export async function createShipment(data: any) {
             commentaire: 'Expédition créée',
             userId: user.id
           }
+        },
+        invoice: {
+          create: {
+            number: `FAC-${trackingNumber.replace('TGL-', '')}`,
+            clientId: actualClientId,
+            subtotal: (parseFloat(data.freightCost || 0) + parseFloat(data.docFee || 0)) || 0,
+            total: parseFloat(data.totalAmount || 0),
+            amountPaid: parseFloat(data.amountPaid || 0),
+            balance: parseFloat(data.balance || 0),
+            status: parseFloat(data.balance || 0) <= 0 && parseFloat(data.totalAmount || 0) > 0 ? 'PAID' : 'PENDING',
+            payments: (parseFloat(data.amountPaid || 0) > 0) ? {
+              create: {
+                amount: parseFloat(data.amountPaid || 0),
+                method: data.paymentMethod || 'CASH',
+                recordedBy: user.id
+              }
+            } : undefined
+          }
         }
       },
       include: {
@@ -147,6 +165,54 @@ export async function updateShipmentStatus(id: string, statut: string, commentai
   } catch (error) {
     console.error("Error updating shipment status:", error);
     return { success: false, message: 'Erreur lors de la mise à jour du statut' };
+  }
+}
+
+export async function registerPayment(shipmentId: string, amount: number, method: string) {
+  const user = await checkAuth();
+  
+  try {
+    const shipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId },
+      include: { invoice: true }
+    });
+    
+    if (!shipment || !shipment.invoice) {
+      return { success: false, message: 'Facture introuvable' };
+    }
+
+    const newAmountPaid = shipment.invoice.amountPaid + amount;
+    const newBalance = shipment.invoice.total - newAmountPaid;
+    
+    await prisma.invoice.update({
+      where: { id: shipment.invoice.id },
+      data: {
+        amountPaid: newAmountPaid,
+        balance: newBalance > 0 ? newBalance : 0,
+        status: newBalance <= 0 ? 'PAID' : 'PENDING',
+        payments: {
+          create: {
+            amount: amount,
+            method: method,
+            recordedBy: user.id
+          }
+        }
+      }
+    });
+
+    await prisma.shipment.update({
+      where: { id: shipmentId },
+      data: {
+        amountPaid: newAmountPaid,
+        balance: newBalance > 0 ? newBalance : 0
+      }
+    });
+
+    revalidatePath('/operations/invoices');
+    return { success: true };
+  } catch (error) {
+    console.error("Error registering payment:", error);
+    return { success: false, message: "Erreur lors de l'enregistrement du paiement" };
   }
 }
 

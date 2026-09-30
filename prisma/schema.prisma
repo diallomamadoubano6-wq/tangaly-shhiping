@@ -11,20 +11,21 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  nom            String
-  email          String          @unique
-  password_hash  String
-  role           String          @default("CLIENT")
-  localisation   String?         @default("Conakry")
-  agencyId       String?
-  agency         Agency?         @relation(fields: [agencyId], references: [id])
-  client         Client?
-  notifications  Notification[]
-  trackingEvents TrackingEvent[]
-  auditLogs      AuditLog[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id               String          @id @default(uuid())
+  nom              String
+  email            String          @unique
+  password_hash    String
+  role             String          @default("CLIENT")
+  localisation     String?         @default("Conakry")
+  agencyId         String?
+  agency           Agency?         @relation(fields: [agencyId], references: [id])
+  client           Client?
+  notifications    Notification[]
+  trackingEvents   TrackingEvent[]
+  auditLogs        AuditLog[]
+  paymentsRecorded Payment[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }
 
 model Client {
@@ -42,12 +43,13 @@ model Client {
   notif_email   Boolean        @default(true)
   notif_sms     Boolean        @default(true)
   notifications Notification[]
+  invoices      Invoice[]
 }
 
 model Shipment {
-  id              String          @id @default(uuid())
-  tracking_number String          @unique
-  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id              String @id @default(uuid())
+  tracking_number String @unique
+  client          Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId        String
   origine         String
   destination     String
@@ -61,14 +63,14 @@ model Shipment {
   receiverAddress String?
 
   // -- Infos colis & finances --
-  description     String?
-  boxes           Int?
-  amountPaid      Float?
-  paymentMethod   String?
-  freightCost     Float?
-  docFee          Float?
-  totalAmount     Float?
-  balance         Float?
+  description   String?
+  boxes         Int?
+  amountPaid    Float?
+  paymentMethod String?
+  freightCost   Float?
+  docFee        Float?
+  totalAmount   Float?
+  balance       Float?
 
   statut          String          @default("PENDING")
   tracking_events TrackingEvent[]
@@ -79,6 +81,7 @@ model Shipment {
   assoExpressId   String?
   agencyId        String?
   agency          Agency?         @relation(fields: [agencyId], references: [id])
+  invoice         Invoice?
 
   @@index([tracking_number])
   @@index([clientId])
@@ -258,4 +261,48 @@ model Media {
   urlWebp       String
   urlAvif       String?
   createdAt     DateTime @default(now())
+}
+
+model Invoice {
+  id         String   @id @default(uuid())
+  number     String   @unique
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipmentId String   @unique
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id])
+
+  subtotal   Float
+  tax        Float     @default(0)
+  total      Float
+  amountPaid Float     @default(0)
+  balance    Float
+  status     String    @default("PENDING") // PENDING, PARTIAL, PAID, CANCELLED
+  dueDate    DateTime?
+
+  payments  Payment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model Payment {
+  id        String  @id @default(uuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  amount    Float
+  method    String // CASH, ZELLE, ORANGE_MONEY, etc.
+  reference String? // Transaction ID
+  status    String  @default("COMPLETED") // COMPLETED, PENDING, FAILED
+  notes     String?
+
+  recordedBy String?
+  user       User?   @relation(fields: [recordedBy], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([recordedBy])
 }

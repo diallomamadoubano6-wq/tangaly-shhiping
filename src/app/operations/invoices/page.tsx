@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
 import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode } from 'lucide-react';
+import { getShipments, registerPayment } from '@/actions/shipments';
 
 type Invoice = {
   id: string;
@@ -39,13 +40,9 @@ export default function InvoicesPage() {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const token = localStorage.getItem('tangaly_client_token') || '';
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (json.success) {
-          const mapped: Invoice[] = json.data.map((s: any) => ({
+        const res = await getShipments();
+        if (res.success) {
+          const mapped: Invoice[] = res.data.map((s: any) => ({
             id: s.tracking_number,
             dbId: s.id,
             colis: s.tracking_number,
@@ -84,25 +81,11 @@ export default function InvoicesPage() {
     if (!amount || amount <= 0) return;
     
     try {
-      const token = localStorage.getItem('tangaly_client_token') || '';
-      // We assume payingInvoice.dbId is available. Wait, in mapping we only kept 'id' (tracking_number).
-      // Let's use tracking_number if dbId is missing? But the route uses the DB id or tracking_number?
-      // Our backend uses `findUnique({ where: { id } })`, so we need the DB id.
-      // I will need to ensure `dbId` is mapped in the invoices state.
-      
       const dbId = payingInvoice.dbId || payingInvoice.id; 
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments/${dbId}/payment`, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ amountPaid: amount, paymentMethod: 'Cash' })
-      });
+      const res = await registerPayment(dbId, amount, 'CASH');
       
-      const json = await res.json();
-      if (json.success) {
+      if (res.success) {
         // Update local state
         setInvoices(prev => prev.map(inv => {
           if (inv.id === payingInvoice.id) {
@@ -120,7 +103,7 @@ export default function InvoicesPage() {
         setPayingInvoice(null);
         setPaymentAmount('');
       } else {
-        alert(json.message || "Erreur lors de l'enregistrement du paiement");
+        alert(res.message || "Erreur lors de l'enregistrement du paiement");
       }
     } catch (error) {
       console.error("Erreur de paiement:", error);
