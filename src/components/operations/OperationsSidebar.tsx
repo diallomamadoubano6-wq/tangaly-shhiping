@@ -105,6 +105,14 @@ export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebar
               <MapPin size={18} />
               <span>Suivi des colis</span>
             </Link>
+            <Link 
+              href="/operations/returns" 
+              onClick={handleLinkClick} 
+              className={isActive('/operations/returns') ? styles.navLinkActive : styles.navLink}
+            >
+              <RotateCcw size={18} />
+              <span>Colis retournés</span>
+            </Link>
           </div>
 
 
