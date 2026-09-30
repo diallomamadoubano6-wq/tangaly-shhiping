@@ -107,41 +107,7 @@ export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebar
             </Link>
           </div>
 
-          <div className={styles.navGroup}>
-            <p className={styles.navTitle}>COLIS & STATUTS</p>
-            <Link 
-              href="/operations/shipments?status=RECEIVED" 
-              onClick={handleLinkClick} 
-              className={styles.navLink}
-            >
-              <Package size={18} />
-              <span>En attente de réception</span>
-            </Link>
-            <Link 
-              href="/operations/shipments?status=SHIPPED" 
-              onClick={handleLinkClick} 
-              className={styles.navLink}
-            >
-              <Truck size={18} />
-              <span>Colis en transit</span>
-            </Link>
-            <Link 
-              href="/operations/shipments?status=DELIVERED" 
-              onClick={handleLinkClick} 
-              className={styles.navLink}
-            >
-              <CheckCircle size={18} />
-              <span>Colis livrés</span>
-            </Link>
-            <Link 
-              href="/operations/returns" 
-              onClick={handleLinkClick} 
-              className={isActive('/operations/returns') ? styles.navLinkActive : styles.navLink}
-            >
-              <RotateCcw size={18} />
-              <span>Colis retournés</span>
-            </Link>
-          </div>
+
 
           <div className={styles.navGroup}>
             <p className={styles.navTitle}>FINANCES</p>
