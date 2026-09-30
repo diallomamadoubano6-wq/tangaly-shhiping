@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
-import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode } from 'lucide-react';
+import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode, MessageCircle } from 'lucide-react';
 import { getShipments, registerPayment } from '@/actions/shipments';
 
 type Invoice = {
@@ -276,6 +276,21 @@ export default function InvoicesPage() {
     }, 250);
   };
 
+  const handleWhatsAppShare = (inv: Invoice) => {
+    const text = `Bonjour ${inv.senderName},\n\nVoici les détails de votre expédition chez Tangaly Shipping.\n\n📦 Colis N°: ${inv.id}\n📍 Destination: ${inv.receiverAddress}\n⚖️ Poids: ${inv.weight} KG\n\n💵 Montant Total: $${inv.total}\n✅ Montant Payé: $${inv.amountPaid}\n⏳ Reste à payer: $${inv.balance}\n\nMerci de votre confiance !`;
+    const encoded = encodeURIComponent(text);
+    
+    // Nettoyer le numéro de téléphone pour WhatsApp
+    let phone = inv.senderPhone.replace(/\\D/g, '');
+    // Si ça commence par 00, on remplace par + ou rien (wa.me accepte sans le 00 ni le +)
+    if (phone.startsWith('00')) {
+      phone = phone.substring(2);
+    }
+    
+    const url = phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+    window.open(url, '_blank');
+  };
+
   const handlePrintQR = (inv: Invoice) => {
     const win = window.open('', '_blank', 'width=600,height=800');
     if (!win) return;
@@ -404,7 +419,7 @@ export default function InvoicesPage() {
                 <th style={{width: '90px'}}>Montant</th>
                 <th style={{width: '110px'}}>Date</th>
                 <th style={{width: '110px'}}>Statut</th>
-                <th style={{width: '240px'}}>Actions</th>
+                <th style={{width: '320px'}}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -431,6 +446,9 @@ export default function InvoicesPage() {
                         Encaisser
                       </button>
                     )}
+                    <button className={styles.textButton} style={{padding:'5px 8px', fontSize:12, whiteSpace:'nowrap', color:'#25D366', borderColor:'#25D366'}} onClick={() => handleWhatsAppShare(inv)}>
+                      <MessageCircle size={14} color="#25D366" /> WhatsApp
+                    </button>
                     <button className={styles.textButton} style={{padding:'5px 8px', fontSize:12, whiteSpace:'nowrap'}} onClick={() => setSelected(inv)}>
                       <Eye size={14}/> Voir
                     </button>
