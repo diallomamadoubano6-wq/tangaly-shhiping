@@ -30,7 +30,8 @@ export async function getShipments() {
           },
           orderBy: { date: 'desc' },
           take: 1
-        }
+        },
+        invoice: true
       },
       orderBy: {
         createdAt: 'desc'

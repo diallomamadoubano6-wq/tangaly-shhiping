@@ -43,7 +43,7 @@ export default function InvoicesPage() {
         const res = await getShipments();
         if (res.success) {
           const mapped: Invoice[] = res.data.map((s: any) => ({
-            id: s.tracking_number,
+            id: s.invoice?.number || s.tracking_number,
             dbId: s.id,
             colis: s.tracking_number,
             senderName: s.client?.user?.nom || 'Inconnu',
@@ -58,11 +58,11 @@ export default function InvoicesPage() {
             ratePerKg: s.freightCost && s.poids ? Math.round(Number(s.freightCost) / Number(s.poids)) : 0,
             freightCost: Number(s.freightCost) || 0,
             docFee: Number(s.docFee) || 0,
-            total: Number(s.totalAmount) || 0,
-            amountPaid: Number(s.amountPaid) || 0,
-            balance: Number(s.balance) || 0,
+            total: Number(s.invoice?.total ?? s.totalAmount) || 0,
+            amountPaid: Number(s.invoice?.amountPaid ?? s.amountPaid) || 0,
+            balance: Number(s.invoice?.balance ?? s.balance) || 0,
             date: new Date(s.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-            statut: Number(s.balance) <= 0 ? 'paid' : 'pending'
+            statut: Number(s.invoice?.balance ?? s.balance) <= 0 ? 'paid' : 'pending'
           }));
           setInvoices(mapped);
         }
