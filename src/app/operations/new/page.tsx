@@ -93,6 +93,22 @@ export default function NewShipmentPage() {
     } else if (userRole === 'GERANT_USA') {
       setDirection('USA_GN');
     }
+
+    // Récupérer une estimation transférée depuis le calculateur
+    try {
+      const savedQuote = sessionStorage.getItem('tangaly_quote_to_shipment');
+      if (savedQuote) {
+        const data = JSON.parse(savedQuote);
+        if (data.direction) setDirection(data.direction);
+        if (data.transportType) setTransportType(data.transportType);
+        if (data.productLines && Array.isArray(data.productLines) && data.productLines.length > 0) {
+          setProductLines(data.productLines);
+        }
+        sessionStorage.removeItem('tangaly_quote_to_shipment');
+      }
+    } catch (e) {
+      console.error('Erreur chargement devis:', e);
+    }
   }, [userRole]);
 
   // Expéditeur
