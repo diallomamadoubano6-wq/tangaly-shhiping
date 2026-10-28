@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createShipment } from '@/actions/shipments';
 import styles from '../operations.module.css';
 import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, DollarSign, Layers, AlertCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -273,7 +274,7 @@ export default function NewShipmentPage() {
 
       if (!res.success) throw new Error(res.message || 'Erreur lors de la création');
 
-      setTrackingNumber(res.data!.tracking_number);
+      setTrackingNumber(res.data?.tracking_number || '');
       setShowReceipt(true);
     } catch (err: any) {
       setError(err.message);
@@ -1622,6 +1623,7 @@ export default function NewShipmentPage() {
           <strong style={{ color: '#1d4ed8' }}>Tangaly Shipping &amp; Logistics</strong> · Rapide, fiable et sécurisé · Fast, reliable &amp; secure<br />
           Merci de votre confiance · Thank you for your trust
         </div>
+      </div>
       </div>
     </div>
   );

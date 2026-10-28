@@ -20,6 +20,7 @@ export async function getUsers() {
     const users = await prisma.user.findMany({
       include: {
         agency: true,
+        client: true,
       },
       orderBy: {
         createdAt: 'desc'

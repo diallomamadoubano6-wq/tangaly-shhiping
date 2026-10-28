@@ -31,11 +31,11 @@ export default function Footer() {
             <div className={styles.logo}>
               <div className={styles.logoBg}>
                 <Image 
-                  src="/logo-tangaly.png" 
+                  src="/lo.jpeg" 
                   alt="TANGALY Logo" 
-                  width={160} 
-                  height={50} 
-                  style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '50px' }} 
+                  width={220} 
+                  height={70} 
+                  style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '70px' }} 
                 />
               </div>
             </div>

@@ -44,11 +44,11 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className={styles.logo} aria-label="TANGALY - Accueil">
             <Image 
-              src="/logo-tangaly.png" 
+              src="/lo.jpeg" 
               alt="TANGALY Logo" 
-              width={160} 
-              height={50} 
-              style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '50px' }} 
+              width={220} 
+              height={70} 
+              style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '70px' }} 
               priority
             />
           </Link>

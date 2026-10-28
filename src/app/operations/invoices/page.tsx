@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
-import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode } from 'lucide-react';
+import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode, MessageCircle } from 'lucide-react';
+import { getShipments, registerPayment } from '@/actions/shipments';
 
 type Invoice = {
   id: string;
@@ -39,14 +40,10 @@ export default function InvoicesPage() {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const token = localStorage.getItem('tangaly_client_token') || '';
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (json.success) {
-          const mapped: Invoice[] = json.data.map((s: any) => ({
-            id: s.tracking_number,
+        const res = await getShipments();
+        if (res.success) {
+          const mapped: Invoice[] = res.data.map((s: any) => ({
+            id: s.invoice?.number || s.tracking_number,
             dbId: s.id,
             colis: s.tracking_number,
             senderName: s.client?.user?.nom || 'Inconnu',
@@ -60,12 +57,11 @@ export default function InvoicesPage() {
             weight: s.poids?.toString() || '0',
             ratePerKg: s.freightCost && s.poids ? Math.round(Number(s.freightCost) / Number(s.poids)) : 0,
             freightCost: Number(s.freightCost) || 0,
-
-            total: Number(s.totalAmount) || 0,
-            amountPaid: Number(s.amountPaid) || 0,
-            balance: Number(s.balance) || 0,
+            total: Number(s.invoice?.total ?? s.totalAmount) || 0,
+            amountPaid: Number(s.invoice?.amountPaid ?? s.amountPaid) || 0,
+            balance: Number(s.invoice?.balance ?? s.balance) || 0,
             date: new Date(s.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-            statut: Number(s.balance) <= 0 ? 'paid' : 'pending'
+            statut: Number(s.invoice?.balance ?? s.balance) <= 0 ? 'paid' : 'pending'
           }));
           setInvoices(mapped);
         }
@@ -84,25 +80,11 @@ export default function InvoicesPage() {
     if (!amount || amount <= 0) return;
     
     try {
-      const token = localStorage.getItem('tangaly_client_token') || '';
-      // We assume payingInvoice.dbId is available. Wait, in mapping we only kept 'id' (tracking_number).
-      // Let's use tracking_number if dbId is missing? But the route uses the DB id or tracking_number?
-      // Our backend uses `findUnique({ where: { id } })`, so we need the DB id.
-      // I will need to ensure `dbId` is mapped in the invoices state.
-      
       const dbId = payingInvoice.dbId || payingInvoice.id; 
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/shipments/${dbId}/payment`, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ amountPaid: amount, paymentMethod: 'Cash' })
-      });
+      const res = await registerPayment(dbId, amount, 'CASH');
       
-      const json = await res.json();
-      if (json.success) {
+      if (res.success) {
         // Update local state
         setInvoices(prev => prev.map(inv => {
           if (inv.id === payingInvoice.id) {
@@ -120,7 +102,7 @@ export default function InvoicesPage() {
         setPayingInvoice(null);
         setPaymentAmount('');
       } else {
-        alert(json.message || "Erreur lors de l'enregistrement du paiement");
+        alert(res.message || "Erreur lors de l'enregistrement du paiement");
       }
     } catch (error) {
       console.error("Erreur de paiement:", error);
@@ -290,6 +272,21 @@ export default function InvoicesPage() {
     }, 250);
   };
 
+  const handleWhatsAppShare = (inv: Invoice) => {
+    const text = `Bonjour ${inv.senderName},\n\nVoici les détails de votre expédition chez Tangaly Shipping.\n\n📦 Colis N°: ${inv.id}\n📍 Destination: ${inv.receiverAddress}\n⚖️ Poids: ${inv.weight} KG\n\n💵 Montant Total: $${inv.total}\n✅ Montant Payé: $${inv.amountPaid}\n⏳ Reste à payer: $${inv.balance}\n\nMerci de votre confiance !`;
+    const encoded = encodeURIComponent(text);
+    
+    // Nettoyer le numéro de téléphone pour WhatsApp
+    let phone = inv.senderPhone.replace(/\\D/g, '');
+    // Si ça commence par 00, on remplace par + ou rien (wa.me accepte sans le 00 ni le +)
+    if (phone.startsWith('00')) {
+      phone = phone.substring(2);
+    }
+    
+    const url = phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+    window.open(url, '_blank');
+  };
+
   const handlePrintQR = (inv: Invoice) => {
     const win = window.open('', '_blank', 'width=600,height=800');
     if (!win) return;
@@ -418,7 +415,7 @@ export default function InvoicesPage() {
                 <th style={{width: '90px'}}>Montant</th>
                 <th style={{width: '110px'}}>Date</th>
                 <th style={{width: '110px'}}>Statut</th>
-                <th style={{width: '240px'}}>Actions</th>
+                <th style={{width: '320px'}}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -445,6 +442,9 @@ export default function InvoicesPage() {
                         Encaisser
                       </button>
                     )}
+                    <button className={styles.textButton} style={{padding:'5px 8px', fontSize:12, whiteSpace:'nowrap', color:'#25D366', borderColor:'#25D366'}} onClick={() => handleWhatsAppShare(inv)}>
+                      <MessageCircle size={14} color="#25D366" /> WhatsApp
+                    </button>
                     <button className={styles.textButton} style={{padding:'5px 8px', fontSize:12, whiteSpace:'nowrap'}} onClick={() => setSelected(inv)}>
                       <Eye size={14}/> Voir
                     </button>

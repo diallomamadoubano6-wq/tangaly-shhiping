@@ -36,10 +36,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       <div className={styles.logoArea}>
         <Image 
-          src="/logo-tangaly.png" 
+          src="/lo.jpeg" 
           alt="TANGALY" 
-          width={130} 
-          height={38} 
+          width={180} 
+          height={55} 
           style={{ objectFit: 'contain' }} 
         />
         {onClose && (

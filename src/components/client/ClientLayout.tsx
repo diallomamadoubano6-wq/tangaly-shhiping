@@ -44,11 +44,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div className={styles.sidebarHeader}>
           <Link href="/" className={styles.logo}>
             <Image 
-              src="/logo-tangaly.png" 
+              src="/lo.jpeg" 
               alt="TANGALY Logo" 
-              width={140} 
-              height={40} 
-              style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '40px' }} 
+              width={180} 
+              height={50} 
+              style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '55px' }} 
             />
           </Link>
           <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu">
