@@ -279,3 +279,118 @@ export async function scanShipmentAction(
     return { success: false, message: 'Erreur lors de la mise à jour par scan.' };
   }
 }
+
+// ── Nouvelle expédition walk-in (page /operations/new) ──
+interface OperationShipmentData {
+  origine: string;
+  destination: string;
+  type_transport: string;
+  senderName: string;
+  senderPhone: string;
+  senderAddress: string;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  description: string;
+  boxes: number;
+  poids: number;
+  amountPaid: number;
+  paymentMethod: string;
+  freightCost: number;
+  docFee: number;
+  totalAmount: number;
+  balance: number;
+}
+
+export async function createOperationShipment(data: OperationShipmentData) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return { success: false, message: 'Non autorisé. Veuillez vous connecter.' };
+  }
+
+  const agentUser = session.user as any;
+
+  try {
+    // Trouver ou créer un client walk-in basé sur le téléphone de l'expéditeur
+    let client = await prisma.client.findFirst({
+      where: { telephone: data.senderPhone || undefined },
+    });
+
+    if (!client) {
+      const emailSafe = (data.senderPhone || `walkin-${Date.now()}`).replace(/[^a-zA-Z0-9]/g, '');
+      const walkinEmail = `walkin-${emailSafe}@tangaly.local`;
+
+      let walkinUser = await prisma.user.findUnique({ where: { email: walkinEmail } });
+      if (!walkinUser) {
+        walkinUser = await prisma.user.create({
+          data: {
+            nom: data.senderName || 'Client Walk-in',
+            email: walkinEmail,
+            password_hash: 'walkin-no-login',
+            role: 'CLIENT',
+          },
+        });
+
+        // Créer le profil Client associé
+        client = await prisma.client.create({
+          data: {
+            userId: walkinUser.id,
+            telephone: data.senderPhone || null,
+            adresse: data.senderAddress || null,
+          },
+        });
+      } else {
+        // L'user existe mais pas le client — le créer
+        client = await prisma.client.upsert({
+          where: { userId: walkinUser.id },
+          update: {},
+          create: {
+            userId: walkinUser.id,
+            telephone: data.senderPhone || null,
+            adresse: data.senderAddress || null,
+          },
+        });
+      }
+    }
+
+    const trackingNumber = generateTrackingNumber();
+
+    const shipment = await prisma.shipment.create({
+      data: {
+        tracking_number: trackingNumber,
+        clientId: client.id,
+        origine: data.origine,
+        destination: data.destination,
+        type_transport: data.type_transport,
+        poids: data.poids || null,
+        description: data.description || null,
+        boxes: data.boxes || null,
+        receiverName: data.receiverName || null,
+        receiverPhone: data.receiverPhone || null,
+        receiverAddress: data.receiverAddress || null,
+        amountPaid: data.amountPaid ?? null,
+        paymentMethod: data.paymentMethod || null,
+        freightCost: data.freightCost || null,
+        docFee: data.docFee || null,
+        totalAmount: data.totalAmount || null,
+        balance: data.balance || null,
+        statut: 'PENDING',
+        tracking_events: {
+          create: {
+            statut: 'PENDING',
+            commentaire: `Expédition créée par ${agentUser.nom || agentUser.name || 'Agent'}. Expéditeur: ${data.senderName} (${data.senderPhone})`,
+            userId: agentUser.id,
+          },
+        },
+      },
+    });
+
+    revalidatePath('/operations');
+    revalidatePath('/admin/shipments');
+
+    return { success: true, data: shipment };
+  } catch (error: any) {
+    console.error('Error creating operation shipment:', error);
+    return { success: false, message: error.message || "Erreur lors de la création de l'expédition" };
+  }
+}

@@ -259,3 +259,17 @@ model Media {
   urlAvif       String?
   createdAt     DateTime @default(now())
 }
+
+model Passkey {
+  id                   String   @id @default(uuid())
+  userId               String
+  credentialId         String   @unique
+  publicKey            Bytes
+  counter              BigInt   @default(0)
+  deviceType           String?
+  backedUp             Boolean  @default(false)
+  transports           String?
+  createdAt            DateTime @default(now())
+
+  @@index([userId])
+}

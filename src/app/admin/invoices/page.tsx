@@ -19,7 +19,7 @@ type Invoice = {
   weight: string;
   ratePerKg: number;
   freightCost: number;
-  docFee: number;
+
   total: number;
   amountPaid: number;
   balance: number;
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
             weight: s.poids?.toString() || '0',
             ratePerKg: s.freightCost && s.poids ? Math.round(Number(s.freightCost) / Number(s.poids)) : 0,
             freightCost: Number(s.freightCost) || 0,
-            docFee: Number(s.docFee) || 0,
+
             total: Number(s.totalAmount) || 0,
             amountPaid: Number(s.amountPaid) || 0,
             balance: Number(s.balance) || 0,
@@ -227,10 +227,7 @@ export default function InvoicesPage() {
                <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Freight Cost / Coût du Fret: </span>
                <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">$${inv.freightCost}</div>
             </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Documentation Fee / Frais de Dossier: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">$${inv.docFee}</div>
-            </div>
+
             <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
                <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Total Amount / Montant Total: </span>
                <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px; font-weight: bold;">$${inv.total}</div>
