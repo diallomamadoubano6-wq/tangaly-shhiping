@@ -1624,7 +1624,6 @@ export default function NewShipmentPage() {
           Merci de votre confiance · Thank you for your trust
         </div>
       </div>
-      </div>
     </div>
   );
 }
