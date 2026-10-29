@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/ToastProvider';
-import { getUsers, getAgencies, createUser, updateUser } from '@/actions/users';
+import { getUsers, getAgencies, createUser, updateUser, deleteUser } from '@/actions/users';
+import { Trash2, Edit2, AlertTriangle, UserPlus } from 'lucide-react';
 
 export default function UsersPage() {
   const { addToast } = useToast();
@@ -14,6 +15,8 @@ export default function UsersPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -89,11 +92,32 @@ export default function UsersPage() {
     setIsModalOpen(true);
   };
 
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteUser(userToDelete.id);
+      if (res.success) {
+        addToast('success', 'Succès', `L'utilisateur "${userToDelete.nom}" a été supprimé avec succès.`);
+        setUserToDelete(null);
+        await loadData();
+      } else {
+        addToast('error', 'Erreur', res.message || 'Impossible de supprimer cet utilisateur.');
+      }
+    } catch (error) {
+      addToast('error', 'Erreur', 'Erreur lors de la suppression.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Gestion des Comptes</h1>
-        <button className="btn btn-primary" onClick={openCreateModal}>+ Créer un compte</button>
+        <button className="btn btn-primary" onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <UserPlus size={16} /> Créer un compte
+        </button>
       </div>
 
       <div className="table-container">
@@ -126,7 +150,23 @@ export default function UsersPage() {
                     <td>{u.agency ? `${u.agency.nom} (${u.agency.pays})` : 'N/A'}</td>
                     <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(u)}>Modifier</button>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => openEditModal(u)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <Edit2 size={13} /> Modifier
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setUserToDelete(u)}
+                          style={{ color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          title="Supprimer définitivement cet utilisateur"
+                        >
+                          <Trash2 size={13} /> Supprimer
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -191,6 +231,81 @@ export default function UsersPage() {
             </div>
           )}
         </form>
+      </Modal>
+
+      {/* Modal Confirmation de Suppression */}
+      <Modal
+        isOpen={!!userToDelete}
+        onClose={() => !isDeleting && setUserToDelete(null)}
+        title="Confirmer la suppression"
+        footer={
+          <>
+            <button className="btn btn-ghost" onClick={() => setUserToDelete(null)} disabled={isDeleting}>
+              Annuler
+            </button>
+            <button
+              className="btn"
+              style={{
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontWeight: 600,
+              }}
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+            >
+              <Trash2 size={16} />
+              {isDeleting ? 'Suppression en cours...' : 'Oui, supprimer définitivement'}
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 14px',
+              background: '#fef2f2',
+              borderRadius: 8,
+              border: '1px solid #fecaca',
+            }}
+          >
+            <AlertTriangle size={22} color="#dc2626" style={{ flexShrink: 0 }} />
+            <div style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.4 }}>
+              <strong>Action irréversible :</strong> Toutes les données directement associées à cet utilisateur seront supprimées.
+            </div>
+          </div>
+          <p style={{ margin: 0, fontSize: 14, color: '#334155' }}>
+            Êtes-vous sûr de vouloir supprimer définitivement le compte de :<br />
+            <strong style={{ color: '#0f172a', fontSize: 15 }}>{userToDelete?.nom}</strong> ({userToDelete?.email}) ?
+          </p>
+          <div
+            style={{
+              padding: '10px 12px',
+              background: '#f8fafc',
+              borderRadius: 6,
+              border: '1px solid #e2e8f0',
+              fontSize: 12,
+              color: '#64748b',
+              display: 'flex',
+              gap: 16,
+            }}
+          >
+            <span>
+              Rôle : <strong style={{ color: '#0f172a' }}>{userToDelete?.role}</strong>
+            </span>
+            {userToDelete?.agency && (
+              <span>
+                Agence : <strong style={{ color: '#0f172a' }}>{userToDelete.agency.nom}</strong>
+              </span>
+            )}
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -114,3 +114,67 @@ export async function updateUser(id: string, data: any) {
     return { success: false, message: 'Erreur lors de la mise à jour' };
   }
 }
+
+export async function deleteUser(id: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== 'SUPER_ADMIN') {
+    return { success: false, message: 'Non autorisé. Action réservée aux Super Administrateurs.' };
+  }
+
+  const currentUserId = (session.user as any).id;
+  if (currentUserId === id) {
+    return { success: false, message: 'Vous ne pouvez pas supprimer votre propre compte actuellement connecté.' };
+  }
+
+  try {
+    const userToDelete = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, role: true, nom: true, email: true }
+    });
+
+    if (!userToDelete) {
+      return { success: false, message: 'Utilisateur introuvable.' };
+    }
+
+    // Protection : Ne pas supprimer le dernier SUPER_ADMIN
+    if (userToDelete.role === 'SUPER_ADMIN') {
+      const superAdminCount = await prisma.user.count({
+        where: { role: 'SUPER_ADMIN' }
+      });
+      if (superAdminCount <= 1) {
+        return { success: false, message: 'Impossible de supprimer le dernier Super Administrateur.' };
+      }
+    }
+
+    // Nettoyage et suppression sécurisée en transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Déconnecter les événements de suivi enregistrés par cet utilisateur
+      await tx.trackingEvent.updateMany({
+        where: { userId: id },
+        data: { userId: null }
+      });
+
+      // 2. Déconnecter les paiements enregistrés par cet utilisateur
+      await tx.payment.updateMany({
+        where: { recordedBy: id },
+        data: { recordedBy: null }
+      });
+
+      // 3. Supprimer les clés passkey de l'utilisateur s'il y en a
+      await tx.passkey.deleteMany({
+        where: { userId: id }
+      });
+
+      // 4. Supprimer l'utilisateur (le profil Client et les notifications associées sont gérés en cascade)
+      await tx.user.delete({
+        where: { id }
+      });
+    });
+
+    revalidatePath('/admin/users');
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+    return { success: false, message: error?.message || 'Erreur lors de la suppression de l\'utilisateur' };
+  }
+}
