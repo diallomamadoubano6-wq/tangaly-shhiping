@@ -109,6 +109,11 @@ export default function CalculatorPage() {
   const [exchangeRate, setExchangeRate] = useState<number>(8650);
   const [isEditingRate, setIsEditingRate] = useState(false);
 
+  // Conditionnement (Même carton ou Cartons séparés)
+  const [packagingMode, setPackagingMode] = useState<'SAME_BOX' | 'SEPARATE_BOXES'>('SAME_BOX');
+  const [containerType, setContainerType] = useState('Carton');
+  const [physicalBoxesCount, setPhysicalBoxesCount] = useState<number>(1);
+
   // Articles multi-produits
   const [items, setItems] = useState<QuoteItem[]>([
     {
@@ -196,7 +201,10 @@ export default function CalculatorPage() {
   };
 
   // Calculs totaux
-  const totalBoxes = items.reduce((acc, it) => acc + (Number(it.boxes) || 0), 0);
+  const totalBoxes =
+    packagingMode === 'SAME_BOX'
+      ? Number(physicalBoxesCount) || 1
+      : items.reduce((acc, it) => acc + (Number(it.boxes) || 0), 0);
   const totalWeight = items.reduce((acc, it) => acc + (Number(it.weight) || 0), 0);
   const totalUSD = items.reduce((acc, it) => {
     const w = Number(it.weight) || 0;
@@ -229,13 +237,19 @@ export default function CalculatorPage() {
       })
       .join('\n');
 
+    const packagingInfo =
+      packagingMode === 'SAME_BOX'
+        ? `📦 *Conditionnement* : ${totalBoxes} ${containerType}${totalBoxes > 1 ? 's' : ''} physique(s) (Contenu groupé/mixte)`
+        : `📦 *Conditionnement* : ${totalBoxes} carton(s) séparé(s)`;
+
     return `📦 *ESTIMATION DE PRIX — TANGALY LOGISTICS*
 📍 *Trajet* : ${direction === 'GN_USA' ? 'Guinée (Conakry) ➔ USA (New York)' : 'USA (New York) ➔ Guinée (Conakry)'}
 🚀 *Mode* : ${transportType === 'AERIEN' ? '✈️ Fret Aérien (Délai : 5 à 10 jours)' : '🚢 Fret Maritime (Délai : 30 à 45 jours)'}
+${packagingInfo}
 ----------------------------------------
 ${linesSummary}
 ----------------------------------------
-⚖️ *Total Colis* : ${totalBoxes} carton(s) | *Poids* : ${totalWeight.toFixed(1)} kg
+⚖️ *Total* : ${totalBoxes} ${packagingMode === 'SAME_BOX' ? `${containerType}${totalBoxes > 1 ? 's' : ''}` : 'carton(s)'} | *Poids cumulé* : ${totalWeight.toFixed(1)} kg
 💰 *TOTAL ESTIMÉ* : *$${totalUSD.toFixed(2)} USD*
 🇬🇳 *Équivalent GNF* : *~${totalGNF.toLocaleString()} GNF* (Taux : 1$ = ${exchangeRate.toLocaleString()} GNF)
 ❌ *Frais de dossier* : 0 $ (Aucun frais supplémentaire)
@@ -262,11 +276,14 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
     const payload = {
       direction,
       transportType,
+      packagingMode,
+      containerType,
+      physicalBoxesCount: totalBoxes,
       productLines: items.map(it => ({
         id: it.id,
         category: it.category,
         description: it.description,
-        boxes: it.boxes || 1,
+        boxes: packagingMode === 'SAME_BOX' ? 1 : it.boxes || 1,
         weight: it.weight || '',
         ratePerKg: it.ratePerKg,
       })),
@@ -405,6 +422,92 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
             </div>
           </div>
 
+          {/* Conditionnement : Même carton ou Cartons séparés */}
+          <div
+            style={{
+              background: packagingMode === 'SAME_BOX' ? '#f0fdf4' : '#f8fafc',
+              border: packagingMode === 'SAME_BOX' ? '1.5px solid #86efac' : '1px solid #e2e8f0',
+              borderRadius: 8,
+              padding: '12px 14px',
+              marginBottom: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 20 }}>📦</span>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Conditionnement</span>
+                  <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>Articles regroupés ou séparés ?</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', background: 'white', padding: '2px', borderRadius: 6, border: '1px solid #cbd5e1' }}>
+                <button
+                  type="button"
+                  onClick={() => setPackagingMode('SAME_BOX')}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: 5,
+                    border: 'none',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    background: packagingMode === 'SAME_BOX' ? '#16a34a' : 'transparent',
+                    color: packagingMode === 'SAME_BOX' ? 'white' : '#475569',
+                  }}
+                >
+                  ✓ Même carton
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPackagingMode('SEPARATE_BOXES')}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: 5,
+                    border: 'none',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    background: packagingMode === 'SEPARATE_BOXES' ? '#2563eb' : 'transparent',
+                    color: packagingMode === 'SEPARATE_BOXES' ? 'white' : '#475569',
+                  }}
+                >
+                  Cartons séparés
+                </button>
+              </div>
+            </div>
+
+            {packagingMode === 'SAME_BOX' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'white', padding: '6px 10px', borderRadius: 6, border: '1px solid #bbf7d0', flexWrap: 'wrap' }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#15803d' }}>Type :</label>
+                <select
+                  value={containerType}
+                  onChange={e => setContainerType(e.target.value)}
+                  style={{ border: 'none', fontSize: 12, fontWeight: 700, color: '#0f172a', background: 'transparent', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="Carton">Carton</option>
+                  <option value="Baril">Baril</option>
+                  <option value="Valise">Valise</option>
+                  <option value="Malle">Malle</option>
+                  <option value="Sac">Sac</option>
+                  <option value="Colis">Colis</option>
+                </select>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#15803d' }}>Qté physique :</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={physicalBoxesCount}
+                  onChange={e => setPhysicalBoxesCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  style={{ width: 40, border: 'none', fontSize: 12, fontWeight: 700, textAlign: 'center', outline: 'none' }}
+                />
+              </div>
+            )}
+          </div>
+
           {/* Liste des articles / marchandises */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -503,23 +606,44 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, alignItems: 'center' }}>
                       <div>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.boxes}
-                          onChange={e => handleUpdateItem(item.id, 'boxes', parseInt(e.target.value) || 1)}
-                          placeholder="Colis"
-                          title="Nombre de colis"
-                          style={{
-                            width: '100%',
-                            padding: '8px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #cbd5e1',
-                            fontSize: 13,
-                            boxSizing: 'border-box',
-                            background: 'white',
-                          }}
-                        />
+                        {packagingMode === 'SAME_BOX' ? (
+                          <div
+                            style={{
+                              padding: '8px 6px',
+                              borderRadius: 6,
+                              background: '#ecfdf5',
+                              border: '1px dashed #86efac',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: '#15803d',
+                              textAlign: 'center',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={`Inclus dans le ${containerType}`}
+                          >
+                            Dans {containerType}
+                          </div>
+                        ) : (
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.boxes}
+                            onChange={e => handleUpdateItem(item.id, 'boxes', parseInt(e.target.value) || 1)}
+                            placeholder="Colis"
+                            title="Nombre de colis"
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: 6,
+                              border: '1px solid #cbd5e1',
+                              fontSize: 13,
+                              boxSizing: 'border-box',
+                              background: 'white',
+                            }}
+                          />
+                        )}
                       </div>
 
                       <div>
@@ -761,7 +885,9 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Nombre de colis :</span>
-                <strong>{totalBoxes} carton(s)</strong>
+                <strong>
+                  {totalBoxes} {packagingMode === 'SAME_BOX' ? `${containerType}${totalBoxes > 1 ? 's' : ''} (Mixte)` : 'carton(s)'}
+                </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Poids total cumulé :</span>

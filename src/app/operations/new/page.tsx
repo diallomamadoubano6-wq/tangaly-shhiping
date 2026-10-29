@@ -101,6 +101,9 @@ export default function NewShipmentPage() {
         const data = JSON.parse(savedQuote);
         if (data.direction) setDirection(data.direction);
         if (data.transportType) setTransportType(data.transportType);
+        if (data.packagingMode) setPackagingMode(data.packagingMode);
+        if (data.containerType) setContainerType(data.containerType);
+        if (data.physicalBoxesCount) setPhysicalBoxesCount(data.physicalBoxesCount);
         if (data.productLines && Array.isArray(data.productLines) && data.productLines.length > 0) {
           setProductLines(data.productLines);
         }
@@ -122,6 +125,11 @@ export default function NewShipmentPage() {
   const [receiverName, setReceiverName] = useState('');
   const [receiverAddress, setReceiverAddress] = useState('');
   const [isKnownReceiver, setIsKnownReceiver] = useState(false);
+
+  // Conditionnement : Même carton (colis mixte) ou cartons séparés
+  const [packagingMode, setPackagingMode] = useState<'SAME_BOX' | 'SEPARATE_BOXES'>('SAME_BOX');
+  const [containerType, setContainerType] = useState('Carton');
+  const [physicalBoxesCount, setPhysicalBoxesCount] = useState<number>(1);
 
   // Articles multi-produits
   const [productLines, setProductLines] = useState<ProductItem[]>([
@@ -231,7 +239,10 @@ export default function NewShipmentPage() {
   };
 
   // Calculs totaux
-  const totalBoxes = productLines.reduce((acc, curr) => acc + (Number(curr.boxes) || 0), 0);
+  const totalBoxes =
+    packagingMode === 'SAME_BOX'
+      ? Number(physicalBoxesCount) || 1
+      : productLines.reduce((acc, curr) => acc + (Number(curr.boxes) || 0), 0);
   const totalWeight = productLines.reduce((acc, curr) => acc + (Number(curr.weight) || 0), 0);
   const freightCost = productLines.reduce((acc, curr) => {
     const w = Number(curr.weight) || 0;
@@ -260,12 +271,22 @@ export default function NewShipmentPage() {
 
     try {
       // Générer une description structurée et lisible
-      const formattedDescription = productLines
-        .map(
-          p =>
-            `${p.category}${p.description ? ` (${p.description})` : ''} [${p.boxes} colis, ${p.weight} kg @ $${p.ratePerKg}/kg = $${((Number(p.weight) || 0) * Number(p.ratePerKg)).toFixed(2)}]`
-        )
-        .join(' | ');
+      const formattedDescription =
+        packagingMode === 'SAME_BOX'
+          ? `[${physicalBoxesCount} ${containerType}${physicalBoxesCount > 1 ? 's' : ''} (Contenu mixte) : ` +
+            productLines
+              .map(
+                p =>
+                  `${p.category}${p.description ? ` (${p.description})` : ''} (${p.weight} kg @ $${p.ratePerKg}/kg = $${((Number(p.weight) || 0) * Number(p.ratePerKg)).toFixed(2)})`
+              )
+              .join(', ') +
+            ']'
+          : productLines
+              .map(
+                p =>
+                  `${p.category}${p.description ? ` (${p.description})` : ''} [${p.boxes} colis, ${p.weight} kg @ $${p.ratePerKg}/kg = $${((Number(p.weight) || 0) * Number(p.ratePerKg)).toFixed(2)}]`
+              )
+              .join(' | ');
 
       const res = await createOperationShipment({
         origine: direction === 'GN_USA' ? 'Conakry' : 'New York',
@@ -308,6 +329,9 @@ export default function NewShipmentPage() {
     setReceiverName('');
     setReceiverAddress('');
     setIsKnownReceiver(false);
+    setPackagingMode('SAME_BOX');
+    setContainerType('Carton');
+    setPhysicalBoxesCount(1);
     setProductLines([
       {
         id: Date.now().toString(),
@@ -326,6 +350,7 @@ export default function NewShipmentPage() {
   const printLabel = () => {
     const printWindow = window.open('', '', 'width=400,height=400');
     if (printWindow) {
+      const containerLabel = packagingMode === 'SAME_BOX' ? `${totalBoxes} ${containerType}${totalBoxes > 1 ? 's' : ''} (Contenu mixte)` : `${totalBoxes} Colis`;
       printWindow.document.write(`
         <html>
           <head>
@@ -335,7 +360,7 @@ export default function NewShipmentPage() {
               .box { border: 4px solid black; padding: 20px; border-radius: 10px; }
               .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
               .track { font-size: 28px; font-weight: 900; margin-top: 10px; }
-              .info { font-size: 14px; margin-top: 8px; color: #333; }
+              .info { font-size: 14px; margin-top: 8px; color: #333; font-weight: 600; }
             </style>
           </head>
           <body>
@@ -343,7 +368,7 @@ export default function NewShipmentPage() {
               <div class="title">TANGALY LOGISTICS</div>
               <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${trackingNumber}" alt="QR Code" style="width: 180px; height: 180px;" />
               <div class="track">N° ${trackingNumber}</div>
-              <div class="info">${totalBoxes} Colis · ${totalWeight.toFixed(1)} kg · ${transportType}</div>
+              <div class="info">${containerLabel} · ${totalWeight.toFixed(1)} kg · ${transportType}</div>
             </div>
           </body>
         </html>
@@ -713,6 +738,137 @@ export default function NewShipmentPage() {
                 </div>
               </div>
 
+              {/* Sélecteur de Conditionnement (Même carton ou Cartons séparés) */}
+              <div
+                style={{
+                  background: packagingMode === 'SAME_BOX' ? '#f0fdf4' : '#f8fafc',
+                  border: packagingMode === 'SAME_BOX' ? '1.5px solid #86efac' : '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '14px 18px',
+                  marginBottom: '18px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 14,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 26 }}>📦</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      Conditionnement Physique
+                      {packagingMode === 'SAME_BOX' && (
+                        <span style={{ background: '#dcfce7', color: '#15803d', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>
+                          Colis Unique / Mixte
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>
+                      Les différents articles sont-ils emballés dans le <strong>même carton</strong> ou dans des <strong>cartons séparés</strong> ?
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', background: 'white', padding: '3px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                    <button
+                      type="button"
+                      onClick={() => setPackagingMode('SAME_BOX')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        background: packagingMode === 'SAME_BOX' ? '#16a34a' : 'transparent',
+                        color: packagingMode === 'SAME_BOX' ? 'white' : '#475569',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      ✓ Dans le même carton
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPackagingMode('SEPARATE_BOXES')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        background: packagingMode === 'SEPARATE_BOXES' ? '#2563eb' : 'transparent',
+                        color: packagingMode === 'SEPARATE_BOXES' ? 'white' : '#475569',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      Cartons séparés
+                    </button>
+                  </div>
+
+                  {packagingMode === 'SAME_BOX' && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        background: 'white',
+                        padding: '5px 12px',
+                        borderRadius: 8,
+                        border: '1px solid #86efac',
+                      }}
+                    >
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>Type :</label>
+                      <select
+                        value={containerType}
+                        onChange={e => setContainerType(e.target.value)}
+                        style={{
+                          border: 'none',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          background: 'transparent',
+                        }}
+                      >
+                        <option value="Carton">Carton</option>
+                        <option value="Baril">Baril</option>
+                        <option value="Valise">Valise</option>
+                        <option value="Malle">Malle</option>
+                        <option value="Sac">Sac</option>
+                        <option value="Colis">Colis</option>
+                      </select>
+
+                      <span style={{ color: '#cbd5e1' }}>|</span>
+
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>Nombre :</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={physicalBoxesCount}
+                        onChange={e => setPhysicalBoxesCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        style={{
+                          width: '45px',
+                          border: 'none',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          textAlign: 'center',
+                          outline: 'none',
+                        }}
+                      />
+                      <span style={{ fontSize: 11, color: '#64748b' }}>physique(s)</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Liste des lignes de produits */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '18px' }}>
                 {productLines.map((line, index) => {
@@ -837,27 +993,52 @@ export default function NewShipmentPage() {
                         </div>
 
                         {/* 3. Colis (Cartons) */}
-                        <div style={{ maxWidth: 130 }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Colis (Cartons)
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={line.boxes}
-                            onChange={e => updateProductLine(line.id, 'boxes', Math.max(1, parseInt(e.target.value) || 1))}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '8px',
-                              fontSize: 14,
-                              outline: 'none',
-                              background: 'white',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        </div>
+                        {packagingMode === 'SAME_BOX' ? (
+                          <div style={{ maxWidth: 140 }}>
+                            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
+                              Contenant
+                            </label>
+                            <div
+                              style={{
+                                padding: '10px 12px',
+                                background: '#ecfdf5',
+                                border: '1px dashed #86efac',
+                                borderRadius: '8px',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: '#15803d',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                              title={`Inclus dans le ${containerType} principal`}
+                            >
+                              📦 Dans {containerType}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ maxWidth: 130 }}>
+                            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
+                              Colis (Cartons)
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={line.boxes}
+                              onChange={e => updateProductLine(line.id, 'boxes', Math.max(1, parseInt(e.target.value) || 1))}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '8px',
+                                fontSize: 14,
+                                outline: 'none',
+                                background: 'white',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </div>
+                        )}
 
                         {/* 4. Poids (kg) */}
                         <div style={{ maxWidth: 140 }}>
@@ -985,8 +1166,10 @@ export default function NewShipmentPage() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14 }}>
-                    <span style={{ color: '#475569' }}>Total Colis (Cartons) :</span>
-                    <strong>{totalBoxes} carton(s)</strong>
+                    <span style={{ color: '#475569' }}>Total Colis Physiques :</span>
+                    <strong style={{ color: '#0f172a' }}>
+                      {totalBoxes} {packagingMode === 'SAME_BOX' ? `${containerType}${totalBoxes > 1 ? 's' : ''} (Mixte)` : 'carton(s)'}
+                    </strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14 }}>
@@ -1399,7 +1582,7 @@ export default function NewShipmentPage() {
                   ARTICLE / MARCHANDISE
                 </th>
                 <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
-                  COLIS
+                  CONTENANT / COLIS
                 </th>
                 <th style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
                   POIDS (KG)
@@ -1421,7 +1604,9 @@ export default function NewShipmentPage() {
                       <strong style={{ color: '#0f172a' }}>{line.category}</strong>
                       {line.description && <span style={{ color: '#64748b', fontSize: '9px', marginLeft: 6 }}>— {line.description}</span>}
                     </td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>{line.boxes}</td>
+                    <td style={{ padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                      {packagingMode === 'SAME_BOX' ? `${containerType} (Mixte)` : line.boxes}
+                    </td>
                     <td style={{ padding: '5px 8px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>
                       {Number(line.weight || 0).toFixed(1)} kg
                     </td>
@@ -1438,7 +1623,9 @@ export default function NewShipmentPage() {
                 <td style={{ padding: '6px 8px', borderTop: '2px solid #cbd5e1', color: '#1d4ed8' }}>
                   TOTAL CUMULÉ ({productLines.length} article{productLines.length > 1 ? 's' : ''})
                 </td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', borderTop: '2px solid #cbd5e1' }}>{totalBoxes} carton(s)</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', borderTop: '2px solid #cbd5e1' }}>
+                  {totalBoxes} {packagingMode === 'SAME_BOX' ? `${containerType}${totalBoxes > 1 ? 's' : ''}` : 'carton(s)'}
+                </td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1' }}>{totalWeight.toFixed(1)} kg</td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1' }}>—</td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1', color: '#1d4ed8', fontSize: '11px' }}>
