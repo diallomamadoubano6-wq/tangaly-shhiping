@@ -59,10 +59,10 @@ export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebar
       <div className={styles.sidebarContent}>
         <div className={styles.profileCard}>
           <div className={styles.avatar}>
-            {user?.nom?.charAt(0).toUpperCase() || 'A'}
+            {(user?.nom || user?.name)?.charAt(0).toUpperCase() || 'A'}
           </div>
           <div className={styles.profileInfo}>
-            <h3>{user?.nom || 'Agent Tangaly'}</h3>
+            <h3>{user?.nom || user?.name || 'Agent Tangaly'}</h3>
             <span style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase' }}>
               {user?.role || 'Agent Opérations'}
             </span>

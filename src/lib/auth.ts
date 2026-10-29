@@ -49,7 +49,9 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.nom,
+          nom: user.nom,
           role: user.role,
+          localisation: user.localisation || 'Agence Principale',
         };
       },
     }),
@@ -59,13 +61,42 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.name = (user as any).nom || user.name;
+        (token as any).nom = (user as any).nom || user.name;
+        (token as any).localisation = (user as any).localisation || 'Agence Principale';
       }
       return token;
     },
     async session({ session, token }) {
+      if (token?.id) {
+        try {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { id: true, nom: true, email: true, role: true, localisation: true }
+          });
+          if (freshUser) {
+            session.user = {
+              ...session.user,
+              id: freshUser.id,
+              name: freshUser.nom,
+              nom: freshUser.nom,
+              email: freshUser.email,
+              role: freshUser.role,
+              localisation: freshUser.localisation || 'Agence Principale',
+            } as any;
+            return session;
+          }
+        } catch (e) {
+          console.error("Session refresh error:", e);
+        }
+      }
+
       if (token && session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).name = (token as any).nom || (token as any).name;
+        (session.user as any).nom = (token as any).nom || (token as any).name;
+        (session.user as any).localisation = (token as any).localisation || 'Agence Principale';
       }
       return session;
     },

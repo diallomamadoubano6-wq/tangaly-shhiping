@@ -108,6 +108,8 @@ export async function updateUser(id: string, data: any) {
     });
 
     revalidatePath('/admin/users');
+    revalidatePath('/operations');
+    revalidatePath('/operations/transfers');
     return { success: true };
   } catch (error) {
     console.error("Error updating user:", error);

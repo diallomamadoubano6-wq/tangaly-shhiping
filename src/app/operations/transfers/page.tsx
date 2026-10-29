@@ -25,7 +25,7 @@ export default function TransfersPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
 
-  const agentName = user?.nom || 'Agent Tangaly';
+  const agentName = user?.nom || user?.name || 'Agent Tangaly';
   const agencyName = user?.localisation || 'Agence Principale';
   const agentDisplayName = `${agentName} (${agencyName})`;
 
