@@ -121,7 +121,7 @@ export default function InvoicesPage() {
                <br/>
                <p style="margin:0; font-size:12px; font-weight:bold;">28 Arlington Avenue<br/>Brooklyn, NY 11207</p>
                <h3 style="color: #dc2626; margin: 5px 0 0 0; font-size: 16px;">646-382-0065</h3>
-               <div style="font-size: 48px; margin-top: 10px;"><img src="https://flagcdn.com/w80/us.png" alt="USA" style="width:60px; margin-top:10px;"/></div>
+               <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 8px; background: #eff6ff; border: 1.5px solid #2563eb; color: #1d4ed8; font-weight: 900; font-size: 15px; letter-spacing: 1px;">USA</div>
             </div>
 
             <div style="text-align: center; width: 50%;">
@@ -151,7 +151,7 @@ export default function InvoicesPage() {
                <h3 style="color: #1d4ed8; margin: 0 0 5px 0; font-size: 16px;">Guinea (Conakry)</h3>
                <p style="margin:0; font-size:12px; font-weight:bold;">Cité Enco5</p>
                <h3 style="color: #dc2626; margin: 5px 0 0 0; font-size: 16px;">+224 626-98-52-54</h3>
-               <div style="font-size: 48px; margin-top: 10px;"><img src="https://flagcdn.com/w80/gn.png" alt="Guinea" style="width:60px; margin-top:10px;"/></div>
+               <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 8px; background: #f0fdf4; border: 1.5px solid #16a34a; color: #15803d; font-weight: 900; font-size: 15px; letter-spacing: 1px;">GN</div>
                <div style="text-align: right; margin-top: 30px;">Date: <span style="border-bottom: 1px solid black; padding: 0 20px;">${inv.date}</span></div>
             </div>
          </div>

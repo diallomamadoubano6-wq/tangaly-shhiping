@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { createShipment } from '@/actions/shipments';
 import styles from '../operations.module.css';
-import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, DollarSign, Layers, AlertCircle } from 'lucide-react';
+import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, DollarSign, Layers, AlertCircle, Plane, Ship, ArrowRight, Box, Check } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createOperationShipment } from '@/actions/shipments';
 
@@ -473,36 +473,26 @@ export default function NewShipmentPage() {
                   style={{
                     flex: '1 1 200px',
                     minWidth: 160,
-                    padding: '14px',
-                    borderRadius: 12,
+                    padding: '12px 18px',
+                    borderRadius: 10,
                     cursor: 'pointer',
                     fontWeight: 700,
-                    fontSize: 15,
-                    border: direction === 'GN_USA' ? '2px solid #2563eb' : '2px solid #e2e8f0',
+                    fontSize: 14,
+                    border: direction === 'GN_USA' ? '2px solid #2563eb' : '1px solid #cbd5e1',
                     background: direction === 'GN_USA' ? '#eff6ff' : 'white',
-                    color: direction === 'GN_USA' ? '#2563eb' : '#64748b',
-                    transition: 'all 0.2s',
+                    color: direction === 'GN_USA' ? '#1d4ed8' : '#475569',
+                    transition: 'all 0.15s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 10,
                   }}
                 >
-                  <svg width="28" height="18" viewBox="0 0 3 2" style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
-                    <rect width="1" height="2" fill="#CE1126" />
-                    <rect x="1" width="1" height="2" fill="#FCD116" />
-                    <rect x="2" width="1" height="2" fill="#009460" />
-                  </svg>
-                  Guinée →
-                  <svg width="28" height="18" viewBox="0 0 7 4" style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
-                    <rect width="7" height="4" fill="#B22234" />
-                    <rect y="0.5" width="7" height="0.4" fill="white" />
-                    <rect y="1.5" width="7" height="0.4" fill="white" />
-                    <rect y="2.5" width="7" height="0.4" fill="white" />
-                    <rect y="3.1" width="7" height="0.4" fill="white" />
-                    <rect width="3" height="2.2" fill="#3C3B6E" />
-                  </svg>
-                  USA
+                  <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
+                  <span>Guinée</span>
+                  <ArrowRight size={16} />
+                  <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
+                  <span>États-Unis</span>
                 </button>
                 <button
                   type="button"
@@ -510,36 +500,26 @@ export default function NewShipmentPage() {
                   style={{
                     flex: '1 1 200px',
                     minWidth: 160,
-                    padding: '14px',
-                    borderRadius: 12,
+                    padding: '12px 18px',
+                    borderRadius: 10,
                     cursor: 'pointer',
                     fontWeight: 700,
-                    fontSize: 15,
-                    border: direction === 'USA_GN' ? '2px solid #2563eb' : '2px solid #e2e8f0',
+                    fontSize: 14,
+                    border: direction === 'USA_GN' ? '2px solid #2563eb' : '1px solid #cbd5e1',
                     background: direction === 'USA_GN' ? '#eff6ff' : 'white',
-                    color: direction === 'USA_GN' ? '#2563eb' : '#64748b',
-                    transition: 'all 0.2s',
+                    color: direction === 'USA_GN' ? '#1d4ed8' : '#475569',
+                    transition: 'all 0.15s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 10,
                   }}
                 >
-                  <svg width="28" height="18" viewBox="0 0 7 4" style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
-                    <rect width="7" height="4" fill="#B22234" />
-                    <rect y="0.5" width="7" height="0.4" fill="white" />
-                    <rect y="1.5" width="7" height="0.4" fill="white" />
-                    <rect y="2.5" width="7" height="0.4" fill="white" />
-                    <rect y="3.1" width="7" height="0.4" fill="white" />
-                    <rect width="3" height="2.2" fill="#3C3B6E" />
-                  </svg>
-                  USA →
-                  <svg width="28" height="18" viewBox="0 0 3 2" style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
-                    <rect width="1" height="2" fill="#CE1126" />
-                    <rect x="1" width="1" height="2" fill="#FCD116" />
-                    <rect x="2" width="1" height="2" fill="#009460" />
-                  </svg>
-                  Guinée
+                  <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
+                  <span>États-Unis</span>
+                  <ArrowRight size={16} />
+                  <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
+                  <span>Guinée</span>
                 </button>
               </div>
             )}
@@ -714,9 +694,12 @@ export default function NewShipmentPage() {
                       background: transportType === 'AERIEN' ? '#2563eb' : 'transparent',
                       color: transportType === 'AERIEN' ? 'white' : '#475569',
                       transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
                     }}
                   >
-                    ✈️ Fret Aérien (Rapide)
+                    <Plane size={15} /> Fret Aérien (Rapide)
                   </button>
                   <button
                     type="button"
@@ -731,9 +714,12 @@ export default function NewShipmentPage() {
                       background: transportType === 'MARITIME' ? '#0284c7' : 'transparent',
                       color: transportType === 'MARITIME' ? 'white' : '#475569',
                       transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
                     }}
                   >
-                    🚢 Fret Maritime (Éco)
+                    <Ship size={15} /> Fret Maritime (Éco)
                   </button>
                 </div>
               </div>
@@ -754,7 +740,19 @@ export default function NewShipmentPage() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 26 }}>📦</span>
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 10,
+                      background: packagingMode === 'SAME_BOX' ? '#dcfce7' : '#e0e7ff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Package size={22} color={packagingMode === 'SAME_BOX' ? '#15803d' : '#2563eb'} />
+                  </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                       Conditionnement Physique
@@ -790,7 +788,7 @@ export default function NewShipmentPage() {
                         transition: 'all 0.15s',
                       }}
                     >
-                      ✓ Dans le même carton
+                      <Check size={14} /> Dans le même carton
                     </button>
                     <button
                       type="button"
@@ -1011,9 +1009,10 @@ export default function NewShipmentPage() {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                               }}
-                              title={`Inclus dans le ${containerType} principal`}
                             >
-                              📦 Dans {containerType}
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                                <Package size={13} /> Dans {containerType}
+                              </span>
                             </div>
                           </div>
                         ) : (
@@ -1494,8 +1493,8 @@ export default function NewShipmentPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
           <div style={{ border: '1px solid #bfdbfe', borderRadius: '6px', padding: '8px 12px', background: '#eff6ff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <img src="https://flagcdn.com/w40/us.png" alt="USA" style={{ width: '18px', height: '12px', objectFit: 'cover', borderRadius: '2px' }} />
-              <span style={{ fontWeight: 'bold', color: '#1d4ed8', fontSize: '10px' }}>USA</span>
+              <span style={{ background: '#1d4ed8', color: 'white', fontWeight: 'bold', fontSize: '9px', padding: '2px 5px', borderRadius: '3px', letterSpacing: '0.5px' }}>USA</span>
+              <span style={{ fontWeight: 'bold', color: '#1d4ed8', fontSize: '10px' }}>Agence USA</span>
             </div>
             <div style={{ color: '#334155', lineHeight: '1.5', fontSize: '9px' }}>
               3429 3rd Ave, Bronx, NY 10456<br />
@@ -1506,7 +1505,7 @@ export default function NewShipmentPage() {
 
           <div style={{ border: '1px solid #bbf7d0', borderRadius: '6px', padding: '8px 12px', background: '#f0fdf4' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <img src="https://flagcdn.com/w40/gn.png" alt="GN" style={{ width: '18px', height: '12px', objectFit: 'cover', borderRadius: '2px' }} />
+              <span style={{ background: '#15803d', color: 'white', fontWeight: 'bold', fontSize: '9px', padding: '2px 5px', borderRadius: '3px', letterSpacing: '0.5px' }}>GN</span>
               <span style={{ fontWeight: 'bold', color: '#15803d', fontSize: '10px' }}>Guinée (Conakry)</span>
             </div>
             <div style={{ color: '#334155', lineHeight: '1.5', fontSize: '9px' }}>

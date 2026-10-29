@@ -11,6 +11,7 @@ import {
   ArrowRight,
   RotateCcw,
   Box,
+  Package,
   Layers,
   Clock,
   Sparkles,
@@ -436,8 +437,10 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>📦</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Package size={18} color="#15803d" />
+                </div>
                 <div>
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Conditionnement</span>
                   <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>Articles regroupés ou séparés ?</p>
@@ -457,9 +460,12 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
                     cursor: 'pointer',
                     background: packagingMode === 'SAME_BOX' ? '#16a34a' : 'transparent',
                     color: packagingMode === 'SAME_BOX' ? 'white' : '#475569',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
                   }}
                 >
-                  ✓ Même carton
+                  <Check size={13} /> Même carton
                 </button>
                 <button
                   type="button"
@@ -895,7 +901,7 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Mode sélectionné :</span>
-                <strong>{transportType === 'AERIEN' ? '✈️ Aérien' : '🚢 Maritime'}</strong>
+                <strong>{transportType === 'AERIEN' ? 'Aérien (Express)' : 'Maritime (Éco)'}</strong>
               </div>
             </div>
 

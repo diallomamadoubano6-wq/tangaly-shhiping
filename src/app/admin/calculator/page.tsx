@@ -763,7 +763,7 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Mode sélectionné :</span>
-                <strong>{transportType === 'AERIEN' ? '✈️ Aérien' : '🚢 Maritime'}</strong>
+                <strong>{transportType === 'AERIEN' ? 'Aérien (Express)' : 'Maritime (Éco)'}</strong>
               </div>
             </div>
 
