@@ -82,16 +82,22 @@ export interface ProductItem {
 
 export default function NewShipmentPage() {
   const { data: session } = useSession();
-  const userRole = (session?.user as any)?.role || '';
+  const user = session?.user as any;
+  const userRole = user?.role || '';
+  const userLocation = (user?.localisation || '').toLowerCase();
 
-  const [direction, setDirection] = useState<'GN_USA' | 'USA_GN'>('GN_USA');
+  const isUSAAgent = userLocation.includes('york') || userLocation.includes('usa') || userRole === 'GERANT_USA' || userRole === 'AGENT_USA';
+
+  const [direction, setDirection] = useState<'GN_USA' | 'USA_GN'>(() => {
+    return isUSAAgent ? 'USA_GN' : 'GN_USA';
+  });
   const [transportType, setTransportType] = useState<'AERIEN' | 'MARITIME'>('AERIEN');
 
   useEffect(() => {
-    if (userRole === 'GERANT_GUINEE' || userRole === 'AGENT_GUINEE') {
-      setDirection('GN_USA');
-    } else if (userRole === 'GERANT_USA') {
+    if (isUSAAgent) {
       setDirection('USA_GN');
+    } else if (userLocation.includes('guinee') || userLocation.includes('conakry') || userRole === 'GERANT_GUINEE' || userRole === 'AGENT_GUINEE') {
+      setDirection('GN_USA');
     }
 
     // Récupérer une estimation transférée depuis le calculateur
@@ -112,7 +118,7 @@ export default function NewShipmentPage() {
     } catch (e) {
       console.error('Erreur chargement devis:', e);
     }
-  }, [userRole]);
+  }, [userRole, userLocation, isUSAAgent]);
 
   // Expéditeur
   const [senderPhone, setSenderPhone] = useState('');
@@ -465,68 +471,68 @@ export default function NewShipmentPage() {
         <div className={styles.chartCard}>
           <form style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Direction de l'expédition */}
-            {(userRole === 'SUPER_ADMIN' || userRole === '') && (
-              <div style={{ display: 'flex', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => setDirection('GN_USA')}
-                  style={{
-                    flex: '1 1 200px',
-                    minWidth: 160,
-                    padding: '12px 18px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    border: direction === 'GN_USA' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                    background: direction === 'GN_USA' ? '#eff6ff' : 'white',
-                    color: direction === 'GN_USA' ? '#1d4ed8' : '#475569',
-                    transition: 'all 0.15s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 10,
-                  }}
-                >
-                  <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
-                  <span>Guinée</span>
-                  <ArrowRight size={16} />
-                  <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
-                  <span>États-Unis</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDirection('USA_GN')}
-                  style={{
-                    flex: '1 1 200px',
-                    minWidth: 160,
-                    padding: '12px 18px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    border: direction === 'USA_GN' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                    background: direction === 'USA_GN' ? '#eff6ff' : 'white',
-                    color: direction === 'USA_GN' ? '#1d4ed8' : '#475569',
-                    transition: 'all 0.15s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 10,
-                  }}
-                >
-                  <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
-                  <span>États-Unis</span>
-                  <ArrowRight size={16} />
-                  <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
-                  <span>Guinée</span>
-                </button>
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setDirection('USA_GN')}
+                style={{
+                  flex: '1 1 200px',
+                  minWidth: 160,
+                  padding: '12px 18px',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: direction === 'USA_GN' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  background: direction === 'USA_GN' ? '#eff6ff' : 'white',
+                  color: direction === 'USA_GN' ? '#1d4ed8' : '#475569',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                }}
+              >
+                <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
+                <span>États-Unis</span>
+                <ArrowRight size={16} />
+                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
+                <span>Guinée</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDirection('GN_USA')}
+                style={{
+                  flex: '1 1 200px',
+                  minWidth: 160,
+                  padding: '12px 18px',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: direction === 'GN_USA' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  background: direction === 'GN_USA' ? '#eff6ff' : 'white',
+                  color: direction === 'GN_USA' ? '#1d4ed8' : '#475569',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                }}
+              >
+                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
+                <span>Guinée</span>
+                <ArrowRight size={16} />
+                <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
+                <span>États-Unis</span>
+              </button>
+            </div>
 
-            <div style={{ fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MapPin size={13} color="#94a3b8" />
-              {direction === 'GN_USA' ? 'Départ : Conakry — Arrivée : New York' : 'Départ : New York — Arrivée : Conakry'}
+            <div style={{ fontSize: 13, color: '#475569', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+              <MapPin size={14} color="#2563eb" />
+              {direction === 'USA_GN' 
+                ? 'Départ : États-Unis (New York) ➔ Arrivée : Guinée (Conakry)' 
+                : 'Départ : Guinée (Conakry) ➔ Arrivée : États-Unis (New York)'}
             </div>
 
             {/* Expéditeur & Destinataire */}
@@ -534,7 +540,7 @@ export default function NewShipmentPage() {
               {/* Expéditeur */}
               <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '12px', background: 'white' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, marginBottom: 20, color: '#0f172a' }}>
-                  <User size={18} color="#2563eb" /> Informations de l'Expéditeur
+                  <User size={18} color="#2563eb" /> Informations de l&apos;Expéditeur {direction === 'USA_GN' ? '(États-Unis)' : '(Guinée)'}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
@@ -544,7 +550,7 @@ export default function NewShipmentPage() {
                         type="tel"
                         value={senderPhone}
                         onChange={handlePhoneChange}
-                        placeholder="ex: 620..."
+                        placeholder={direction === 'USA_GN' ? 'ex: 646-382-0065 ou 718...' : 'ex: 620... ou +224...'}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
@@ -578,12 +584,14 @@ export default function NewShipmentPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>Adresse (Ville, Quartier)</label>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>
+                      {direction === 'USA_GN' ? 'Adresse aux USA (Rue, Ville, État)' : 'Adresse en Guinée (Ville, Quartier)'}
+                    </label>
                     <input
                       type="text"
                       value={senderAddress}
                       onChange={e => setSenderAddress(e.target.value)}
-                      placeholder="Adresse"
+                      placeholder={direction === 'USA_GN' ? 'ex: 3429 3rd Ave, Bronx, NY 10456' : 'ex: Madina, Conakry...'}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -601,7 +609,7 @@ export default function NewShipmentPage() {
               {/* Destinataire */}
               <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '12px', background: 'white' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, marginBottom: 20, color: '#0f172a' }}>
-                  <MapPin size={18} color="#dc2626" /> Informations du Destinataire
+                  <MapPin size={18} color="#dc2626" /> Informations du Destinataire {direction === 'USA_GN' ? '(Guinée)' : '(États-Unis)'}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
@@ -611,7 +619,7 @@ export default function NewShipmentPage() {
                         type="tel"
                         value={receiverPhone}
                         onChange={handleReceiverPhoneChange}
-                        placeholder="Numéro du destinataire"
+                        placeholder={direction === 'USA_GN' ? 'ex: 620... ou +224 626...' : 'ex: 646-382-0065 ou 718...'}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
@@ -645,12 +653,14 @@ export default function NewShipmentPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>Adresse (Ville / État) *</label>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>
+                      {direction === 'USA_GN' ? 'Adresse de livraison en Guinée (Ville, Quartier) *' : 'Adresse aux USA (Rue, Ville, État) *'}
+                    </label>
                     <input
                       type="text"
                       value={receiverAddress}
                       onChange={e => setReceiverAddress(e.target.value)}
-                      placeholder="ex: Bronx, NY ou Conakry"
+                      placeholder={direction === 'USA_GN' ? 'ex: Madina, Conakry ou Labé...' : 'ex: Bronx, NY ou Brooklyn, NY...'}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
