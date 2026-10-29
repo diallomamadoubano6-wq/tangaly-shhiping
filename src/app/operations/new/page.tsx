@@ -169,11 +169,18 @@ export default function NewShipmentPage() {
     '12125550198': { name: 'Ousmane Sylla', address: '456 Bronx Blvd, New York, NY' },
   };
 
+  const senderPrefix = direction === 'USA_GN' ? '+1' : '+224';
+  const receiverPrefix = direction === 'USA_GN' ? '+224' : '+1';
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phone = e.target.value.replace(/[^0-9]/g, '');
-    setSenderPhone(phone);
-    if (knownClients[phone]) {
-      setSenderName(knownClients[phone]);
+    let digits = e.target.value.replace(/[^0-9]/g, '');
+    const pfxDigits = senderPrefix.replace('+', '');
+    if (digits.startsWith(pfxDigits) && digits.length > pfxDigits.length + 5) {
+      digits = digits.substring(pfxDigits.length);
+    }
+    setSenderPhone(digits);
+    if (knownClients[digits]) {
+      setSenderName(knownClients[digits]);
       setIsKnownClient(true);
     } else {
       setIsKnownClient(false);
@@ -181,11 +188,15 @@ export default function NewShipmentPage() {
   };
 
   const handleReceiverPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phone = e.target.value.replace(/[^0-9]/g, '');
-    setReceiverPhone(phone);
-    if (knownReceivers[phone]) {
-      setReceiverName(knownReceivers[phone].name);
-      setReceiverAddress(knownReceivers[phone].address);
+    let digits = e.target.value.replace(/[^0-9]/g, '');
+    const pfxDigits = receiverPrefix.replace('+', '');
+    if (digits.startsWith(pfxDigits) && digits.length > pfxDigits.length + 5) {
+      digits = digits.substring(pfxDigits.length);
+    }
+    setReceiverPhone(digits);
+    if (knownReceivers[digits]) {
+      setReceiverName(knownReceivers[digits].name);
+      setReceiverAddress(knownReceivers[digits].address);
       setIsKnownReceiver(true);
     } else {
       setIsKnownReceiver(false);
@@ -294,15 +305,23 @@ export default function NewShipmentPage() {
               )
               .join(' | ');
 
+      const fullSenderPhone = senderPhone.trim().startsWith('+')
+        ? senderPhone.trim()
+        : `${senderPrefix} ${senderPhone.trim()}`;
+
+      const fullReceiverPhone = receiverPhone.trim().startsWith('+')
+        ? receiverPhone.trim()
+        : `${receiverPrefix} ${receiverPhone.trim()}`;
+
       const res = await createOperationShipment({
         origine: direction === 'GN_USA' ? 'Conakry' : 'New York',
         destination: direction === 'GN_USA' ? 'New York' : 'Conakry',
         type_transport: transportType,
         senderName,
-        senderPhone,
+        senderPhone: fullSenderPhone,
         senderAddress,
         receiverName,
-        receiverPhone,
+        receiverPhone: fullReceiverPhone,
         receiverAddress,
         description: formattedDescription,
         boxes: totalBoxes,
@@ -521,18 +540,56 @@ export default function NewShipmentPage() {
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>Téléphone *</label>
-                    <div style={{ position: 'relative' }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>
+                      Téléphone {senderPrefix === '+1' ? '(États-Unis : +1)' : '(Guinée : +224)'} *
+                    </label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '10px 12px',
+                          background: '#f8fafc',
+                          border: isKnownClient ? '2px solid #10b981' : '1px solid #cbd5e1',
+                          borderRight: 'none',
+                          borderTopLeftRadius: '8px',
+                          borderBottomLeftRadius: '8px',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: '#1e293b',
+                          userSelect: 'none',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            background: senderPrefix === '+1' ? '#eff6ff' : '#f0fdf4',
+                            color: senderPrefix === '+1' ? '#1d4ed8' : '#15803d',
+                            border: `1px solid ${senderPrefix === '+1' ? '#93c5fd' : '#86efac'}`,
+                            borderRadius: 4,
+                            padding: '1px 5px',
+                            fontSize: 11,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {senderPrefix === '+1' ? 'US' : 'GN'}
+                        </span>
+                        <span>{senderPrefix}</span>
+                      </span>
                       <input
                         type="tel"
                         value={senderPhone}
                         onChange={handlePhoneChange}
-                        placeholder={direction === 'USA_GN' ? 'ex: 646-382-0065 ou 718...' : 'ex: 620... ou +224...'}
+                        placeholder={senderPrefix === '+1' ? '646 382 0065' : '620 12 34 56'}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
                           border: isKnownClient ? '2px solid #10b981' : '1px solid #cbd5e1',
-                          borderRadius: '8px',
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
+                          borderTopRightRadius: '8px',
+                          borderBottomRightRadius: '8px',
                           fontSize: 14,
                           outline: 'none',
                           boxSizing: 'border-box',
@@ -590,18 +647,56 @@ export default function NewShipmentPage() {
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>Téléphone *</label>
-                    <div style={{ position: 'relative' }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#475569', marginBottom: 6 }}>
+                      Téléphone {receiverPrefix === '+1' ? '(États-Unis : +1)' : '(Guinée : +224)'} *
+                    </label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '10px 12px',
+                          background: '#f8fafc',
+                          border: isKnownReceiver ? '2px solid #10b981' : '1px solid #cbd5e1',
+                          borderRight: 'none',
+                          borderTopLeftRadius: '8px',
+                          borderBottomLeftRadius: '8px',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: '#1e293b',
+                          userSelect: 'none',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            background: receiverPrefix === '+1' ? '#eff6ff' : '#f0fdf4',
+                            color: receiverPrefix === '+1' ? '#1d4ed8' : '#15803d',
+                            border: `1px solid ${receiverPrefix === '+1' ? '#93c5fd' : '#86efac'}`,
+                            borderRadius: 4,
+                            padding: '1px 5px',
+                            fontSize: 11,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {receiverPrefix === '+1' ? 'US' : 'GN'}
+                        </span>
+                        <span>{receiverPrefix}</span>
+                      </span>
                       <input
                         type="tel"
                         value={receiverPhone}
                         onChange={handleReceiverPhoneChange}
-                        placeholder={direction === 'USA_GN' ? 'ex: 620... ou +224 626...' : 'ex: 646-382-0065 ou 718...'}
+                        placeholder={receiverPrefix === '+1' ? '646 382 0065' : '620 12 34 56'}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
                           border: isKnownReceiver ? '2px solid #10b981' : '1px solid #cbd5e1',
-                          borderRadius: '8px',
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
+                          borderTopRightRadius: '8px',
+                          borderBottomRightRadius: '8px',
                           fontSize: 14,
                           outline: 'none',
                           boxSizing: 'border-box',
