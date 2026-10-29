@@ -244,18 +244,39 @@ export async function addShipmentEvent(id: string, statut: string, commentaire: 
   }
 }
 
+function extractTrackingCode(input: string): string {
+  let clean = input.trim();
+  if (clean.includes('http://') || clean.includes('https://')) {
+    try {
+      const urlObj = new URL(clean);
+      const param = urlObj.searchParams.get('tracking') || urlObj.searchParams.get('q') || urlObj.searchParams.get('data') || urlObj.searchParams.get('code');
+      if (param) return param.trim();
+      const segments = urlObj.pathname.split('/').filter(Boolean);
+      if (segments.length > 0) return segments[segments.length - 1].trim();
+    } catch {
+      const match = clean.match(/TGL-[A-Za-z0-9-]+/i);
+      if (match) return match[0];
+    }
+  }
+  return clean;
+}
+
 export async function findShipmentByTracking(trackingNumber: string) {
   await checkAuth();
   
   try {
-    const cleanNum = trackingNumber.trim();
+    const cleanNum = extractTrackingCode(trackingNumber);
     if (!cleanNum) {
       return { success: false, message: 'Veuillez saisir un numéro de suivi valide.' };
     }
 
     const shipment = await prisma.shipment.findFirst({
       where: {
-        tracking_number: cleanNum
+        OR: [
+          { tracking_number: cleanNum },
+          { id: cleanNum },
+          { invoice: { number: cleanNum } }
+        ]
       },
       include: {
         client: {
@@ -266,6 +287,7 @@ export async function findShipmentByTracking(trackingNumber: string) {
           }
         },
         agency: true,
+        invoice: true,
         tracking_events: {
           include: {
             user: {
@@ -301,14 +323,18 @@ export async function scanShipmentAction(
   const user = await checkAuth();
 
   try {
-    const cleanNum = trackingNumber.trim();
+    const cleanNum = extractTrackingCode(trackingNumber);
     if (!cleanNum) {
       return { success: false, message: 'Numéro de suivi requis.' };
     }
 
     const shipment = await prisma.shipment.findFirst({
       where: {
-        tracking_number: cleanNum
+        OR: [
+          { tracking_number: cleanNum },
+          { id: cleanNum },
+          { invoice: { number: cleanNum } }
+        ]
       }
     });
 

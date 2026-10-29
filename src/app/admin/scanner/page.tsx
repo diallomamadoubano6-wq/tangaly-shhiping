@@ -50,6 +50,7 @@ export default function AdminScannerPage() {
   // Session History
   const [history, setHistory] = useState<ScannedHistoryItem[]>([]);
   const [todayCount, setTodayCount] = useState(0);
+  const lastScanRef = useRef<{ code: string; time: number }>({ code: '', time: 0 });
 
   // Audio tone generator for scan feedback
   const playScanBeep = () => {
@@ -292,11 +293,22 @@ export default function AdminScannerPage() {
                     <Scanner
                       onScan={(detectedCodes: any) => {
                         if (detectedCodes && detectedCodes.length > 0) {
-                          const raw = detectedCodes[0].rawValue;
-                          if (raw) {
-                            handleLookup(raw);
+                          const raw = detectedCodes[0]?.rawValue || (typeof detectedCodes[0] === 'string' ? detectedCodes[0] : null);
+                          if (!raw) return;
+                          
+                          const now = Date.now();
+                          if (raw === lastScanRef.current.code && now - lastScanRef.current.time < 3000) {
+                            return;
                           }
+                          if (now - lastScanRef.current.time < 900) {
+                            return;
+                          }
+                          lastScanRef.current = { code: raw, time: now };
+                          handleLookup(raw);
                         }
+                      }}
+                      onError={(err) => {
+                        console.warn("Camera scanner notice:", err);
                       }}
                       formats={['qr_code', 'code_128', 'ean_13', 'code_39']}
                       constraints={{

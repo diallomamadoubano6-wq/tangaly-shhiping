@@ -359,10 +359,10 @@ export default function InvoicesPage() {
         </div>
 
         <div class="qr-section">
-          <img id="qr-img" class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${inv.id}" alt="QR Code" />
+          <img id="qr-img" class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(inv.colis || inv.id)}" alt="QR Code" />
           <div class="tracking-info">
             <p class="section-title">TRACKING NO. / SUIVI</p>
-            <h2>${inv.id}</h2>
+            <h2>${inv.colis || inv.id}</h2>
           </div>
         </div>
 
