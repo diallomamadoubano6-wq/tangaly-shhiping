@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
 import { 
   ArrowRightLeft, Search, Plus, Filter, CheckCircle, Clock, 
-  XCircle, Send, Building2, User, DollarSign, FileText, Users, Wallet 
+  XCircle, Send, Building2, User, DollarSign, FileText, Wallet 
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { getShipments } from '@/actions/shipments';
@@ -21,16 +21,6 @@ type Transfer = {
   errorMsg?: string;
 };
 
-const AGENCIES = [
-  'Administration TANGALY (Siège)',
-  'Agence Conakry (Madina)',
-  'Agence Matam',
-  'Agence Labé',
-  'Agence Kindia',
-  'Agence Mamou',
-  'Hub New York (USA)'
-];
-
 export default function TransfersPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
@@ -46,12 +36,10 @@ export default function TransfersPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
 
-  // Form state
+  // Form state - uniquement versement vers admin
   const [newAmount, setNewAmount] = useState('');
   const [newCurrency, setNewCurrency] = useState<'USD' | 'GNF'>('USD');
   const [newNote, setNewNote] = useState('');
-  const [direction, setDirection] = useState<'agent_to_admin' | 'agent_to_agent'>('agent_to_admin');
-  const [targetAgency, setTargetAgency] = useState<string>('Agence Conakry (Madina)');
   const [formError, setFormError] = useState('');
 
   // 1. Fetch real shipments to get real collected cash
@@ -78,7 +66,6 @@ export default function TransfersPage() {
       if (stored) {
         setTransfers(JSON.parse(stored));
       } else {
-        // Initial empty or default list
         setTransfers([]);
       }
     } catch (e) {
@@ -89,7 +76,7 @@ export default function TransfersPage() {
   // Calculate real metrics
   const totalCollectedUSD = shipments.reduce((sum, s) => sum + (Number(s.amountPaid) || 0), 0);
   
-  // Total transferred to admin or other agents by this agent
+  // Total transferred to admin by this agent
   const totalTransferredUSD = transfers
     .filter(t => t.fromName === agentDisplayName && t.status === 'completed' && t.currency === 'USD')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -131,19 +118,15 @@ export default function TransfersPage() {
       return;
     }
 
-    const destination = direction === 'agent_to_admin' 
-      ? 'Administration TANGALY (Siège)' 
-      : targetAgency;
-
     const newTransfer: Transfer = {
       id: `VIR-${Date.now().toString().slice(-4)}`,
       fromName: agentDisplayName,
-      toName: destination,
+      toName: 'Administration TANGALY (Siège)',
       amount,
       currency: newCurrency,
       date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
       status: 'completed',
-      note: newNote || (direction === 'agent_to_admin' ? 'Versement caisse expéditions' : 'Transfert inter-agence'),
+      note: newNote || 'Versement de caisse expéditions vers l\'Administration',
     };
 
     saveTransfers([newTransfer, ...transfers]);
@@ -161,16 +144,16 @@ export default function TransfersPage() {
     <div className={styles.dashboardContainer}>
       <div className={styles.headerRow}>
         <div>
-          <h1 className={styles.pageTitle}>Virements & Versements de Caisse</h1>
+          <h1 className={styles.pageTitle}>Virements & Versements vers l&apos;Admin</h1>
           <p className={styles.pageSubtitle}>
-            Gestion de votre caisse collectée, reversements vers le siège et transferts inter-agences.
+            Suivi de votre caisse collectée et reversement direct des fonds vers l&apos;Administration.
           </p>
         </div>
         <button 
           className={styles.primaryButton} 
           onClick={() => { setFormError(''); setShowNewModal(true); }}
         >
-          <Plus size={18} /> Nouveau virement
+          <Plus size={18} /> Nouveau versement vers l&apos;Admin
         </button>
       </div>
 
@@ -208,10 +191,10 @@ export default function TransfersPage() {
           </p>
         </div>
 
-        {/* Carte 3 : Virements effectués */}
+        {/* Carte 3 : Versements effectués */}
         <div className={styles.kpiCard} style={{ background: 'white', border: '1.5px solid #e2e8f0' }}>
           <div className={styles.kpiHeader}>
-            <p className={styles.kpiTitle}>Virements Effectués</p>
+            <p className={styles.kpiTitle}>Versements Effectués</p>
             <div className={styles.kpiIcon} style={{ background: '#dcfce7' }}>
               <ArrowRightLeft size={16} color="#16a34a" />
             </div>
@@ -220,7 +203,7 @@ export default function TransfersPage() {
             {transfers.filter(t => t.status === 'completed').length}
           </p>
           <p className={styles.kpiTrend} style={{ color: '#16a34a', fontSize: 12 }}>
-            Opérations enregistrées
+            Versements enregistrés
           </p>
         </div>
       </div>
@@ -230,7 +213,7 @@ export default function TransfersPage() {
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
             <Search size={18} className={styles.searchIcon} />
-            <input type="text" placeholder="Rechercher un virement ou motif..." className={styles.searchInput} />
+            <input type="text" placeholder="Rechercher un versement..." className={styles.searchInput} />
           </div>
           <button className={styles.secondaryButton}><Filter size={18} /> Filtrer</button>
         </div>
@@ -254,9 +237,9 @@ export default function TransfersPage() {
                   <td colSpan={8} style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                       <ArrowRightLeft size={28} color="#94a3b8" />
-                      <p style={{ margin: 0, fontWeight: 600 }}>Aucun virement enregistré pour le moment.</p>
+                      <p style={{ margin: 0, fontWeight: 600 }}>Aucun versement effectué pour le moment.</p>
                       <p style={{ margin: 0, fontSize: 12 }}>
-                        Votre caisse contient actuellement <strong>${availableCashUSD.toFixed(2)}</strong> collectés sur les expéditions. Cliquez sur &quot;Nouveau virement&quot; pour effectuer un versement au siège.
+                        Votre caisse contient actuellement <strong>${availableCashUSD.toFixed(2)}</strong> collectés sur les expéditions. Cliquez sur &quot;Nouveau versement vers l&apos;Admin&quot; pour transmettre les fonds.
                       </p>
                     </div>
                   </td>
@@ -275,8 +258,8 @@ export default function TransfersPage() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ background: t.toName.includes('Administration') ? '#f3e8ff' : '#eff6ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
-                          {t.toName.includes('Administration') ? <Building2 size={13} color="#7e22ce" /> : <User size={13} color="#2563eb" />}
+                        <div style={{ background: '#f3e8ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
+                          <Building2 size={13} color="#7e22ce" />
                         </div>
                         <span style={{ fontSize: 13 }}>{t.toName}</span>
                       </div>
@@ -291,7 +274,7 @@ export default function TransfersPage() {
                     <td style={{ fontSize: 12, color: '#64748b' }}>{t.note}</td>
                     <td>
                       <button className={styles.textButton} onClick={() => setSelectedTransfer(t)}>
-                        Détails
+                        Reçu
                       </button>
                     </td>
                   </tr>
@@ -307,24 +290,24 @@ export default function TransfersPage() {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>Reçu de Virement {selectedTransfer.id}</h2>
+              <h2>Reçu de Versement {selectedTransfer.id}</h2>
               <button className={styles.closeButton} onClick={() => setSelectedTransfer(null)}>&times;</button>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.infoList}>
                 <div className={styles.infoItem}>
                   <Send size={15}/>
-                  <span className={styles.infoLabel}>De</span>
+                  <span className={styles.infoLabel}>Expéditeur</span>
                   <span className={styles.infoValue}>{selectedTransfer.fromName}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <ArrowRightLeft size={15}/>
-                  <span className={styles.infoLabel}>À</span>
+                  <Building2 size={15}/>
+                  <span className={styles.infoLabel}>Bénéficiaire</span>
                   <span className={styles.infoValue}>{selectedTransfer.toName}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <DollarSign size={15}/>
-                  <span className={styles.infoLabel}>Montant</span>
+                  <span className={styles.infoLabel}>Montant versé</span>
                   <span className={styles.infoValue} style={{ fontWeight: 700, color: '#2563eb', fontSize: 18 }}>
                     {formatBalance(selectedTransfer.amount, selectedTransfer.currency)}
                   </span>
@@ -343,12 +326,12 @@ export default function TransfersPage() {
         </div>
       )}
 
-      {/* Modal Nouveau Virement */}
+      {/* Modal Nouveau Versement vers Admin */}
       {showNewModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>Nouveau Virement de Caisse</h2>
+              <h2>Nouveau Versement vers l&apos;Admin</h2>
               <button className={styles.closeButton} onClick={() => setShowNewModal(false)}>&times;</button>
             </div>
             <div className={styles.modalBody}>
@@ -373,47 +356,17 @@ export default function TransfersPage() {
                 </div>
               </div>
 
-              {/* Direction */}
+              {/* Bénéficiaire fixe : Administration TANGALY */}
               <div className={styles.formGroup}>
-                <label className={styles.label}>Type d&apos;opération</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {[
-                    { key: 'agent_to_admin', label: 'Versement Caisse → Siège', icon: <Building2 size={17}/>, color: '#7e22ce', bg: '#faf5ff' },
-                    { key: 'agent_to_agent', label: 'Virement vers Agence', icon: <Users size={17}/>, color: '#2563eb', bg: '#eff6ff' },
-                  ].map(opt => (
-                    <button 
-                      key={opt.key} 
-                      type="button" 
-                      onClick={() => setDirection(opt.key as any)}
-                      style={{
-                        padding: '12px 8px', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 12,
-                        border: direction === opt.key ? `2px solid ${opt.color}` : '2px solid #e2e8f0',
-                        background: direction === opt.key ? opt.bg : 'white',
-                        color: direction === opt.key ? opt.color : '#64748b',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'all 0.2s'
-                      }}
-                    >
-                      {opt.icon}{opt.label}
-                    </button>
-                  ))}
+                <label className={styles.label}>Bénéficiaire</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: '#faf5ff', border: '1.5px solid #f3e8ff', borderRadius: 8 }}>
+                  <Building2 size={20} color="#7e22ce" />
+                  <div>
+                    <strong style={{ color: '#581c87', fontSize: 13, display: 'block' }}>Administration TANGALY (Siège)</strong>
+                    <span style={{ color: '#7e22ce', fontSize: 11 }}>Compte central de versement</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Destinataire si Agence */}
-              {direction === 'agent_to_agent' && (
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Agence destinataire</label>
-                  <select 
-                    className={styles.input} 
-                    value={targetAgency} 
-                    onChange={e => setTargetAgency(e.target.value)}
-                  >
-                    {AGENCIES.filter(a => !a.includes(agencyName) && !a.includes('Siège')).map((ag) => (
-                      <option key={ag} value={ag}>{ag}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className={styles.formGroup}>
@@ -425,6 +378,7 @@ export default function TransfersPage() {
                     placeholder="Ex: 500" 
                     value={newAmount} 
                     onChange={e => setNewAmount(e.target.value)} 
+                    autoFocus
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -460,7 +414,7 @@ export default function TransfersPage() {
             <div className={styles.modalFooter}>
               <button className={styles.secondaryButton} onClick={() => setShowNewModal(false)}>Annuler</button>
               <button className={styles.primaryButton} onClick={handleSubmit}>
-                <Send size={16}/> Valider le virement
+                <Send size={16}/> Valider le versement vers l&apos;Admin
               </button>
             </div>
           </div>
