@@ -949,253 +949,260 @@ export default function NewShipmentPage() {
                 </div>
               </div>
 
-              {/* Liste des lignes de produits */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '18px' }}>
-                {productLines.map((line, index) => {
-                  const lineTotal = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
-                  const catInfo = PRODUCT_CATEGORIES[line.category] || PRODUCT_CATEGORIES['Autre marchandise'];
-
-                  return (
-                    <div
-                      key={line.id}
-                      style={{
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '10px',
-                        padding: '16px',
-                        background: '#f8fafc',
-                        position: 'relative',
-                        transition: 'box-shadow 0.2s',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span
-                            style={{
-                              background: '#2563eb',
-                              color: 'white',
-                              borderRadius: '50%',
-                              width: 20,
-                              height: 20,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 11,
-                            }}
-                          >
-                            {index + 1}
-                          </span>
-                          Article / Produit
-                        </span>
-
-                        {productLines.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeProductLine(line.id)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#ef4444',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              padding: '4px 8px',
-                              borderRadius: 6,
-                            }}
-                            title="Supprimer cette ligne"
-                          >
-                            <Trash2 size={15} /> Supprimer
-                          </button>
-                        )}
-                      </div>
-
-                      <div
+              {/* Tableau compact des lignes d'articles */}
+              <div
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  background: 'white',
+                  overflow: 'hidden',
+                  marginBottom: '14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ overflowX: 'auto' }}>
+                  <table
+                    style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      minWidth: packagingMode === 'SEPARATE_BOXES' ? '820px' : '720px',
+                      fontSize: 13,
+                    }}
+                  >
+                    <thead>
+                      <tr
                         style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                          gap: 12,
-                          alignItems: 'flex-start',
+                          background: '#f8fafc',
+                          borderBottom: '1px solid #e2e8f0',
+                          textAlign: 'left',
                         }}
                       >
-                        {/* 1. Catégorie */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Catégorie de produit *
-                          </label>
-                          <select
-                            value={line.category}
-                            onChange={e => updateProductLine(line.id, 'category', e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '8px',
-                              fontSize: 14,
-                              background: 'white',
-                              fontWeight: 500,
-                              color: '#0f172a',
-                              outline: 'none',
-                              cursor: 'pointer',
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            {Object.keys(PRODUCT_CATEGORIES).map(catKey => (
-                              <option key={catKey} value={catKey}>
-                                {PRODUCT_CATEGORIES[catKey].label} (${getCategoryDefaultRate(catKey, transportType)}/kg)
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* 2. Détail / Précision */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Description / Détails
-                          </label>
-                          <input
-                            type="text"
-                            value={line.description}
-                            onChange={e => updateProductLine(line.id, 'description', e.target.value)}
-                            placeholder={catInfo.hint}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '8px',
-                              fontSize: 14,
-                              outline: 'none',
-                              background: 'white',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        </div>
-
-                        {/* 3. Colis (Cartons) */}
-                        {packagingMode === 'SAME_BOX' ? (
-                          <div style={{ maxWidth: 140 }}>
-                            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                              Contenant
-                            </label>
-                            <div
-                              style={{
-                                padding: '10px 12px',
-                                background: '#ecfdf5',
-                                border: '1px dashed #86efac',
-                                borderRadius: '8px',
-                                fontSize: 12,
-                                fontWeight: 700,
-                                color: '#15803d',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                                <Package size={13} /> Dans {containerType}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div style={{ maxWidth: 130 }}>
-                            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                              Colis (Cartons)
-                            </label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={line.boxes}
-                              onChange={e => updateProductLine(line.id, 'boxes', Math.max(1, parseInt(e.target.value) || 1))}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: '8px',
-                                fontSize: 14,
-                                outline: 'none',
-                                background: 'white',
-                                boxSizing: 'border-box',
-                              }}
-                            />
-                          </div>
+                        <th style={{ padding: '10px 12px', width: 40, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                          #
+                        </th>
+                        <th style={{ padding: '10px 12px', minWidth: 200, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Catégorie de produit *
+                        </th>
+                        <th style={{ padding: '10px 12px', minWidth: 190, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Description / Détails
+                        </th>
+                        {packagingMode === 'SEPARATE_BOXES' && (
+                          <th style={{ padding: '10px 12px', width: 85, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                            Colis
+                          </th>
                         )}
+                        <th style={{ padding: '10px 12px', width: 110, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Poids (kg) *
+                        </th>
+                        <th style={{ padding: '10px 12px', width: 95, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                          Tarif ($/kg)
+                        </th>
+                        <th style={{ padding: '10px 12px', width: 110, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'right' }}>
+                          Sous-total
+                        </th>
+                        <th style={{ padding: '10px 12px', width: 45, textAlign: 'center' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productLines.map((line, index) => {
+                        const lineTotal = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
+                        const catInfo = PRODUCT_CATEGORIES[line.category] || PRODUCT_CATEGORIES['Autre marchandise'];
 
-                        {/* 4. Poids (kg) */}
-                        <div style={{ maxWidth: 140 }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Poids (kg) *
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={line.weight}
-                            onChange={e => updateProductLine(line.id, 'weight', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                            placeholder="ex: 12.5"
+                        return (
+                          <tr
+                            key={line.id}
                             style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '8px',
-                              fontSize: 14,
-                              outline: 'none',
-                              background: 'white',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        </div>
-
-                        {/* 5. Tarif / kg (modifiable) */}
-                        <div style={{ maxWidth: 140 }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Tarif ($/kg)
-                          </label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.5"
-                              value={line.ratePerKg}
-                              onChange={e => updateProductLine(line.id, 'ratePerKg', parseFloat(e.target.value) || 0)}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: '8px',
-                                fontSize: 14,
-                                outline: 'none',
-                                background: 'white',
-                                boxSizing: 'border-box',
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* 6. Sous-total ligne */}
-                        <div style={{ minWidth: 120 }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 5 }}>
-                            Sous-total
-                          </label>
-                          <div
-                            style={{
-                              padding: '10px 12px',
-                              background: '#eff6ff',
-                              border: '1px solid #bfdbfe',
-                              borderRadius: '8px',
-                              fontSize: 15,
-                              fontWeight: 700,
-                              color: '#1d4ed8',
-                              textAlign: 'right',
+                              borderBottom: index === productLines.length - 1 ? 'none' : '1px solid #f1f5f9',
+                              background: index % 2 === 0 ? 'white' : '#fafafa',
+                              transition: 'background 0.15s',
                             }}
                           >
-                            ${lineTotal.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                            {/* Numéro */}
+                            <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                              <span
+                                style={{
+                                  background: '#2563eb',
+                                  color: 'white',
+                                  borderRadius: '50%',
+                                  width: 22,
+                                  height: 22,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {index + 1}
+                              </span>
+                            </td>
+
+                            {/* Catégorie */}
+                            <td style={{ padding: '8px 10px' }}>
+                              <select
+                                value={line.category}
+                                onChange={e => updateProductLine(line.id, 'category', e.target.value)}
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 10px',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '6px',
+                                  fontSize: 13,
+                                  background: 'white',
+                                  fontWeight: 500,
+                                  color: '#0f172a',
+                                  outline: 'none',
+                                  cursor: 'pointer',
+                                  boxSizing: 'border-box',
+                                }}
+                              >
+                                {Object.keys(PRODUCT_CATEGORIES).map(catKey => (
+                                  <option key={catKey} value={catKey}>
+                                    {PRODUCT_CATEGORIES[catKey].label} (${getCategoryDefaultRate(catKey, transportType)}/kg)
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+
+                            {/* Description / Détails */}
+                            <td style={{ padding: '8px 10px' }}>
+                              <input
+                                type="text"
+                                value={line.description}
+                                onChange={e => updateProductLine(line.id, 'description', e.target.value)}
+                                placeholder={catInfo.hint}
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 10px',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '6px',
+                                  fontSize: 13,
+                                  outline: 'none',
+                                  background: 'white',
+                                  boxSizing: 'border-box',
+                                }}
+                              />
+                            </td>
+
+                            {/* Colis (si cartons séparés) */}
+                            {packagingMode === 'SEPARATE_BOXES' && (
+                              <td style={{ padding: '8px 10px' }}>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={line.boxes}
+                                  onChange={e => updateProductLine(line.id, 'boxes', Math.max(1, parseInt(e.target.value) || 1))}
+                                  style={{
+                                    width: '100%',
+                                    padding: '7px 8px',
+                                    border: '1px solid #cbd5e1',
+                                    borderRadius: '6px',
+                                    fontSize: 13,
+                                    outline: 'none',
+                                    background: 'white',
+                                    boxSizing: 'border-box',
+                                    textAlign: 'center',
+                                  }}
+                                />
+                              </td>
+                            )}
+
+                            {/* Poids */}
+                            <td style={{ padding: '8px 10px' }}>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                value={line.weight}
+                                onChange={e => updateProductLine(line.id, 'weight', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                                placeholder="ex: 12.5"
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 10px',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '6px',
+                                  fontSize: 13,
+                                  outline: 'none',
+                                  background: 'white',
+                                  boxSizing: 'border-box',
+                                }}
+                              />
+                            </td>
+
+                            {/* Tarif $/kg */}
+                            <td style={{ padding: '8px 10px' }}>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={line.ratePerKg}
+                                onChange={e => updateProductLine(line.id, 'ratePerKg', parseFloat(e.target.value) || 0)}
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 8px',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '6px',
+                                  fontSize: 13,
+                                  outline: 'none',
+                                  background: 'white',
+                                  boxSizing: 'border-box',
+                                  textAlign: 'center',
+                                }}
+                              />
+                            </td>
+
+                            {/* Sous-total */}
+                            <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  padding: '5px 10px',
+                                  background: '#eff6ff',
+                                  border: '1px solid #bfdbfe',
+                                  borderRadius: '6px',
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: '#1d4ed8',
+                                  minWidth: '70px',
+                                  textAlign: 'right',
+                                }}
+                              >
+                                ${lineTotal.toFixed(2)}
+                              </span>
+                            </td>
+
+                            {/* Action Supprimer */}
+                            <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                              {productLines.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeProductLine(line.id)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: '#ef4444',
+                                    cursor: 'pointer',
+                                    padding: '5px',
+                                    borderRadius: '4px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'background 0.15s',
+                                  }}
+                                  title="Supprimer cette ligne"
+                                  onMouseEnter={e => (e.currentTarget.style.background = '#fee2e2')}
+                                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Bouton Ajouter un produit */}
@@ -1206,16 +1213,16 @@ export default function NewShipmentPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '11px 18px',
+                  padding: '9px 16px',
                   background: '#f1f5f9',
                   border: '1px dashed #94a3b8',
                   borderRadius: '8px',
                   color: '#1e293b',
                   fontWeight: 600,
-                  fontSize: 14,
+                  fontSize: 13,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  marginBottom: '20px',
+                  marginBottom: '18px',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#e2e8f0';
@@ -1226,7 +1233,7 @@ export default function NewShipmentPage() {
                   e.currentTarget.style.borderColor = '#94a3b8';
                 }}
               >
-                <Plus size={18} color="#2563eb" /> Ajouter un autre produit (médicaments, liquides, fruits, chaussures...)
+                <Plus size={16} color="#2563eb" /> Ajouter un autre produit (médicaments, liquides, fruits, chaussures...)
               </button>
 
               {/* Barre de récapitulatif & Finances */}
