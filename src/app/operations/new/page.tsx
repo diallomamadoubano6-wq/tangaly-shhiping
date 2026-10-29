@@ -470,69 +470,46 @@ export default function NewShipmentPage() {
 
         <div className={styles.chartCard}>
           <form style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Direction de l'expédition */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setDirection('USA_GN')}
-                style={{
-                  flex: '1 1 200px',
-                  minWidth: 160,
-                  padding: '12px 18px',
-                  borderRadius: 10,
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  border: direction === 'USA_GN' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  background: direction === 'USA_GN' ? '#eff6ff' : 'white',
-                  color: direction === 'USA_GN' ? '#1d4ed8' : '#475569',
-                  transition: 'all 0.15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                }}
-              >
-                <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
-                <span>États-Unis</span>
-                <ArrowRight size={16} />
-                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
-                <span>Guinée</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDirection('GN_USA')}
-                style={{
-                  flex: '1 1 200px',
-                  minWidth: 160,
-                  padding: '12px 18px',
-                  borderRadius: 10,
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  border: direction === 'GN_USA' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  background: direction === 'GN_USA' ? '#eff6ff' : 'white',
-                  color: direction === 'GN_USA' ? '#1d4ed8' : '#475569',
-                  transition: 'all 0.15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                }}
-              >
-                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #86efac', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>GN</span>
-                <span>Guinée</span>
-                <ArrowRight size={16} />
-                <span style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 800 }}>USA</span>
-                <span>États-Unis</span>
-              </button>
-            </div>
-
-            <div style={{ fontSize: 13, color: '#475569', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
-              <MapPin size={14} color="#2563eb" />
-              {direction === 'USA_GN' 
-                ? 'Départ : États-Unis (New York) ➔ Arrivée : Guinée (Conakry)' 
-                : 'Départ : Guinée (Conakry) ➔ Arrivée : États-Unis (New York)'}
+            {/* Trajet automatique selon le pays de l'agent */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 18px',
+              background: '#f8fafc',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: 10,
+              width: 'fit-content',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#1e293b',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+            }}>
+              <span style={{ 
+                background: direction === 'USA_GN' ? '#eff6ff' : '#f0fdf4', 
+                color: direction === 'USA_GN' ? '#1d4ed8' : '#15803d', 
+                border: `1px solid ${direction === 'USA_GN' ? '#93c5fd' : '#86efac'}`, 
+                borderRadius: 6, 
+                padding: '3px 8px', 
+                fontSize: 12, 
+                fontWeight: 800 
+              }}>
+                {direction === 'USA_GN' ? 'USA' : 'GN'}
+              </span>
+              <span>{direction === 'USA_GN' ? 'États-Unis (New York)' : 'Guinée (Conakry)'}</span>
+              <ArrowRight size={16} color="#64748b" />
+              <span style={{ 
+                background: direction === 'USA_GN' ? '#f0fdf4' : '#eff6ff', 
+                color: direction === 'USA_GN' ? '#15803d' : '#1d4ed8', 
+                border: `1px solid ${direction === 'USA_GN' ? '#86efac' : '#93c5fd'}`, 
+                borderRadius: 6, 
+                padding: '3px 8px', 
+                fontSize: 12, 
+                fontWeight: 800 
+              }}>
+                {direction === 'USA_GN' ? 'GN' : 'USA'}
+              </span>
+              <span>{direction === 'USA_GN' ? 'Guinée (Conakry)' : 'États-Unis (New York)'}</span>
             </div>
 
             {/* Expéditeur & Destinataire */}
