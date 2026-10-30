@@ -314,7 +314,7 @@ export default function AdminTransfersPage() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
             type="button"
-            onClick={() => loadAllTransfersData(true)} 
+            onClick={() => loadAllTransfersData()} 
             title="Rafraîchir les données"
             style={{ 
               display: 'inline-flex', alignItems: 'center', gap: 6,

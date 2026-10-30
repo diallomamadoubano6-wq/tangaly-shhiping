@@ -337,7 +337,7 @@ export default function TransfersPage() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
             type="button"
-            onClick={() => loadTransfersData(true)} 
+            onClick={() => loadTransfersData()} 
             title="Rafraîchir les données"
             style={{ 
               display: 'inline-flex', alignItems: 'center', gap: 6,
