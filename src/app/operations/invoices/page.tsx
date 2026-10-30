@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
-import { Search, Filter, Printer, Eye, Plus, CheckCircle, Clock, FileText, QrCode, MessageCircle } from 'lucide-react';
+import { Search, Filter, Printer, Eye, CheckCircle, Clock, FileText, QrCode, MessageCircle } from 'lucide-react';
 import { getShipments, registerPayment } from '@/actions/shipments';
+import { generateModernReceiptHTML } from '@/lib/receiptTemplate';
 
 type Invoice = {
   id: string;
@@ -42,6 +43,7 @@ export default function InvoicesPage() {
       try {
         const res = await getShipments();
         if (res.success) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const mapped: Invoice[] = res.data.map((s: any) => ({
             id: s.invoice?.number || s.tracking_number,
             dbId: s.id,
@@ -112,164 +114,49 @@ export default function InvoicesPage() {
 
 
   const getReceiptHTML = (inv: Invoice) => {
-    return `
-      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: black; background: white;">
-         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 10px;">
-            <div style="text-align: center; width: 25%;">
-               <h3 style="color: #1d4ed8; margin: 0 0 5px 0; font-size: 18px;">USA</h3>
-               <p style="margin:0; font-size:12px; font-weight:bold;">3429 3rd Ave.<br/>Bronx, NY 10456</p>
-               <br/>
-               <p style="margin:0; font-size:12px; font-weight:bold;">28 Arlington Avenue<br/>Brooklyn, NY 11207</p>
-               <h3 style="color: #dc2626; margin: 5px 0 0 0; font-size: 16px;">646-382-0065</h3>
-               <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 8px; background: #eff6ff; border: 1.5px solid #2563eb; color: #1d4ed8; font-weight: 900; font-size: 15px; letter-spacing: 1px;">USA</div>
-            </div>
-
-            <div style="text-align: center; width: 50%;">
-               <h2 style="color: #16a34a; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Shipping Receipt</h2>
-               <div style="border: 2px solid #dc2626; display: inline-block; padding: 5px 20px; margin-top: 5px;">
-                  <h2 style="color: #dc2626; margin: 0;">No. ${inv.id}</h2>
-               </div>
-               
-               <div style="margin-top: 15px;">
-                  <h1 style="margin:0; color: #1d4ed8; font-size: 32px; font-style: italic; font-weight: 900;">TANGALY</h1>
-                  <h4 style="margin:0; color: #dc2626; font-size: 14px;">SHIPPING & LOGISTICS</h4>
-               </div>
-
-               <p style="color: #1d4ed8; font-size: 12px; font-weight: bold; border-top: 1px solid #1d4ed8; border-bottom: 1px solid #1d4ed8; margin: 10px 0; padding: 4px 0;">
-                  AIR FREIGHT/USA ↔ GUINEA (CONAKRY)
-               </p>
-               
-               <h3 style="color: #1d4ed8; font-style: italic; margin: 5px 0;">Fast, Reliable & Secure</h3>
-
-               <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-top: 10px; color: #ea580c;">
-                  <div>Zelle: <br/><span style="color: #4c1d95;">347-819-5217</span></div>
-                  <div>Orange Money: <br/><span style="color: #ea580c;">611-62-53-27</span></div>
-               </div>
-            </div>
-
-            <div style="text-align: center; width: 25%;">
-               <h3 style="color: #1d4ed8; margin: 0 0 5px 0; font-size: 16px;">Guinea (Conakry)</h3>
-               <p style="margin:0; font-size:12px; font-weight:bold;">Cité Enco5</p>
-               <h3 style="color: #dc2626; margin: 5px 0 0 0; font-size: 16px;">+224 626-98-52-54</h3>
-               <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 8px; background: #f0fdf4; border: 1.5px solid #16a34a; color: #15803d; font-weight: 900; font-size: 15px; letter-spacing: 1px;">GN</div>
-               <div style="text-align: right; margin-top: 30px;">Date: <span style="border-bottom: 1px solid black; padding: 0 20px;">${inv.date}</span></div>
-            </div>
-         </div>
-
-         <div style="margin-top: 20px;">
-            <h4 style="background: #f1f5f9; font-style: italic; display: inline-block; padding: 2px 10px; margin: 0 0 5px 0; font-size: 14px;">Sender Information / Informations de l'Expéditeur</h4>
-            
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Full Name / Nom Complet: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.senderName}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Phone / Téléphone: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.senderPhone}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 15px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Address / Adresse: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.senderAddress}</div>
-            </div>
-
-            <h4 style="background: #f1f5f9; font-style: italic; display: inline-block; padding: 2px 10px; margin: 0 0 5px 0; font-size: 14px;">Receiver Information / Informations du Destinataire</h4>
-            
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Full Name / Nom Complet: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.receiverName}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Phone / Téléphone: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.receiverPhone}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 15px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">City (Guinea) / Ville (Guinée): </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.receiverAddress}</div>
-            </div>
-
-            <h4 style="background: #e2e8f0; font-style: italic; display: inline-block; padding: 2px 10px; margin: 0 0 5px 0; font-size: 14px;">Shipment Details / Détails de l'Envoi</h4>
-            
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Description of Goods / Description des Marchandises: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.description}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Number of Boxes / Nombre de Colis: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.boxes}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Total Weight (kg) / Poids Total (kg): </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">${inv.weight}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Rate per kg / Tarif par kg: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">$${inv.ratePerKg}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Freight Cost / Coût du Fret: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px;">$${inv.freightCost}</div>
-            </div>
-
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Total Amount / Montant Total: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px; font-weight: bold;">$${inv.total}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 8px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Amount Paid / Montant Payé: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px; color: #16a34a; font-weight: bold;">$${inv.amountPaid}</div>
-            </div>
-            <div style="display: flex; align-items: flex-end; margin-bottom: 15px;">
-               <span style="font-weight: bold; font-size: 14px; white-space: nowrap;">Balance Due / Reste à Payer: </span>
-               <div style="flex: 1; border-bottom: 1px solid black; margin-left: 5px; padding-left: 5px; font-size: 14px; color: #dc2626; font-weight: bold;">$${inv.balance}</div>
-            </div>
-
-            <div style="background: #f1f5f9; padding: 10px; border: 1px solid #cbd5e1; margin-bottom: 15px;">
-               <h4 style="margin: 0 0 10px 0; text-align: center; font-size: 14px;">PAYMENT METHOD / MODE DE PAIEMENT:</h4>
-               <div style="display: flex; justify-content: space-around; font-size: 14px; font-weight: bold;">
-                  <div>☑ CASH / ESPÈCES<br/>☐ ZELLE</div>
-                  <div>☐ ORANGE MONEY<br/>☐ OTHER / AUTRE: <span style="border-bottom: 1px solid black; padding: 0 40px;"></span></div>
-               </div>
-            </div>
-
-            <div style="text-align: center; font-size: 11px; margin-bottom: 30px;">
-               <h4 style="margin: 0 0 5px 0;">Terms & Conditions / Termes et Conditions:</h4>
-               <p style="margin: 0;">- Tangaly Shipping is not responsible for prohibited or illegal items.</p>
-               <p style="margin: 0;">- Tangaly Shipping is not liable for damage due to improper packaging.</p>
-               <p style="margin: 0;">- Estimated delivery time: 5-10 business days.</p>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; font-size: 14px;">
-               <div style="width: 40%; border-top: 1px solid black; padding-top: 5px; text-align: center;">
-                  Agent Signature / Signature de l'Agent:
-               </div>
-               <div style="width: 40%; border-top: 1px solid black; padding-top: 5px; text-align: center;">
-                  Customer Signature / Signature du Client:
-               </div>
-            </div>
-         </div>
-      </div>
-    `;
+    return generateModernReceiptHTML({
+      id: inv.id,
+      colis: inv.colis,
+      date: inv.date,
+      senderName: inv.senderName,
+      senderPhone: inv.senderPhone,
+      senderAddress: inv.senderAddress,
+      receiverName: inv.receiverName,
+      receiverPhone: inv.receiverPhone,
+      receiverAddress: inv.receiverAddress,
+      description: inv.description,
+      boxes: Number(inv.boxes) || 1,
+      weight: Number(inv.weight) || 0,
+      ratePerKg: inv.ratePerKg,
+      freightCost: inv.freightCost,
+      total: inv.total,
+      amountPaid: inv.amountPaid,
+      balance: inv.balance,
+      typeTransport: 'AERIEN'
+    });
   };
 
   const handlePrint = (inv: Invoice) => {
-    const win = window.open('', '_blank', 'width=900,height=700');
+    const win = window.open('', '_blank', 'width=900,height=750');
     if (!win) return;
     win.document.write(`
-      <html><head><title>Facture ${inv.id}</title>
+      <!DOCTYPE html>
+      <html><head><title>Facture - ${inv.colis || inv.id}</title>
       <style>
-        @media print {
-          @page { margin: 0; }
-          body { margin: 1.6cm; }
-        }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+        @page { size: A4 portrait; margin: 8mm 10mm; }
+        body { margin: 0; padding: 0; background: white; font-family: Arial, sans-serif; }
       </style>
       </head><body>
-      ${getReceiptHTML(inv)}
+    `);
+    win.document.write(getReceiptHTML(inv));
+    win.document.write(`
+      <script>
+        window.onload = () => { setTimeout(() => window.print(), 300); }
+      </script>
       </body></html>
     `);
     win.document.close();
-    setTimeout(() => {
-        win.print();
-    }, 250);
   };
 
   const handleWhatsAppShare = (inv: Invoice) => {
@@ -390,7 +277,7 @@ export default function InvoicesPage() {
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.pageTitle}>Factures & Reçus Clients</h1>
-          <p className={styles.pageSubtitle}>Consultez et imprimez les reçus d'expédition ("Shipping Receipts").</p>
+          <p className={styles.pageSubtitle}>Consultez et imprimez les reçus d&apos;expédition (&quot;Shipping Receipts&quot;).</p>
         </div>
       </div>
 
@@ -461,73 +348,43 @@ export default function InvoicesPage() {
 
       {/* Modal Voir Détails (Résumé propre) */}
       {selected && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{maxWidth: 450, padding: 0, borderRadius: 12, overflow: 'hidden'}}>
+        <div className={styles.modalOverlay} style={{ zIndex: 1000, overflowY: 'auto', padding: '20px 0' }}>
+          <div className={styles.modalContent} style={{ maxWidth: 860, width: '95%', padding: 0, borderRadius: 16, overflow: 'hidden', margin: 'auto' }}>
             
-            <div style={{padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0'}}>
-              <h2 style={{margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', gap: 10, color: '#0f172a'}}>
-                <Eye size={20}/> Détails du Reçu #{selected.id}
-              </h2>
-              <button onClick={() => setSelected(null)} style={{background: '#f1f5f9', border: 'none', width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b'}}>
-                ✕
-              </button>
-            </div>
-            
-            <div style={{padding: '24px'}}>
-              <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center'}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Expéditeur</span>
-                  <span style={{fontWeight: 600, color: '#0f172a', fontSize: 15}}>{selected.senderName}</span>
-                </div>
-                
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center'}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Destinataire</span>
-                  <span style={{fontWeight: 600, color: '#0f172a', fontSize: 15}}>{selected.receiverName}</span>
-                </div>
-                
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center'}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Colis</span>
-                  <span style={{fontWeight: 600, color: '#2563eb', fontSize: 15}}>{selected.colis}</span>
-                </div>
-                
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center'}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Date</span>
-                  <span style={{fontWeight: 600, color: '#0f172a', fontSize: 15}}>{selected.date}</span>
-                </div>
-                
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', marginTop: 8}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Montant Total</span>
-                  <span style={{fontWeight: 800, color: '#0f172a', fontSize: 18}}>\${selected.total}</span>
-                </div>
-                
-                {selected.balance > 0 && (
-                  <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center'}}>
-                    <span style={{color: '#dc2626', fontSize: 14, fontWeight: 600}}>Reste à payer</span>
-                    <span style={{fontWeight: 800, color: '#dc2626', fontSize: 18}}>\${selected.balance}</span>
-                  </div>
-                )}
-                
-                <div style={{display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', marginTop: 8}}>
-                  <span style={{color: '#64748b', fontSize: 14}}>Statut</span>
-                  <div>
-                    {selected.statut === 'paid'
-                      ? <span style={{background: '#dcfce7', color: '#16a34a', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600}}>Payée</span>
-                      : <span style={{background: '#fef3c7', color: '#d97706', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600}}>En attente</span>
-                    }
-                  </div>
-                </div>
+            <div style={{ padding: '16px 24px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Eye size={20} color="#1d4ed8" />
+                <h3 style={{ margin: 0, fontSize: 16, color: '#0f172a', fontWeight: 700 }}>
+                  Aperçu du Reçu Officiel · N° {selected.colis || selected.id}
+                </h3>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  onClick={() => handleWhatsAppShare(selected)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#22c55e', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <MessageCircle size={16} /> WhatsApp
+                </button>
+                <button
+                  onClick={() => handlePrint(selected)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Printer size={16} /> Imprimer (A4)
+                </button>
+                <button
+                  onClick={() => setSelected(null)}
+                  style={{ background: '#e2e8f0', border: 'none', width: 32, height: 32, borderRadius: 8, cursor: 'pointer', color: '#475569', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  ✕
+                </button>
               </div>
             </div>
             
-            <div style={{padding: '20px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 12}}>
-              <button onClick={() => setSelected(null)} style={{padding: '10px 20px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 8, color: '#0f172a', fontWeight: 600, cursor: 'pointer'}}>
-                Fermer
-              </button>
-              <button onClick={() => handlePrint(selected)} style={{padding: '10px 20px', background: '#2563eb', border: 'none', borderRadius: 8, color: 'white', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8}}>
-                <Printer size={18}/> Imprimer (A4)
-              </button>
+            <div style={{ padding: '20px', background: '#f1f5f9', maxHeight: '78vh', overflowY: 'auto' }}>
+              <div style={{ background: 'white', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', padding: 12 }}>
+                <div dangerouslySetInnerHTML={{ __html: getReceiptHTML(selected) }} />
+              </div>
             </div>
-            
           </div>
         </div>
       )}
@@ -546,7 +403,7 @@ export default function InvoicesPage() {
               </div>
               
               <div className={styles.formGroup}>
-                <label className={styles.label}>Montant reçu aujourd'hui (USD)</label>
+                <label className={styles.label}>Montant reçu aujourd&apos;hui (USD)</label>
                 <input type="number" className={styles.input} value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} max={payingInvoice.balance} />
               </div>
               
@@ -585,7 +442,7 @@ export default function InvoicesPage() {
             
             <div style={{padding: '32px 24px'}}>
               <p style={{color: '#475569', fontSize: 15, marginBottom: 24, textAlign: 'center', lineHeight: 1.5}}>
-                Que souhaitez-vous imprimer pour l'envoi <br/>
+                Que souhaitez-vous imprimer pour l&apos;envoi <br/>
                 <strong style={{color: '#0f172a', fontSize: 18, display: 'inline-block', marginTop: 8, padding: '4px 12px', background: '#f1f5f9', borderRadius: 8}}>{printingInvoice.id}</strong> ?
               </p>
               
