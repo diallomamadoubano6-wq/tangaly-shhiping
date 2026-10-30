@@ -6,6 +6,7 @@ import { Search, Filter, Printer, Eye, CheckCircle, Clock, FileText, QrCode, Mes
 import { getShipments, registerPayment } from '@/actions/shipments';
 import { generateModernReceiptHTML } from '@/lib/receiptTemplate';
 import { printShippingLabel } from '@/lib/shippingLabelTemplate';
+import { useCurrency } from '@/context/CurrencyContext';
 
 type Invoice = {
   id: string;
@@ -31,6 +32,7 @@ type Invoice = {
 };
 
 export default function InvoicesPage() {
+  const { currency, formatAmount } = useCurrency();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Invoice | null>(null);
@@ -216,7 +218,7 @@ export default function InvoicesPage() {
                 <th style={{width: '140px'}}>Reçu N°</th>
                 <th style={{width: '130px'}}>Colis</th>
                 <th>Expéditeur</th>
-                <th style={{width: '90px'}}>Montant</th>
+                <th style={{width: '110px'}}>Montant ({currency})</th>
                 <th style={{width: '110px'}}>Date</th>
                 <th style={{width: '110px'}}>Statut</th>
                 <th style={{width: '240px'}}>Actions</th>
@@ -232,7 +234,7 @@ export default function InvoicesPage() {
                   <td style={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}><strong>#{inv.id}</strong></td>
                   <td style={{color: '#2563eb', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{inv.colis}</td>
                   <td style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{inv.senderName}</td>
-                  <td style={{fontWeight: 700, whiteSpace: 'nowrap'}}>${inv.total}</td>
+                  <td style={{fontWeight: 700, whiteSpace: 'nowrap'}}>{formatAmount(inv.total)}</td>
                   <td style={{whiteSpace: 'nowrap', fontSize: 13, color: '#475569'}}>{inv.date}</td>
                   <td>
                     {inv.statut === 'paid'
@@ -313,7 +315,7 @@ export default function InvoicesPage() {
             <div className={styles.modalBody}>
               <div style={{background:'#fef2f2', padding:16, borderRadius:8, marginBottom:20, border:'1px dashed #ef4444'}}>
                 <p style={{margin:0, fontSize:13, color:'#991b1b'}}>Reste à payer (Facture #{payingInvoice.id})</p>
-                <p style={{margin:0, fontSize:24, fontWeight:800, color:'#dc2626'}}>\${payingInvoice.balance}</p>
+                <p style={{margin:0, fontSize:24, fontWeight:800, color:'#dc2626'}}>{formatAmount(payingInvoice.balance)}</p>
               </div>
               
               <div className={styles.formGroup}>

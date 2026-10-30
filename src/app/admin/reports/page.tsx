@@ -1,8 +1,11 @@
 "use client";
 import styles from '../operations.module.css';
 import { BarChart2, TrendingUp, Users } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function ReportsPage() {
+  const { formatFromGNF } = useCurrency();
+
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.headerRow}>
@@ -18,7 +21,7 @@ export default function ReportsPage() {
             <p className={styles.kpiTitle}>Chiffre d'affaires (Mois)</p>
             <div className={styles.kpiIcon}><TrendingUp size={18} color="#2563eb"/></div>
           </div>
-          <p className={styles.kpiValue}>45,000,000 GNF</p>
+          <p className={styles.kpiValue}>{formatFromGNF(45000000)}</p>
           <p className={styles.kpiTrend}>↑ +8% par rapport au mois dernier</p>
         </div>
         

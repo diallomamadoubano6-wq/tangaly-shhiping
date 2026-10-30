@@ -72,7 +72,17 @@ export const authOptions: NextAuthOptions = {
         try {
           const freshUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { id: true, nom: true, email: true, role: true, localisation: true }
+            select: { 
+              id: true, 
+              nom: true, 
+              email: true, 
+              role: true, 
+              localisation: true,
+              agencyId: true,
+              agency: {
+                select: { id: true, nom: true, pays: true, ville: true }
+              }
+            }
           });
           if (freshUser) {
             session.user = {
@@ -83,6 +93,8 @@ export const authOptions: NextAuthOptions = {
               email: freshUser.email,
               role: freshUser.role,
               localisation: freshUser.localisation || 'Agence Principale',
+              agencyId: freshUser.agencyId,
+              agency: freshUser.agency,
             } as any;
             return session;
           }

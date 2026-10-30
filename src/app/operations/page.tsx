@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 import { getShipments } from '@/actions/shipments';
+import { useCurrency } from '@/context/CurrencyContext';
 
 type Shipment = {
   id: string;
@@ -23,6 +24,7 @@ type Shipment = {
 export default function AgentDashboard() {
   const { data: session } = useSession();
   const user = session?.user as any;
+  const { currency, formatAmount } = useCurrency();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -105,7 +107,7 @@ export default function AgentDashboard() {
             <p className={styles.kpiTitle}>Montant Collecté</p>
             <div className={styles.kpiIcon}><Wallet size={18} color="#ef4444"/></div>
           </div>
-          <p className={styles.kpiValue}>{loading ? '...' : `$${totalCollected}`}</p>
+          <p className={styles.kpiValue}>{loading ? '...' : formatAmount(totalCollected)}</p>
         </div>
       </div>
 
@@ -177,7 +179,7 @@ export default function AgentDashboard() {
                   <th>Destination</th>
                   <th>Poids</th>
                   <th>Statut</th>
-                  <th>Montant</th>
+                  <th>Montant ({currency})</th>
                 </tr>
               </thead>
               <tbody>
@@ -193,7 +195,7 @@ export default function AgentDashboard() {
                       <td>{s.destination}</td>
                       <td>{s.poids ? s.poids + ' kg' : '-'}</td>
                       <td><span className={`${styles.statusBadge} ${getStatusStyle(s.statut)}`}>{getStatusLabel(s.statut)}</span></td>
-                      <td style={{fontWeight:600}}>${s.totalAmount || 0}</td>
+                      <td style={{fontWeight:600}}>{formatAmount(s.totalAmount || 0)}</td>
                     </tr>
                   ))
                 )}
