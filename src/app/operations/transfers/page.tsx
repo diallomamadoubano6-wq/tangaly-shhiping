@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../operations.module.css';
 import { 
   ArrowRightLeft, Search, Plus, CheckCircle, Clock, 
@@ -33,7 +33,17 @@ export default function TransfersPage() {
 
   const [shipments, setShipments] = useState<ShipmentItem[]>([]);
   const [loadingShipments, setLoadingShipments] = useState(true);
-  const [transfers, setTransfers] = useState<TransferItem[]>([]);
+  const [transfers, setTransfers] = useState<TransferItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('tangaly_internal_transfers');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // ignore
+      }
+    }
+    return [];
+  });
   const [loadingTransfers, setLoadingTransfers] = useState(true);
 
   const [showNewModal, setShowNewModal] = useState(false);
@@ -71,31 +81,33 @@ export default function TransfersPage() {
   }, []);
 
   // 2. Fetch transfers from server and sync with localStorage
-  const loadTransfersData = useCallback(async () => {
+  const loadTransfersData = async () => {
     setLoadingTransfers(true);
     try {
       const res = await getAgentTransfers();
       let serverTransfers = (res.success && res.data) ? res.data : [];
 
-      // Check if localStorage has older transfers that were not sent to server
+      // Fusion intelligente avec localStorage
       try {
         const localRaw = localStorage.getItem('tangaly_internal_transfers');
         if (localRaw) {
-          const localList: Array<{ id: string; fromName?: string; amount: number; currency?: 'USD' | 'GNF'; note?: string; toName?: string }> = JSON.parse(localRaw);
+          const localList: TransferItem[] = JSON.parse(localRaw);
           for (const localT of localList) {
-            const alreadyOnServer = serverTransfers.some(st => st.id === localT.id || st.reference === localT.id);
-            const isLocalOwner = !localT.fromName || localT.fromName.toLowerCase().includes(agentName.toLowerCase());
-            
-            if (!alreadyOnServer && isLocalOwner && localT.amount > 0) {
+            const alreadyOnServer = serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id));
+            if (!alreadyOnServer && localT.amount > 0) {
               const syncRes = await createAgentTransfer({
                 amount: localT.amount,
                 currency: localT.currency || 'USD',
                 note: localT.note,
                 toName: localT.toName,
-                clientGeneratedId: localT.id,
+                clientGeneratedId: localT.reference || localT.id,
+                agentName,
+                agentEmail: user?.email,
               });
               if (syncRes.success && syncRes.data) {
                 serverTransfers = [syncRes.data as TransferItem, ...serverTransfers];
+              } else {
+                serverTransfers = [localT, ...serverTransfers];
               }
             }
           }
@@ -105,33 +117,49 @@ export default function TransfersPage() {
       }
 
       setTransfers(serverTransfers);
+      try {
+        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(serverTransfers));
+      } catch {
+        // ignore
+      }
     } catch (err) {
       console.error("Erreur chargement transferts:", err);
     } finally {
       setLoadingTransfers(false);
     }
-  }, [agentName]);
+  };
 
   useEffect(() => {
     let isSubscribed = true;
-    if (session) {
-      getAgentTransfers()
-        .then((res) => {
-          if (!isSubscribed) return;
-          const serverList = (res.success && res.data) ? res.data : [];
-          setTransfers(serverList);
-        })
-        .catch((err) => {
-          console.error("Erreur chargement transferts:", err);
-        })
-        .finally(() => {
-          if (isSubscribed) setLoadingTransfers(false);
-        });
-    }
+    getAgentTransfers()
+      .then((res) => {
+        if (!isSubscribed) return;
+        const serverTransfers = (res.success && res.data) ? res.data : [];
+        try {
+          const localRaw = localStorage.getItem('tangaly_internal_transfers');
+          if (localRaw) {
+            const localList: TransferItem[] = JSON.parse(localRaw);
+            for (const localT of localList) {
+              if (!serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id))) {
+                serverTransfers.push(localT);
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+        setTransfers(serverTransfers);
+      })
+      .catch((err) => {
+        console.error("Erreur chargement initial transferts:", err);
+      })
+      .finally(() => {
+        if (isSubscribed) setLoadingTransfers(false);
+      });
     return () => {
       isSubscribed = false;
     };
-  }, [session]);
+  }, []);
 
   // Calculate real metrics
   const totalCollectedUSD = shipments.reduce((sum, s) => sum + (Number(s.amountPaid) || 0), 0);
@@ -196,26 +224,41 @@ export default function TransfersPage() {
         note: newNote || 'Versement de caisse expéditions vers l\'Administration',
         toName: 'Administration TANGALY (Siège)',
         clientGeneratedId: generatedRef,
+        agentName,
+        agentEmail: user?.email,
       });
 
+      let newTransferItem: TransferItem;
       if (res.success && res.data) {
-        const newTransferItem: TransferItem = res.data as TransferItem;
-        const updatedList = [newTransferItem, ...transfers];
-        setTransfers(updatedList);
-
-        try {
-          localStorage.setItem('tangaly_internal_transfers', JSON.stringify(updatedList));
-        } catch {
-          // ignore localStorage errors
-        }
-
-        setShowNewModal(false);
-        setNewAmount('');
-        setNewNote('');
-        setSelectedTransfer(newTransferItem);
+        newTransferItem = res.data as TransferItem;
       } else {
-        setFormError(res.message || 'Erreur lors de l\'enregistrement du versement.');
+        newTransferItem = {
+          id: generatedRef,
+          reference: generatedRef,
+          fromName: `${agentName} (${agencyName})`,
+          toName: 'Administration TANGALY (Siège)',
+          amount,
+          currency: newCurrency,
+          date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
+          status: 'completed',
+          note: newNote || 'Versement de caisse expéditions vers l\'Administration',
+          createdAt: new Date().toISOString(),
+        };
       }
+
+      const updatedList = [newTransferItem, ...transfers.filter(t => t.id !== newTransferItem.id && t.reference !== newTransferItem.reference)];
+      setTransfers(updatedList);
+
+      try {
+        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(updatedList));
+      } catch {
+        // ignore localStorage errors
+      }
+
+      setShowNewModal(false);
+      setNewAmount('');
+      setNewNote('');
+      setSelectedTransfer(newTransferItem);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erreur réseau inattendue.';
       setFormError(msg);

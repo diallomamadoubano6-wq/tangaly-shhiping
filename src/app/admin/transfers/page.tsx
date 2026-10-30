@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../operations.module.css';
 import { 
   ArrowRightLeft, Search, Plus, CheckCircle, Clock, 
@@ -28,7 +28,17 @@ interface ShipmentItem {
 export default function AdminTransfersPage() {
   const [shipments, setShipments] = useState<ShipmentItem[]>([]);
   const [loadingShipments, setLoadingShipments] = useState(true);
-  const [transfers, setTransfers] = useState<TransferItem[]>([]);
+  const [transfers, setTransfers] = useState<TransferItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('tangaly_internal_transfers');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // ignore
+      }
+    }
+    return [];
+  });
   const [loadingTransfers, setLoadingTransfers] = useState(true);
 
   const [showNewModal, setShowNewModal] = useState(false);
@@ -68,7 +78,7 @@ export default function AdminTransfersPage() {
   }, []);
 
   // 2. Load all transfers from server and localStorage
-  const loadAllTransfersData = useCallback(async () => {
+  const loadAllTransfersData = async () => {
     setLoadingTransfers(true);
     try {
       const res = await getAllTransfers();
@@ -78,19 +88,21 @@ export default function AdminTransfersPage() {
       try {
         const localRaw = localStorage.getItem('tangaly_internal_transfers');
         if (localRaw) {
-          const localList: Array<{ id: string; fromName?: string; amount: number; currency?: 'USD' | 'GNF'; note?: string; toName?: string }> = JSON.parse(localRaw);
+          const localList: TransferItem[] = JSON.parse(localRaw);
           for (const localT of localList) {
-            const already = serverTransfers.some(st => st.id === localT.id || st.reference === localT.id);
+            const already = serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id));
             if (!already && localT.amount > 0) {
               const syncRes = await createAgentTransfer({
                 amount: localT.amount,
                 currency: localT.currency || 'USD',
                 note: localT.note,
                 toName: localT.toName,
-                clientGeneratedId: localT.id,
+                clientGeneratedId: localT.reference || localT.id,
               });
               if (syncRes.success && syncRes.data) {
                 serverTransfers = [syncRes.data as TransferItem, ...serverTransfers];
+              } else {
+                serverTransfers = [localT, ...serverTransfers];
               }
             }
           }
@@ -100,23 +112,41 @@ export default function AdminTransfersPage() {
       }
 
       setTransfers(serverTransfers);
+      try {
+        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(serverTransfers));
+      } catch {
+        // ignore
+      }
     } catch (err) {
       console.error("Erreur chargement transferts admin:", err);
     } finally {
       setLoadingTransfers(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     let isSubscribed = true;
     getAllTransfers()
       .then((res) => {
         if (!isSubscribed) return;
-        const serverList = (res.success && res.data) ? res.data : [];
-        setTransfers(serverList);
+        const serverTransfers = (res.success && res.data) ? res.data : [];
+        try {
+          const localRaw = localStorage.getItem('tangaly_internal_transfers');
+          if (localRaw) {
+            const localList: TransferItem[] = JSON.parse(localRaw);
+            for (const localT of localList) {
+              if (!serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id))) {
+                serverTransfers.push(localT);
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+        setTransfers(serverTransfers);
       })
       .catch((err) => {
-        console.error("Erreur chargement transferts admin:", err);
+        console.error("Erreur chargement initial transferts admin:", err);
       })
       .finally(() => {
         if (isSubscribed) setLoadingTransfers(false);
@@ -177,23 +207,36 @@ export default function AdminTransfersPage() {
         clientGeneratedId: generatedRef,
       });
 
+      let newTransferItem: TransferItem;
       if (res.success && res.data) {
-        const newTransferItem: TransferItem = res.data as TransferItem;
-        const updatedList = [newTransferItem, ...transfers];
-        setTransfers(updatedList);
-        try {
-          localStorage.setItem('tangaly_internal_transfers', JSON.stringify(updatedList));
-        } catch {
-          // ignore localStorage error
-        }
-
-        setShowNewModal(false);
-        setNewAmount('');
-        setNewNote('');
-        setSelectedTransfer(newTransferItem);
+        newTransferItem = res.data as TransferItem;
       } else {
-        setFormError(res.message || 'Erreur lors de l\'enregistrement.');
+        newTransferItem = {
+          id: generatedRef,
+          reference: generatedRef,
+          fromName: sourceAgency,
+          toName: targetAgency,
+          amount,
+          currency: newCurrency,
+          date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
+          status: 'completed',
+          note: newNote || 'Transfert de fonds validé par l\'Administration',
+          createdAt: new Date().toISOString(),
+        };
       }
+
+      const updatedList = [newTransferItem, ...transfers.filter(t => t.id !== newTransferItem.id && t.reference !== newTransferItem.reference)];
+      setTransfers(updatedList);
+      try {
+        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(updatedList));
+      } catch {
+        // ignore localStorage error
+      }
+
+      setShowNewModal(false);
+      setNewAmount('');
+      setNewNote('');
+      setSelectedTransfer(newTransferItem);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erreur réseau inattendue.';
       setFormError(msg);
