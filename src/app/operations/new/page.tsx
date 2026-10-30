@@ -416,6 +416,7 @@ export default function NewShipmentPage() {
           <html>
             <head>
               <title>Reçu Tangaly — ${trackingNumber}</title>
+              <base href="${typeof window !== 'undefined' ? window.location.origin : ''}/">
               <style>
                 * {
                   -webkit-print-color-adjust: exact !important;
@@ -1530,20 +1531,20 @@ export default function NewShipmentPage() {
         {/* ── HEADER ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <div
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/lo.jpeg"
+                alt="TANGALY Logo"
                 style={{
-                  width: '46px',
-                  height: '46px',
-                  background: '#1d4ed8',
+                  height: '52px',
+                  width: 'auto',
+                  maxWidth: '160px',
+                  objectFit: 'contain',
                   borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  display: 'block',
                 }}
-              >
-                <span style={{ color: 'white', fontWeight: '900', fontSize: '15px', fontStyle: 'italic' }}>T</span>
-              </div>
+              />
               <div>
                 <div style={{ color: '#1d4ed8', fontWeight: '900', fontSize: '20px', fontStyle: 'italic', lineHeight: '1' }}>
                   TANGALY

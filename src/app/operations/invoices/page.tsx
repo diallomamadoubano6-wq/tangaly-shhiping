@@ -142,6 +142,7 @@ export default function InvoicesPage() {
     win.document.write(`
       <!DOCTYPE html>
       <html><head><title>Facture - ${inv.colis || inv.id}</title>
+      <base href="${window.location.origin}/">
       <style>
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
         @page { size: A4 portrait; margin: 8mm 10mm; }

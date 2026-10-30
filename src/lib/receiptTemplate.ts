@@ -40,15 +40,17 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
       
       <!-- ── EN-TÊTE OFFICIEL TANGALY ── -->
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 44px; height: 44px; background: #1d4ed8; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <span style="color: white; font-weight: 900; font-size: 24px; font-style: italic; line-height: 1;">T</span>
-          </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <img 
+            src="/lo.jpeg" 
+            alt="TANGALY Logo" 
+            style="height: 56px; max-width: 170px; object-fit: contain; border-radius: 6px; display: block;" 
+          />
           <div>
             <div style="color: #1d4ed8; font-weight: 900; font-size: 24px; font-style: italic; line-height: 1; letter-spacing: -0.5px;">
               TANGALY
             </div>
-            <div style="color: #dc2626; font-size: 11px; font-weight: bold; letter-spacing: 1.5px; margin-top: 2px;">
+            <div style="color: #dc2626; font-size: 11px; font-weight: bold; letter-spacing: 1.5px; margin-top: 3px;">
               SHIPPING &amp; LOGISTICS
             </div>
             <div style="color: #64748b; font-size: 10px; margin-top: 3px;">
