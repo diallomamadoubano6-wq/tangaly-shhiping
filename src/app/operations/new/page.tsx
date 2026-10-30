@@ -5,6 +5,7 @@ import styles from '../operations.module.css';
 import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, DollarSign, Layers, AlertCircle, Plane, Ship, ArrowRight, Box, Check } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createOperationShipment } from '@/actions/shipments';
+import { printShippingLabel } from '@/lib/shippingLabelTemplate';
 
 // ── Types & Catégories de produits avec tarifs par défaut ──
 interface ProductCategory {
@@ -373,38 +374,32 @@ export default function NewShipmentPage() {
   };
 
   const printLabel = () => {
-    const printWindow = window.open('', '', 'width=400,height=400');
-    if (printWindow) {
-      const containerLabel = packagingMode === 'SAME_BOX' ? `${totalBoxes} ${containerType}${totalBoxes > 1 ? 's' : ''} (Contenu mixte)` : `${totalBoxes} Colis`;
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Étiquette QR</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; text-align: center; color: black; background: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-              .box { border: 4px solid black; padding: 20px; border-radius: 10px; }
-              .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-              .track { font-size: 28px; font-weight: 900; margin-top: 10px; }
-              .info { font-size: 14px; margin-top: 8px; color: #333; font-weight: 600; }
-            </style>
-          </head>
-          <body>
-            <div class="box">
-              <div class="title">TANGALY LOGISTICS</div>
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${trackingNumber}" alt="QR Code" style="width: 180px; height: 180px;" />
-              <div class="track">N° ${trackingNumber}</div>
-              <div class="info">${containerLabel} · ${totalWeight.toFixed(1)} kg · ${transportType}</div>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-    }
+    const fullSenderPhone = senderPhone.trim().startsWith('+')
+      ? senderPhone.trim()
+      : `${senderPrefix} ${senderPhone.trim()}`;
+
+    const fullReceiverPhone = receiverPhone.trim().startsWith('+')
+      ? receiverPhone.trim()
+      : `${receiverPrefix} ${receiverPhone.trim()}`;
+
+    const labelDesc =
+      packagingMode === 'SAME_BOX'
+        ? `${physicalBoxesCount} ${containerType}${physicalBoxesCount > 1 ? 's' : ''} (Contenu mixte) : ` +
+          productLines.map(p => `${p.category}${p.description ? ` (${p.description})` : ''}`).join(', ')
+        : productLines.map(p => `${p.category}${p.description ? ` (${p.description})` : ''}`).join(', ');
+
+    printShippingLabel({
+      trackingNumber,
+      senderName,
+      senderPhone: fullSenderPhone,
+      senderAddress,
+      receiverName,
+      receiverPhone: fullReceiverPhone,
+      receiverAddress,
+      description: labelDesc,
+      weight: totalWeight,
+      boxes: totalBoxes,
+    });
   };
 
   const printReceipt = () => {

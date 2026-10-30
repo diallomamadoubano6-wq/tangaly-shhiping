@@ -5,6 +5,7 @@ import styles from '../operations.module.css';
 import { Search, Filter, Printer, Eye, CheckCircle, Clock, FileText, QrCode, MessageCircle } from 'lucide-react';
 import { getShipments, registerPayment } from '@/actions/shipments';
 import { generateModernReceiptHTML } from '@/lib/receiptTemplate';
+import { printShippingLabel } from '@/lib/shippingLabelTemplate';
 
 type Invoice = {
   id: string;
@@ -172,100 +173,19 @@ export default function InvoicesPage() {
   };
 
   const handlePrintQR = (inv: Invoice) => {
-    const win = window.open('', '_blank', 'width=600,height=800');
-    if (!win) return;
-    win.document.write(`
-      <html><head><title>Étiquette ${inv.id}</title>
-      <style>
-        body { margin: 0; padding: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; display: flex; justify-content: center; background: #f1f5f9; }
-        .label-container { background: white; border: 2px solid #000; width: 4in; height: 6in; padding: 0.15in; box-sizing: border-box; display: flex; flex-direction: column; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 900; font-style: italic; letter-spacing: -1px; }
-        .header p { margin: 0; font-size: 10px; font-weight: bold; }
-        .addresses { display: flex; flex-direction: column; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; flex-grow: 1; justify-content: space-evenly; }
-        .sender { font-size: 12px; }
-        .receiver { font-size: 14px; margin-left: 20px; font-weight: bold; }
-        .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin: 0 0 4px 0; color: #555; }
-        .details { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .details-box { display: flex; flex-direction: column; }
-        .qr-section { display: flex; justify-content: space-between; align-items: center; margin-top: auto; margin-bottom: 10px; }
-        .qr-code { width: 1.3in; height: 1.3in; }
-        .tracking-info { text-align: right; }
-        .tracking-info h2 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
-        .footer-text { text-align: center; font-size: 10px; margin-top: 5px; font-weight: bold; border-top: 2px solid #000; padding-top: 8px; }
-        
-        @media print {
-          @page { margin: 0; size: 4in 6in; }
-          body { padding: 0; background: white; display: block; }
-          .label-container { border: none; box-shadow: none; width: 100%; height: 100%; padding: 0.1in; }
-        }
-      </style>
-      </head><body>
-      <div class="label-container">
-        <div class="header">
-          <div>
-            <h1>TANGALY</h1>
-            <p>SHIPPING & LOGISTICS</p>
-          </div>
-          <div style="text-align: right; align-self: flex-end; font-size: 10px; font-weight: bold; color: #111;">
-            <p style="margin: 0 0 2px 0;">USA: 646-382-0065</p>
-            <p style="margin: 0 0 2px 0;">GN: +224 626-98-52-54</p>
-            <p style="margin: 4px 0 0 0; color: #555;">DATE: ${inv.date}</p>
-          </div>
-        </div>
-
-        <div class="addresses">
-          <div class="sender">
-            <p class="section-title">FROM / EXPÉDITEUR :</p>
-            <p style="margin: 0; font-weight: bold; font-size: 14px;">${inv.senderName}</p>
-            <p style="margin: 0;">${inv.senderPhone}</p>
-            <p style="margin: 0;">${inv.senderAddress}</p>
-          </div>
-          <div class="receiver">
-            <p class="section-title">TO / DESTINATAIRE :</p>
-            <p style="margin: 0; font-size: 20px; font-weight: 900;">${inv.receiverName}</p>
-            <p style="margin: 0; font-size: 16px;">${inv.receiverPhone}</p>
-            <p style="margin: 0;">${inv.receiverAddress}</p>
-          </div>
-        </div>
-
-        <div class="details">
-          <div class="details-box" style="flex: 1; padding-right: 10px;">
-            <p class="section-title">DESCRIPTION</p>
-            <p style="margin: 0; font-weight: bold; font-size: 14px;">${inv.description}</p>
-          </div>
-          <div class="details-box" style="text-align: right;">
-            <p class="section-title">WEIGHT / POIDS</p>
-            <p style="margin: 0; font-weight: 900; font-size: 18px;">${inv.weight} KG</p>
-            <p class="section-title" style="margin-top: 8px;">PIECES / COLIS</p>
-            <p style="margin: 0; font-weight: 900; font-size: 18px;">${inv.boxes}</p>
-          </div>
-        </div>
-
-        <div class="qr-section">
-          <img id="qr-img" class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(inv.colis || inv.id)}" alt="QR Code" />
-          <div class="tracking-info">
-            <p class="section-title">TRACKING NO. / SUIVI</p>
-            <h2>${inv.colis || inv.id}</h2>
-          </div>
-        </div>
-
-        <div class="footer-text">
-          PLEASE SCAN THIS QR CODE TO UPDATE SHIPMENT STATUS
-        </div>
-      </div>
-      <script>
-        const img = document.getElementById('qr-img');
-        if (img.complete) {
-          setTimeout(() => window.print(), 200);
-        } else {
-          img.onload = () => setTimeout(() => window.print(), 200);
-          img.onerror = () => setTimeout(() => window.print(), 200);
-        }
-      </script>
-      </body></html>
-    `);
-    win.document.close();
+    printShippingLabel({
+      trackingNumber: inv.colis || inv.id,
+      senderName: inv.senderName,
+      senderPhone: inv.senderPhone,
+      senderAddress: inv.senderAddress,
+      receiverName: inv.receiverName,
+      receiverPhone: inv.receiverPhone,
+      receiverAddress: inv.receiverAddress,
+      description: inv.description,
+      weight: inv.weight,
+      boxes: inv.boxes,
+      date: inv.date,
+    });
   };
 
 
