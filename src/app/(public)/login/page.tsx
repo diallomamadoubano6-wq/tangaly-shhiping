@@ -125,10 +125,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className={styles.hint} style={{ margin: '8px 0 16px', padding: '10px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.82rem', color: '#64748b', lineHeight: 1.4 }}>
-            💡 <strong>Clients :</strong> Connectez-vous avec votre numéro de téléphone. Votre mot de passe par défaut est <code>tangaly</code> suivi des 4 derniers chiffres de votre numéro (ex: <code>tangaly3456</code>).
-          </div>
-
           <button
             type="submit"
             className={`btn btn-primary btn-lg ${styles.submitBtn}`}
