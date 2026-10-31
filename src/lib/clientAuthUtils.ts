@@ -1,5 +1,3 @@
-import bcrypt from 'bcrypt';
-
 /**
  * Normalise un numéro de téléphone pour la recherche et le stockage.
  * Supprime les espaces, tirets, parenthèses et points.
@@ -20,11 +18,4 @@ export function generateDefaultClientPassword(phone?: string | null): string {
     return `tangaly${digits.slice(-4)}`;
   }
   return 'tangaly123';
-}
-
-/**
- * Hash un mot de passe avec bcrypt.
- */
-export async function hashPassword(plainText: string): Promise<string> {
-  return await bcrypt.hash(plainText, 10);
 }

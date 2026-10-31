@@ -1,3 +1,5 @@
+import { generateDefaultClientPassword } from './clientAuthUtils';
+
 export interface ReceiptData {
   id: string;
   colis?: string;
@@ -22,6 +24,7 @@ export interface ReceiptData {
 
 export function generateModernReceiptHTML(inv: ReceiptData): string {
   const trackingNumber = inv.colis || inv.id;
+  const defaultClientPwd = generateDefaultClientPassword(inv.senderPhone);
   const transportMode =
     inv.typeTransport === 'MARITIME' || inv.typeTransport === 'SEA'
       ? 'MARITIME (SEA)'
@@ -120,9 +123,16 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Tél. / Phone</span>
               <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.senderPhone || '—'}</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 6px;">
+            <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Adresse / Address</span>
               <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.senderAddress || '—'}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+              <span style="color: #1d4ed8; font-weight: bold; white-space: nowrap; font-size: 10px; min-width: 85px;">Mot de passe / Pwd</span>
+              <span style="font-weight: bold; font-family: monospace; border-bottom: 1px solid #e2e8f0; flex: 1; color: #1d4ed8; font-size: 11px;">
+                ${defaultClientPwd}
+                <span style="font-family: sans-serif; font-weight: normal; font-size: 8px; color: #64748b; margin-left: 4px;">(espace client)</span>
+              </span>
             </div>
           </div>
         </div>
@@ -140,9 +150,15 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Tél. / Phone</span>
               <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.receiverPhone || '—'}</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 6px;">
+            <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Ville / City</span>
               <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.receiverAddress || '—'}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+              <span style="color: #15803d; font-weight: 600; white-space: nowrap; font-size: 10px; min-width: 85px;">Suivi colis</span>
+              <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #15803d; font-size: 10px;">
+                tangaly.com/tracking
+              </span>
             </div>
           </div>
         </div>
@@ -269,12 +285,6 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
           <div style="border-top: 1px solid #334155; margin-bottom: 4px;"></div>
           <div style="font-size: 9px; color: #64748b;">Cachet &amp; signature · Tangaly</div>
         </div>
-      </div>
-
-      <!-- ── ACCÈS ESPACE CLIENT ── -->
-      <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 5px; padding: 6px 10px; margin-bottom: 10px; font-size: 8.5px; color: #334155; display: flex; justify-content: space-between; align-items: center;">
-        <span>📱 <strong>Espace Client :</strong> Suivez vos colis sur <strong>tangaly.com/login</strong> avec votre téléphone</span>
-        <span style="color: #64748b;">Mot de passe initial : <strong>tangaly</strong> + 4 derniers chiffres</span>
       </div>
 
       <!-- ── CONDITIONS GÉNÉRALES BILINGUES (2 COLONNES) ── -->

@@ -6,6 +6,7 @@ import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus,
 import { useSession } from 'next-auth/react';
 import { createOperationShipment } from '@/actions/shipments';
 import { printShippingLabel } from '@/lib/shippingLabelTemplate';
+import { generateDefaultClientPassword } from '@/lib/clientAuthUtils';
 
 // ── Types & Catégories de produits avec tarifs par défaut ──
 interface ProductCategory {
@@ -1611,10 +1612,11 @@ export default function NewShipmentPage() {
                 ['Nom / Name', senderName, true],
                 ['Tél. / Phone', senderPhone, true],
                 ['Adresse / Address', senderAddress, false],
-              ].map(([label, val, bold]) => (
+                ['Mot de passe / Pwd', generateDefaultClientPassword(senderPhone) + ' (espace client)', true],
+              ].map(([label, val, bold], idx) => (
                 <div key={String(label)} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
-                  <span style={{ color: '#64748b', whiteSpace: 'nowrap', fontSize: '9px', minWidth: '75px' }}>{String(label)}</span>
-                  <span style={{ fontWeight: bold ? 'bold' : 'normal', fontSize: '10px', borderBottom: '1px solid #e2e8f0', flex: 1 }}>
+                  <span style={{ color: idx === 3 ? '#1d4ed8' : '#64748b', fontWeight: idx === 3 ? 'bold' : 'normal', whiteSpace: 'nowrap', fontSize: '9px', minWidth: '85px' }}>{String(label)}</span>
+                  <span style={{ fontWeight: bold ? 'bold' : 'normal', fontSize: '10px', color: idx === 3 ? '#1d4ed8' : '#0f172a', borderBottom: '1px solid #e2e8f0', flex: 1, fontFamily: idx === 3 ? 'monospace' : 'inherit' }}>
                     {String(val || '—')}
                   </span>
                 </div>
@@ -1631,10 +1633,11 @@ export default function NewShipmentPage() {
                 ['Nom / Name', receiverName, true],
                 ['Tél. / Phone', receiverPhone, true],
                 ['Ville / City', receiverAddress, false],
-              ].map(([label, val, bold]) => (
+                ['Suivi colis', 'tangaly.com/tracking', false],
+              ].map(([label, val, bold], idx) => (
                 <div key={String(label)} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
-                  <span style={{ color: '#64748b', whiteSpace: 'nowrap', fontSize: '9px', minWidth: '75px' }}>{String(label)}</span>
-                  <span style={{ fontWeight: bold ? 'bold' : 'normal', fontSize: '10px', borderBottom: '1px solid #e2e8f0', flex: 1 }}>
+                  <span style={{ color: idx === 3 ? '#15803d' : '#64748b', fontWeight: idx === 3 ? 'bold' : 'normal', whiteSpace: 'nowrap', fontSize: '9px', minWidth: '85px' }}>{String(label)}</span>
+                  <span style={{ fontWeight: bold ? 'bold' : 'normal', fontSize: '10px', color: idx === 3 ? '#15803d' : '#0f172a', borderBottom: '1px solid #e2e8f0', flex: 1 }}>
                     {String(val || '—')}
                   </span>
                 </div>

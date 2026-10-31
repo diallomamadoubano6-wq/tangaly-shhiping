@@ -5,7 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-import { generateDefaultClientPassword, hashPassword, normalizePhone } from '@/lib/clientAuthUtils';
+import { generateDefaultClientPassword, normalizePhone } from '@/lib/clientAuthUtils';
+import { hashPassword } from '@/lib/serverAuth';
 
 function generateTrackingNumber() {
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
