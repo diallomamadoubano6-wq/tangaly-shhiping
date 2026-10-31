@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, Users, Package, CreditCard, FileText, Settings,
   LogOut, CheckCircle, RotateCcw, ArrowLeftRight, 
-  Scan, Calculator, Shield, X 
+  Scan, Calculator, Shield, X, Tag
 } from 'lucide-react';
 import styles from '../../app/admin/admin.module.css';
 
@@ -120,7 +120,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className={styles.navGroup}>
             <p className={styles.navTitle}>LOGISTIQUE</p>
-            <Link href="/admin/tarifs" onClick={handleLinkClick} className={isActive('/admin/tarifs') ? styles.navLinkActive : styles.navLink}>
+            <Link href="/admin/tarifs/articles" onClick={handleLinkClick} className={isActive('/admin/tarifs/articles') ? styles.navLinkActive : styles.navLink}>
+              <div className={styles.iconWrapper}><Tag size={18} /></div> Catalogue Articles
+            </Link>
+            <Link href="/admin/tarifs" onClick={handleLinkClick} className={isActive('/admin/tarifs') && !pathname.includes('/articles') ? styles.navLinkActive : styles.navLink}>
               <div className={styles.iconWrapper}><CreditCard size={18} /></div> Tarifs & Zones
             </Link>
             <Link href="/admin/settings" onClick={handleLinkClick} className={isActive('/admin/settings') ? styles.navLinkActive : styles.navLink}>

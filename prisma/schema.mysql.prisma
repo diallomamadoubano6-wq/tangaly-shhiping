@@ -86,6 +86,7 @@ model Shipment {
   tracking_events TrackingEvent[]
   documents       Document[]
   notifications   Notification[]
+  shipmentArticles ShipmentArticle[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   assoExpressId   String?
@@ -297,4 +298,48 @@ model CashRemittance {
   @@index([agencyId])
   @@index([status])
   @@index([validatedBy])
+}
+
+model ArticleTarif {
+  id               String    @id @default(uuid())
+  nom              String
+  description      String?   @db.Text
+  categorie        String?
+  prixParKg        Float?
+  prixParPiece     Float?
+  unite            String    @default("PIECE") // KG, PIECE, KG_ET_PIECE
+  direction        String    @default("LES_DEUX") // USA_CONAKRY, CONAKRY_USA, LES_DEUX
+  service          String    @default("LES_DEUX") // AERIEN, MARITIME, LES_DEUX
+  devise           String    @default("USD")
+  actif            Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  shipmentArticles ShipmentArticle[]
+
+  @@index([actif])
+  @@index([direction])
+  @@index([service])
+}
+
+model ShipmentArticle {
+  id               String        @id @default(uuid())
+  shipment         Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipmentId       String
+  articleTarif     ArticleTarif? @relation(fields: [articleTarifId], references: [id], onDelete: SetNull)
+  articleTarifId   String?
+
+  nom              String
+  unite            String        @default("PIECE") // KG, PIECE
+  quantite         Float
+  prixUnitaire     Float
+  reductionPct     Float         @default(0)
+  reductionMontant Float         @default(0)
+  prixFinal        Float
+  raisonReduction  String?
+
+  createdAt        DateTime      @default(now())
+
+  @@index([shipmentId])
+  @@index([articleTarifId])
 }

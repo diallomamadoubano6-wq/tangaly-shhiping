@@ -1,13 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createShipment } from '@/actions/shipments';
 import styles from '../operations.module.css';
-import { PlusSquare, Save, Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, DollarSign, Layers, AlertCircle, Plane, Ship, ArrowRight, Box, Check } from 'lucide-react';
+import { Package, User, MapPin, CheckCircle, Printer, X, Plus, Trash2, AlertCircle, Plane, Ship, ArrowRight, Check } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createOperationShipment } from '@/actions/shipments';
 import { printShippingLabel } from '@/lib/shippingLabelTemplate';
 import { generateDefaultClientPassword } from '@/lib/clientAuthUtils';
 import { TANGALY_LOGO_BASE64 } from '@/lib/tangalyLogo';
+import { getArticlesTarifsActifs, saveShipmentArticles, ArticleTarifItem } from '@/actions/articles';
 
 // ── Types & Catégories de produits avec tarifs par défaut ──
 interface ProductCategory {
@@ -76,16 +76,22 @@ const PRODUCT_CATEGORIES: Record<string, ProductCategory> = {
 
 export interface ProductItem {
   id: string;
+  articleTarifId: string | null;
   category: string;
   description: string;
   boxes: number;
   weight: number | '';
+  quantitePieces: number | '';
+  unite: 'KG' | 'PIECE' | 'KG_ET_PIECE';
   ratePerKg: number;
+  ratePerPiece: number;
+  reductionPct: number;
+  raisonReduction: string;
 }
 
 export default function NewShipmentPage() {
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user as { role?: string; localisation?: string; id?: string; name?: string; email?: string } | undefined;
   const userRole = user?.role || '';
   const userLocation = (user?.localisation || '').toLowerCase();
 
@@ -96,32 +102,31 @@ export default function NewShipmentPage() {
   });
   const [transportType, setTransportType] = useState<'AERIEN' | 'MARITIME'>('AERIEN');
 
-  useEffect(() => {
-    if (isUSAAgent) {
-      setDirection('USA_GN');
-    } else if (userLocation.includes('guinee') || userLocation.includes('conakry') || userRole === 'GERANT_GUINEE' || userRole === 'AGENT_GUINEE') {
-      setDirection('GN_USA');
-    }
+  // Conditionnement : Même carton (colis mixte) ou cartons séparés
+  const [packagingMode, setPackagingMode] = useState<'SAME_BOX' | 'SEPARATE_BOXES'>('SAME_BOX');
+  const [containerType, setContainerType] = useState('Carton');
+  const [physicalBoxesCount, setPhysicalBoxesCount] = useState<number>(1);
 
-    // Récupérer une estimation transférée depuis le calculateur
-    try {
-      const savedQuote = sessionStorage.getItem('tangaly_quote_to_shipment');
-      if (savedQuote) {
-        const data = JSON.parse(savedQuote);
-        if (data.direction) setDirection(data.direction);
-        if (data.transportType) setTransportType(data.transportType);
-        if (data.packagingMode) setPackagingMode(data.packagingMode);
-        if (data.containerType) setContainerType(data.containerType);
-        if (data.physicalBoxesCount) setPhysicalBoxesCount(data.physicalBoxesCount);
-        if (data.productLines && Array.isArray(data.productLines) && data.productLines.length > 0) {
-          setProductLines(data.productLines);
-        }
-        sessionStorage.removeItem('tangaly_quote_to_shipment');
-      }
-    } catch (e) {
-      console.error('Erreur chargement devis:', e);
-    }
-  }, [userRole, userLocation, isUSAAgent]);
+  // Catalogue articles depuis la base de données
+  const [catalogArticles, setCatalogArticles] = useState<ArticleTarifItem[]>([]);
+
+  // Articles multi-produits
+  const [productLines, setProductLines] = useState<ProductItem[]>([
+    {
+      id: '1',
+      articleTarifId: null,
+      category: 'Fruits & Denrées',
+      description: '',
+      boxes: 1,
+      weight: '',
+      quantitePieces: '',
+      unite: 'KG',
+      ratePerKg: 15,
+      ratePerPiece: 0,
+      reductionPct: 0,
+      raisonReduction: '',
+    },
+  ]);
 
   // Expéditeur
   const [senderPhone, setSenderPhone] = useState('');
@@ -135,23 +140,6 @@ export default function NewShipmentPage() {
   const [receiverAddress, setReceiverAddress] = useState('');
   const [isKnownReceiver, setIsKnownReceiver] = useState(false);
 
-  // Conditionnement : Même carton (colis mixte) ou cartons séparés
-  const [packagingMode, setPackagingMode] = useState<'SAME_BOX' | 'SEPARATE_BOXES'>('SAME_BOX');
-  const [containerType, setContainerType] = useState('Carton');
-  const [physicalBoxesCount, setPhysicalBoxesCount] = useState<number>(1);
-
-  // Articles multi-produits
-  const [productLines, setProductLines] = useState<ProductItem[]>([
-    {
-      id: '1',
-      category: 'Vêtements & Textiles',
-      description: '',
-      boxes: 1,
-      weight: '',
-      ratePerKg: 12,
-    },
-  ]);
-
   // Paiement
   const [amountPaid, setAmountPaid] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
@@ -161,6 +149,30 @@ export default function NewShipmentPage() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Récupérer une estimation transférée depuis le calculateur
+    const timer = setTimeout(() => {
+      try {
+        const savedQuote = sessionStorage.getItem('tangaly_quote_to_shipment');
+        if (savedQuote) {
+          const data = JSON.parse(savedQuote);
+          if (data.direction) setDirection(data.direction);
+          if (data.transportType) setTransportType(data.transportType);
+          if (data.packagingMode) setPackagingMode(data.packagingMode);
+          if (data.containerType) setContainerType(data.containerType);
+          if (data.physicalBoxesCount) setPhysicalBoxesCount(data.physicalBoxesCount);
+          if (data.productLines && Array.isArray(data.productLines) && data.productLines.length > 0) {
+            setProductLines(data.productLines);
+          }
+          sessionStorage.removeItem('tangaly_quote_to_shipment');
+        }
+      } catch (e) {
+        console.error('Erreur chargement devis:', e);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Carnet d'adresses démo / local
   const knownClients: Record<string, string> = {
@@ -223,6 +235,95 @@ export default function NewShipmentPage() {
     );
   };
 
+  // Chargement du catalogue d'articles selon la direction et le mode de transport
+  useEffect(() => {
+    let isMounted = true;
+    const loadCatalog = async () => {
+      try {
+        const dbDirection = direction === 'USA_GN' ? 'USA_CONAKRY' : 'CONAKRY_USA';
+        const res = await getArticlesTarifsActifs(dbDirection, transportType);
+        if (isMounted && res.success && res.data) {
+          setCatalogArticles(res.data);
+        }
+      } catch (err) {
+        console.error('Erreur chargement catalogue articles:', err);
+      }
+    };
+    loadCatalog();
+    return () => { isMounted = false; };
+  }, [direction, transportType]);
+
+  // Calculs par ligne de produit (avec gestion du tarif par KG, par PIECE et des remises individuelles)
+  const calculateLineTotals = (line: ProductItem) => {
+    let basePrice = 0;
+    const isPiece = line.unite === 'PIECE';
+    const isBoth = line.unite === 'KG_ET_PIECE';
+
+    if (isPiece) {
+      basePrice = (Number(line.quantitePieces) || 0) * (Number(line.ratePerPiece) || 0);
+    } else if (isBoth) {
+      const pKg = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
+      const pPce = (Number(line.quantitePieces) || 0) * (Number(line.ratePerPiece) || 0);
+      basePrice = pKg + pPce;
+    } else {
+      // Unité KG par défaut
+      basePrice = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
+    }
+
+    const pct = Math.min(100, Math.max(0, Number(line.reductionPct) || 0));
+    const reductionMontant = (basePrice * pct) / 100;
+    const finalPrice = Math.max(0, basePrice - reductionMontant);
+
+    return { basePrice, reductionPct: pct, reductionMontant, finalPrice };
+  };
+
+  // Sélection d'un article depuis le catalogue
+  const handleSelectCatalogArticle = (lineId: string, articleId: string) => {
+    if (!articleId) {
+      // Retour à la saisie manuelle libre
+      const defaultCat = 'Fruits & Denrées';
+      setProductLines(prev =>
+        prev.map(item =>
+          item.id === lineId
+            ? {
+                ...item,
+                articleTarifId: null,
+                category: defaultCat,
+                description: '',
+                unite: 'KG',
+                ratePerKg: getCategoryDefaultRate(defaultCat, transportType),
+                ratePerPiece: 0,
+                reductionPct: 0,
+                raisonReduction: '',
+              }
+            : item
+        )
+      );
+      return;
+    }
+
+    const found = catalogArticles.find(a => a.id === articleId);
+    if (!found) return;
+
+    setProductLines(prev =>
+      prev.map(item =>
+        item.id === lineId
+          ? {
+              ...item,
+              articleTarifId: found.id,
+              category: found.categorie || 'Autre marchandise',
+              description: found.nom,
+              unite: found.unite,
+              ratePerKg: found.prixParKg ?? 0,
+              ratePerPiece: found.prixParPiece ?? 0,
+              quantitePieces: found.unite !== 'KG' && !item.quantitePieces ? 1 : item.quantitePieces,
+              weight: found.unite !== 'PIECE' && !item.weight ? '' : item.weight,
+            }
+          : item
+      )
+    );
+  };
+
   // Gestion des lignes de produits
   const addProductLine = () => {
     const defaultCat = 'Fruits & Denrées';
@@ -231,11 +332,17 @@ export default function NewShipmentPage() {
       ...prev,
       {
         id: Date.now().toString(),
+        articleTarifId: null,
         category: defaultCat,
         description: '',
         boxes: 1,
         weight: '',
+        quantitePieces: '',
+        unite: 'KG',
         ratePerKg: rate,
+        ratePerPiece: 0,
+        reductionPct: 0,
+        raisonReduction: '',
       },
     ]);
   };
@@ -245,13 +352,13 @@ export default function NewShipmentPage() {
     setProductLines(prev => prev.filter(p => p.id !== id));
   };
 
-  const updateProductLine = (id: string, field: keyof ProductItem, value: any) => {
+  const updateProductLine = (id: string, field: keyof ProductItem, value: string | number) => {
     setProductLines(prev =>
       prev.map(item => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: value };
-        if (field === 'category') {
-          updated.ratePerKg = getCategoryDefaultRate(value, transportType);
+        if (field === 'category' && !item.articleTarifId) {
+          updated.ratePerKg = getCategoryDefaultRate(String(value), transportType);
         }
         return updated;
       })
@@ -264,13 +371,9 @@ export default function NewShipmentPage() {
       ? Number(physicalBoxesCount) || 1
       : productLines.reduce((acc, curr) => acc + (Number(curr.boxes) || 0), 0);
   const totalWeight = productLines.reduce((acc, curr) => acc + (Number(curr.weight) || 0), 0);
-  const freightCost = productLines.reduce((acc, curr) => {
-    const w = Number(curr.weight) || 0;
-    const r = Number(curr.ratePerKg) || 0;
-    return acc + w * r;
-  }, 0);
+  const totalReductionAmount = productLines.reduce((acc, curr) => acc + calculateLineTotals(curr).reductionMontant, 0);
+  const freightCost = productLines.reduce((acc, curr) => acc + calculateLineTotals(curr).finalPrice, 0);
 
-  const docFee = 0; // Frais de dossier supprimés
   const total = freightCost;
   const paid = amountPaid === '' ? total : Number(amountPaid);
   const balance = total - paid;
@@ -281,8 +384,8 @@ export default function NewShipmentPage() {
       setError('Veuillez renseigner au minimum le nom de l’expéditeur et du destinataire.');
       return;
     }
-    if (totalWeight <= 0) {
-      setError('Veuillez saisir un poids supérieur à 0 pour au moins un produit.');
+    if (totalWeight <= 0 && total <= 0) {
+      setError('Veuillez saisir un poids ou une quantité pour au moins un produit.');
       return;
     }
 
@@ -290,22 +393,36 @@ export default function NewShipmentPage() {
     setError(null);
 
     try {
-      // Générer une description structurée et lisible
+      // Générer une description structurée et lisible avec détail des réductions s'il y a lieu
       const formattedDescription =
         packagingMode === 'SAME_BOX'
           ? `[${physicalBoxesCount} ${containerType}${physicalBoxesCount > 1 ? 's' : ''} (Contenu mixte) : ` +
             productLines
-              .map(
-                p =>
-                  `${p.category}${p.description ? ` (${p.description})` : ''} (${p.weight} kg @ $${p.ratePerKg}/kg = $${((Number(p.weight) || 0) * Number(p.ratePerKg)).toFixed(2)})`
-              )
+              .map(p => {
+                const { reductionPct, reductionMontant, finalPrice } = calculateLineTotals(p);
+                const desc = p.description || p.category;
+                const qtyText = p.unite === 'PIECE'
+                  ? `${p.quantitePieces || 1} pce(s) @ $${p.ratePerPiece}`
+                  : p.unite === 'KG_ET_PIECE'
+                  ? `${p.weight} kg @ $${p.ratePerKg} + ${p.quantitePieces || 1} pce(s) @ $${p.ratePerPiece}`
+                  : `${p.weight} kg @ $${p.ratePerKg}/kg`;
+                const reducText = reductionPct > 0 ? ` (Remise -${reductionPct}%: -$${reductionMontant.toFixed(2)})` : '';
+                return `${desc} (${qtyText}${reducText} = $${finalPrice.toFixed(2)})`;
+              })
               .join(', ') +
             ']'
           : productLines
-              .map(
-                p =>
-                  `${p.category}${p.description ? ` (${p.description})` : ''} [${p.boxes} colis, ${p.weight} kg @ $${p.ratePerKg}/kg = $${((Number(p.weight) || 0) * Number(p.ratePerKg)).toFixed(2)}]`
-              )
+              .map(p => {
+                const { reductionPct, reductionMontant, finalPrice } = calculateLineTotals(p);
+                const desc = p.description || p.category;
+                const qtyText = p.unite === 'PIECE'
+                  ? `${p.quantitePieces || 1} pce(s) @ $${p.ratePerPiece}`
+                  : p.unite === 'KG_ET_PIECE'
+                  ? `${p.weight} kg @ $${p.ratePerKg} + ${p.quantitePieces || 1} pce(s) @ $${p.ratePerPiece}`
+                  : `${p.weight} kg @ $${p.ratePerKg}/kg`;
+                const reducText = reductionPct > 0 ? ` [Remise -${reductionPct}%: -$${reductionMontant.toFixed(2)}]` : '';
+                return `${desc} [${p.boxes} colis, ${qtyText}${reducText} = $${finalPrice.toFixed(2)}]`;
+              })
               .join(' | ');
 
       const fullSenderPhone = senderPhone.trim().startsWith('+')
@@ -339,10 +456,33 @@ export default function NewShipmentPage() {
 
       if (!res.success) throw new Error(res.message || 'Erreur lors de la création');
 
+      // Sauvegarde des articles détaillés avec remises par article en base
+      if (res.data?.id) {
+        const shipmentArticles = productLines.map(p => {
+          const { reductionPct, reductionMontant, finalPrice } = calculateLineTotals(p);
+          const isPiece = p.unite === 'PIECE';
+          const qty = isPiece ? (Number(p.quantitePieces) || 1) : (Number(p.weight) || 0);
+          const unitPrice = isPiece ? Number(p.ratePerPiece) : Number(p.ratePerKg);
+          return {
+            articleTarifId: p.articleTarifId || null,
+            nom: p.description ? `${p.description}${p.category ? ` (${p.category})` : ''}` : p.category || 'Article',
+            unite: (p.unite === 'PIECE' ? 'PIECE' : 'KG') as 'KG' | 'PIECE',
+            quantite: qty,
+            prixUnitaire: unitPrice,
+            reductionPct,
+            reductionMontant: Number(reductionMontant.toFixed(2)),
+            prixFinal: Number(finalPrice.toFixed(2)),
+            raisonReduction: p.raisonReduction || null,
+          };
+        });
+        await saveShipmentArticles(res.data.id, shipmentArticles);
+      }
+
       setTrackingNumber(res.data?.tracking_number || '');
       setShowReceipt(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -363,11 +503,17 @@ export default function NewShipmentPage() {
     setProductLines([
       {
         id: Date.now().toString(),
-        category: 'Vêtements & Textiles',
+        articleTarifId: null,
+        category: 'Fruits & Denrées',
         description: '',
         boxes: 1,
         weight: '',
-        ratePerKg: getCategoryDefaultRate('Vêtements & Textiles', transportType),
+        quantitePieces: '',
+        unite: 'KG',
+        ratePerKg: getCategoryDefaultRate('Fruits & Denrées', transportType),
+        ratePerPiece: 0,
+        reductionPct: 0,
+        raisonReduction: '',
       },
     ]);
     setAmountPaid('');
@@ -963,7 +1109,7 @@ export default function NewShipmentPage() {
                     style={{
                       width: '100%',
                       borderCollapse: 'collapse',
-                      minWidth: packagingMode === 'SEPARATE_BOXES' ? '820px' : '720px',
+                      minWidth: packagingMode === 'SEPARATE_BOXES' ? '920px' : '860px',
                       fontSize: 13,
                     }}
                   >
@@ -975,36 +1121,40 @@ export default function NewShipmentPage() {
                           textAlign: 'left',
                         }}
                       >
-                        <th style={{ padding: '10px 12px', width: 40, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                        <th style={{ padding: '10px 12px', width: 36, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
                           #
                         </th>
-                        <th style={{ padding: '10px 12px', minWidth: 200, color: '#475569', fontWeight: 600, fontSize: 12 }}>
-                          Catégorie de produit *
+                        <th style={{ padding: '10px 12px', minWidth: 220, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Article &amp; Tarif du Catalogue *
                         </th>
-                        <th style={{ padding: '10px 12px', minWidth: 190, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                        <th style={{ padding: '10px 12px', minWidth: 160, color: '#475569', fontWeight: 600, fontSize: 12 }}>
                           Description / Détails
                         </th>
                         {packagingMode === 'SEPARATE_BOXES' && (
-                          <th style={{ padding: '10px 12px', width: 85, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                          <th style={{ padding: '10px 12px', width: 75, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
                             Colis
                           </th>
                         )}
-                        <th style={{ padding: '10px 12px', width: 110, color: '#475569', fontWeight: 600, fontSize: 12 }}>
-                          Poids (kg) *
+                        <th style={{ padding: '10px 12px', width: 130, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Quantité / Poids *
                         </th>
-                        <th style={{ padding: '10px 12px', width: 95, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
-                          Tarif ($/kg)
+                        <th style={{ padding: '10px 12px', width: 110, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'center' }}>
+                          Tarif Unitaire
                         </th>
-                        <th style={{ padding: '10px 12px', width: 110, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'right' }}>
-                          Sous-total
+                        <th style={{ padding: '10px 12px', width: 140, color: '#475569', fontWeight: 600, fontSize: 12 }}>
+                          Remise (%)
                         </th>
-                        <th style={{ padding: '10px 12px', width: 45, textAlign: 'center' }}></th>
+                        <th style={{ padding: '10px 12px', width: 120, color: '#475569', fontWeight: 600, fontSize: 12, textAlign: 'right' }}>
+                          Sous-total Net
+                        </th>
+                        <th style={{ padding: '10px 12px', width: 40, textAlign: 'center' }}></th>
                       </tr>
                     </thead>
                     <tbody>
                       {productLines.map((line, index) => {
-                        const lineTotal = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
-                        const catInfo = PRODUCT_CATEGORIES[line.category] || PRODUCT_CATEGORIES['Autre marchandise'];
+                        const { basePrice, reductionPct, reductionMontant, finalPrice } = calculateLineTotals(line);
+                        const isPiece = line.unite === 'PIECE';
+                        const isBoth = line.unite === 'KG_ET_PIECE';
 
                         return (
                           <tr
@@ -1016,7 +1166,7 @@ export default function NewShipmentPage() {
                             }}
                           >
                             {/* Numéro */}
-                            <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle' }}>
                               <span
                                 style={{
                                   background: '#2563eb',
@@ -1035,40 +1185,78 @@ export default function NewShipmentPage() {
                               </span>
                             </td>
 
-                            {/* Catégorie */}
-                            <td style={{ padding: '8px 10px' }}>
-                              <select
-                                value={line.category}
-                                onChange={e => updateProductLine(line.id, 'category', e.target.value)}
-                                style={{
-                                  width: '100%',
-                                  padding: '7px 10px',
-                                  border: '1px solid #cbd5e1',
-                                  borderRadius: '6px',
-                                  fontSize: 13,
-                                  background: 'white',
-                                  fontWeight: 500,
-                                  color: '#0f172a',
-                                  outline: 'none',
-                                  cursor: 'pointer',
-                                  boxSizing: 'border-box',
-                                }}
-                              >
-                                {Object.keys(PRODUCT_CATEGORIES).map(catKey => (
-                                  <option key={catKey} value={catKey}>
-                                    {PRODUCT_CATEGORIES[catKey].label} (${getCategoryDefaultRate(catKey, transportType)}/kg)
-                                  </option>
-                                ))}
-                              </select>
+                            {/* Choix Article depuis catalogue ou Catégorie générique */}
+                            <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <select
+                                  value={line.articleTarifId || ''}
+                                  onChange={e => handleSelectCatalogArticle(line.id, e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '7px 10px',
+                                    border: line.articleTarifId ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                                    borderRadius: '6px',
+                                    fontSize: 13,
+                                    background: line.articleTarifId ? '#eff6ff' : 'white',
+                                    fontWeight: line.articleTarifId ? 600 : 500,
+                                    color: '#0f172a',
+                                    outline: 'none',
+                                    cursor: 'pointer',
+                                    boxSizing: 'border-box',
+                                  }}
+                                >
+                                  <option value="">✍️ Produit libre / Catégorie générale...</option>
+                                  {catalogArticles.length > 0 && (
+                                    <optgroup label="── Articles du Catalogue Tangaly ──">
+                                      {catalogArticles.map(art => {
+                                        const tar = art.unite === 'PIECE'
+                                          ? `$${art.prixParPiece}/pce`
+                                          : art.unite === 'KG_ET_PIECE'
+                                          ? `$${art.prixParKg}/kg + $${art.prixParPiece}/pce`
+                                          : `$${art.prixParKg}/kg`;
+                                        return (
+                                          <option key={art.id} value={art.id}>
+                                            📦 {art.nom} ({tar})
+                                          </option>
+                                        );
+                                      })}
+                                    </optgroup>
+                                  )}
+                                </select>
+
+                                {!line.articleTarifId && (
+                                  <select
+                                    value={line.category}
+                                    onChange={e => updateProductLine(line.id, 'category', e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      border: '1px solid #e2e8f0',
+                                      borderRadius: '4px',
+                                      fontSize: 11,
+                                      background: '#f8fafc',
+                                      color: '#475569',
+                                      outline: 'none',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    {Object.keys(PRODUCT_CATEGORIES).map(catKey => (
+                                      <option key={catKey} value={catKey}>
+                                        {PRODUCT_CATEGORIES[catKey].label} (${getCategoryDefaultRate(catKey, transportType)}/kg)
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
                             </td>
 
                             {/* Description / Détails */}
-                            <td style={{ padding: '8px 10px' }}>
+                            <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
                               <input
                                 type="text"
                                 value={line.description}
                                 onChange={e => updateProductLine(line.id, 'description', e.target.value)}
-                                placeholder={catInfo.hint}
+                                placeholder={line.articleTarifId ? 'Précision (marque, modèle...)' : 'ex: Chaussures Nike, iPhone...'}
                                 style={{
                                   width: '100%',
                                   padding: '7px 10px',
@@ -1084,7 +1272,7 @@ export default function NewShipmentPage() {
 
                             {/* Colis (si cartons séparés) */}
                             {packagingMode === 'SEPARATE_BOXES' && (
-                              <td style={{ padding: '8px 10px' }}>
+                              <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
                                 <input
                                   type="number"
                                   min="1"
@@ -1105,72 +1293,220 @@ export default function NewShipmentPage() {
                               </td>
                             )}
 
-                            {/* Poids */}
-                            <td style={{ padding: '8px 10px' }}>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={line.weight}
-                                onChange={e => updateProductLine(line.id, 'weight', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                                placeholder="ex: 12.5"
-                                style={{
-                                  width: '100%',
-                                  padding: '7px 10px',
-                                  border: '1px solid #cbd5e1',
-                                  borderRadius: '6px',
-                                  fontSize: 13,
-                                  outline: 'none',
-                                  background: 'white',
-                                  boxSizing: 'border-box',
-                                }}
-                              />
+                            {/* Quantité ou Poids selon l'unité */}
+                            <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                              {isPiece ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={line.quantitePieces}
+                                    onChange={e => updateProductLine(line.id, 'quantitePieces', e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
+                                    placeholder="1"
+                                    style={{
+                                      width: '100%',
+                                      padding: '7px 8px',
+                                      border: '1.5px solid #6366f1',
+                                      borderRadius: '6px',
+                                      fontSize: 13,
+                                      outline: 'none',
+                                      background: '#f5f3ff',
+                                      boxSizing: 'border-box',
+                                      textAlign: 'center',
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: '#4f46e5', whiteSpace: 'nowrap' }}>pce(s)</span>
+                                </div>
+                              ) : isBoth ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.1"
+                                      value={line.weight}
+                                      onChange={e => updateProductLine(line.id, 'weight', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                                      placeholder="0"
+                                      style={{ width: '100%', padding: '5px 6px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 12, textAlign: 'center' }}
+                                    />
+                                    <span style={{ fontSize: 11, color: '#475569' }}>kg</span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      step="1"
+                                      value={line.quantitePieces}
+                                      onChange={e => updateProductLine(line.id, 'quantitePieces', e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
+                                      placeholder="1"
+                                      style={{ width: '100%', padding: '5px 6px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 12, textAlign: 'center' }}
+                                    />
+                                    <span style={{ fontSize: 11, color: '#475569' }}>pce</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={line.weight}
+                                    onChange={e => updateProductLine(line.id, 'weight', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                                    placeholder="ex: 12.5"
+                                    style={{
+                                      width: '100%',
+                                      padding: '7px 8px',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '6px',
+                                      fontSize: 13,
+                                      outline: 'none',
+                                      background: 'white',
+                                      boxSizing: 'border-box',
+                                      textAlign: 'center',
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>kg</span>
+                                </div>
+                              )}
                             </td>
 
-                            {/* Tarif $/kg */}
-                            <td style={{ padding: '8px 10px' }}>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                value={line.ratePerKg}
-                                onChange={e => updateProductLine(line.id, 'ratePerKg', parseFloat(e.target.value) || 0)}
-                                style={{
-                                  width: '100%',
-                                  padding: '7px 8px',
-                                  border: '1px solid #cbd5e1',
-                                  borderRadius: '6px',
-                                  fontSize: 13,
-                                  outline: 'none',
-                                  background: 'white',
-                                  boxSizing: 'border-box',
-                                  textAlign: 'center',
-                                }}
-                              />
+                            {/* Tarif unitaire */}
+                            <td style={{ padding: '8px 10px', verticalAlign: 'top', textAlign: 'center' }}>
+                              {isPiece ? (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                                  <span style={{ fontSize: 12, color: '#64748b' }}>$</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={line.ratePerPiece}
+                                    onChange={e => updateProductLine(line.id, 'ratePerPiece', parseFloat(e.target.value) || 0)}
+                                    style={{
+                                      width: '60px',
+                                      padding: '7px 4px',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '6px',
+                                      fontSize: 13,
+                                      outline: 'none',
+                                      textAlign: 'center',
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 10, color: '#64748b' }}>/pce</span>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                                  <span style={{ fontSize: 12, color: '#64748b' }}>$</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.5"
+                                    value={line.ratePerKg}
+                                    onChange={e => updateProductLine(line.id, 'ratePerKg', parseFloat(e.target.value) || 0)}
+                                    style={{
+                                      width: '60px',
+                                      padding: '7px 4px',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '6px',
+                                      fontSize: 13,
+                                      outline: 'none',
+                                      textAlign: 'center',
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 10, color: '#64748b' }}>/kg</span>
+                                </div>
+                              )}
                             </td>
 
-                            {/* Sous-total */}
-                            <td style={{ padding: '8px 10px', textAlign: 'right' }}>
-                              <span
-                                style={{
-                                  display: 'inline-block',
-                                  padding: '5px 10px',
-                                  background: '#eff6ff',
-                                  border: '1px solid #bfdbfe',
-                                  borderRadius: '6px',
-                                  fontSize: 13,
-                                  fontWeight: 700,
-                                  color: '#1d4ed8',
-                                  minWidth: '70px',
-                                  textAlign: 'right',
-                                }}
-                              >
-                                ${lineTotal.toFixed(2)}
-                              </span>
+                            {/* Réduction / Remise (%) et motif */}
+                            <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={line.reductionPct || ''}
+                                    onChange={e => {
+                                      const val = e.target.value === '' ? 0 : Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+                                      updateProductLine(line.id, 'reductionPct', val);
+                                    }}
+                                    placeholder="0"
+                                    style={{
+                                      width: '55px',
+                                      padding: '6px 4px',
+                                      border: reductionPct > 0 ? '1.5px solid #16a34a' : '1px solid #cbd5e1',
+                                      borderRadius: '6px',
+                                      fontSize: 12,
+                                      textAlign: 'center',
+                                      fontWeight: reductionPct > 0 ? 700 : 500,
+                                      color: reductionPct > 0 ? '#15803d' : '#0f172a',
+                                      background: reductionPct > 0 ? '#f0fdf4' : 'white',
+                                      outline: 'none',
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: reductionPct > 0 ? '#15803d' : '#64748b' }}>%</span>
+                                  {reductionPct > 0 && (
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', whiteSpace: 'nowrap' }}>
+                                      (-${reductionMontant.toFixed(2)})
+                                    </span>
+                                  )}
+                                </div>
+                                {reductionPct > 0 && (
+                                  <input
+                                    type="text"
+                                    value={line.raisonReduction || ''}
+                                    onChange={e => updateProductLine(line.id, 'raisonReduction', e.target.value)}
+                                    placeholder="Motif (ex: client régulier)"
+                                    style={{
+                                      width: '100%',
+                                      padding: '3px 6px',
+                                      border: '1px dashed #86efac',
+                                      borderRadius: '4px',
+                                      fontSize: 10,
+                                      color: '#166534',
+                                      background: '#f0fdf4',
+                                      outline: 'none',
+                                      boxSizing: 'border-box',
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Sous-total Net */}
+                            <td style={{ padding: '8px 10px', textAlign: 'right', verticalAlign: 'top' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                                {reductionPct > 0 && (
+                                  <span style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through' }}>
+                                    ${basePrice.toFixed(2)}
+                                  </span>
+                                )}
+                                <span
+                                  style={{
+                                    display: 'inline-block',
+                                    padding: '5px 10px',
+                                    background: reductionPct > 0 ? '#f0fdf4' : '#eff6ff',
+                                    border: reductionPct > 0 ? '1px solid #86efac' : '1px solid #bfdbfe',
+                                    borderRadius: '6px',
+                                    fontSize: 13,
+                                    fontWeight: 700,
+                                    color: reductionPct > 0 ? '#15803d' : '#1d4ed8',
+                                    minWidth: '70px',
+                                    textAlign: 'right',
+                                  }}
+                                >
+                                  ${finalPrice.toFixed(2)}
+                                </span>
+                              </div>
                             </td>
 
                             {/* Action Supprimer */}
-                            <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle' }}>
                               {productLines.length > 1 && (
                                 <button
                                   type="button"
@@ -1264,9 +1600,16 @@ export default function NewShipmentPage() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14 }}>
-                    <span style={{ color: '#475569' }}>Frais d'expédition (Fret) :</span>
-                    <strong style={{ color: '#0f172a' }}>${freightCost.toFixed(2)}</strong>
+                    <span style={{ color: '#475569' }}>Frais d&apos;expédition (Fret) :</span>
+                    <strong style={{ color: '#0f172a' }}>${(freightCost + totalReductionAmount).toFixed(2)}</strong>
                   </div>
+
+                  {totalReductionAmount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14, color: '#16a34a' }}>
+                      <span style={{ fontWeight: 600 }}>Remises Déduites :</span>
+                      <strong>-${totalReductionAmount.toFixed(2)}</strong>
+                    </div>
+                  )}
 
                   <div
                     style={{
@@ -1558,7 +1901,7 @@ export default function NewShipmentPage() {
 
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '9px', letterSpacing: '1px', marginBottom: '4px' }}>
-              REÇU D'EXPÉDITION · SHIPPING RECEIPT
+              REÇU D&apos;EXPÉDITION · SHIPPING RECEIPT
             </div>
             <div style={{ border: '2px solid #dc2626', padding: '5px 16px', borderRadius: '4px', marginBottom: '6px' }}>
               <span style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '13px' }}>N° {trackingNumber}</span>
@@ -1670,37 +2013,70 @@ export default function NewShipmentPage() {
                   ARTICLE / MARCHANDISE
                 </th>
                 <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
-                  CONTENANT / COLIS
+                  COLIS
+                </th>
+                <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
+                  QUANTITÉ / POIDS
                 </th>
                 <th style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
-                  POIDS (KG)
+                  TARIF UNITAIRE
+                </th>
+                <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
+                  REMISE
                 </th>
                 <th style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
-                  TARIF / KG
-                </th>
-                <th style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', fontSize: '9px', color: '#334155', borderBottom: '1px solid #cbd5e1' }}>
-                  SOUS-TOTAL
+                  SOUS-TOTAL NET
                 </th>
               </tr>
             </thead>
             <tbody>
               {productLines.map((line, idx) => {
-                const lineTotal = (Number(line.weight) || 0) * (Number(line.ratePerKg) || 0);
+                const { basePrice, reductionPct, reductionMontant, finalPrice } = calculateLineTotals(line);
+                const isPiece = line.unite === 'PIECE';
+                const isBoth = line.unite === 'KG_ET_PIECE';
+
+                const qtyLabel = isPiece
+                  ? `${line.quantitePieces || 1} pce(s)`
+                  : isBoth
+                  ? `${line.weight || 0} kg + ${line.quantitePieces || 1} pce(s)`
+                  : `${Number(line.weight || 0).toFixed(1)} kg`;
+
+                const rateLabel = isPiece
+                  ? `$${line.ratePerPiece}/pce`
+                  : isBoth
+                  ? `$${line.ratePerKg}/kg + $${line.ratePerPiece}/pce`
+                  : `$${line.ratePerKg}/kg`;
+
                 return (
                   <tr key={line.id} style={{ background: idx % 2 === 1 ? '#f8fafc' : 'white' }}>
                     <td style={{ padding: '5px 8px', borderBottom: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#0f172a' }}>{line.category}</strong>
-                      {line.description && <span style={{ color: '#64748b', fontSize: '9px', marginLeft: 6 }}>— {line.description}</span>}
+                      <strong style={{ color: '#0f172a' }}>{line.description || line.category}</strong>
+                      {line.description && line.category && (
+                        <span style={{ color: '#64748b', fontSize: '9px', marginLeft: 6 }}>({line.category})</span>
+                      )}
+                      {reductionPct > 0 && line.raisonReduction && (
+                        <div style={{ fontSize: '8px', color: '#15803d', fontStyle: 'italic' }}>Motif: {line.raisonReduction}</div>
+                      )}
                     </td>
                     <td style={{ padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
                       {packagingMode === 'SAME_BOX' ? `${containerType} (Mixte)` : line.boxes}
                     </td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>
-                      {Number(line.weight || 0).toFixed(1)} kg
+                    <td style={{ padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                      {qtyLabel}
                     </td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>${line.ratePerKg}/kg</td>
+                    <td style={{ padding: '5px 8px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>
+                      {rateLabel}
+                    </td>
+                    <td style={{ padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', color: reductionPct > 0 ? '#15803d' : '#64748b' }}>
+                      {reductionPct > 0 ? `-${reductionPct}% (-$${reductionMontant.toFixed(2)})` : '—'}
+                    </td>
                     <td style={{ padding: '5px 8px', textAlign: 'right', borderBottom: '1px solid #e2e8f0', fontWeight: 'bold' }}>
-                      ${lineTotal.toFixed(2)}
+                      {reductionPct > 0 && (
+                        <span style={{ fontSize: '8px', color: '#94a3b8', textDecoration: 'line-through', marginRight: 4 }}>
+                          ${basePrice.toFixed(2)}
+                        </span>
+                      )}
+                      ${finalPrice.toFixed(2)}
                     </td>
                   </tr>
                 );
@@ -1714,8 +2090,11 @@ export default function NewShipmentPage() {
                 <td style={{ padding: '6px 8px', textAlign: 'center', borderTop: '2px solid #cbd5e1' }}>
                   {totalBoxes} {packagingMode === 'SAME_BOX' ? `${containerType}${totalBoxes > 1 ? 's' : ''}` : 'carton(s)'}
                 </td>
-                <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1' }}>{totalWeight.toFixed(1)} kg</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', borderTop: '2px solid #cbd5e1' }}>{totalWeight.toFixed(1)} kg</td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1' }}>—</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', borderTop: '2px solid #cbd5e1', color: '#15803d' }}>
+                  {totalReductionAmount > 0 ? `-$${totalReductionAmount.toFixed(2)}` : '—'}
+                </td>
                 <td style={{ padding: '6px 8px', textAlign: 'right', borderTop: '2px solid #cbd5e1', color: '#1d4ed8', fontSize: '11px' }}>
                   ${freightCost.toFixed(2)}
                 </td>
@@ -1817,8 +2196,14 @@ export default function NewShipmentPage() {
           <div style={{ minWidth: '190px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '10px' }}>
               <span>Fret Total · Freight</span>
-              <span style={{ fontWeight: 'bold' }}>${freightCost.toFixed(2)}</span>
+              <span style={{ fontWeight: 'bold' }}>${(freightCost + totalReductionAmount).toFixed(2)}</span>
             </div>
+            {totalReductionAmount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '10px', color: '#15803d' }}>
+                <span>Remise · Discount</span>
+                <span style={{ fontWeight: 'bold' }}>-${totalReductionAmount.toFixed(2)}</span>
+              </div>
+            )}
             <div
               style={{
                 display: 'flex',
@@ -1893,8 +2278,8 @@ export default function NewShipmentPage() {
           <div>
             <strong style={{ color: '#334155' }}>Termes et conditions</strong>
             <ul style={{ margin: '3px 0 0 0', paddingLeft: '12px', lineHeight: '1.6' }}>
-              <li>Tangaly Shipping n'est pas responsable des articles interdits ou illégaux.</li>
-              <li>Tangaly Shipping n'est pas responsable des dommages dus à un mauvais emballage.</li>
+              <li>Tangaly Shipping n&apos;est pas responsable des articles interdits ou illégaux.</li>
+              <li>Tangaly Shipping n&apos;est pas responsable des dommages dus à un mauvais emballage.</li>
               <li>Délai de livraison estimé : 5–10 jours ouvrables.</li>
             </ul>
           </div>
