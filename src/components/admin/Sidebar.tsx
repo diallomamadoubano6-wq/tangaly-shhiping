@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, Users, Package, CreditCard, FileText, Settings, Database, 
-  LogOut, FileSearch, Shield, MapPin, CheckCircle, RotateCcw, ArrowLeftRight, 
-  Scan, Calculator, X 
+  LogOut, MapPin, CheckCircle, RotateCcw, ArrowLeftRight, 
+  Scan, Calculator, Shield, X 
 } from 'lucide-react';
 import styles from '../../app/admin/admin.module.css';
 
@@ -128,22 +128,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </Link>
             <Link href="/admin/agences" onClick={handleLinkClick} className={isActive('/admin/agences') ? styles.navLinkActive : styles.navLink}>
               <div className={styles.iconWrapper}><MapPin size={18} /></div> Agences
-            </Link>
-          </div>
-
-          <div className={styles.navGroup}>
-            <p className={styles.navTitle}>CONTENU (CMS)</p>
-            <Link href="/admin/cms" onClick={handleLinkClick} className={isActive('/admin/cms') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><FileSearch size={18} /></div> Accueil (Hero & Stats)
-            </Link>
-            <Link href="/admin/pages" onClick={handleLinkClick} className={isActive('/admin/pages') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><FileText size={18} /></div> Gestion des Pages
-            </Link>
-            <Link href="/admin/blog" onClick={handleLinkClick} className={isActive('/admin/blog') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><FileText size={18} /></div> Articles de Blog
-            </Link>
-            <Link href="/admin/faq" onClick={handleLinkClick} className={isActive('/admin/faq') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><FileText size={18} /></div> Foire aux Questions
             </Link>
             <Link href="/admin/settings" onClick={handleLinkClick} className={isActive('/admin/settings') ? styles.navLinkActive : styles.navLink}>
               <div className={styles.iconWrapper}><Settings size={18} /></div> Paramètres
