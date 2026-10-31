@@ -39,6 +39,7 @@ export default function InvoicesPage() {
 
   const [payingInvoice, setPayingInvoice] = useState<Invoice | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [printingInvoice, setPrintingInvoice] = useState<Invoice | null>(null);
   
   useEffect(() => {
@@ -85,9 +86,9 @@ export default function InvoicesPage() {
     if (!amount || amount <= 0) return;
     
     try {
-      const dbId = payingInvoice.dbId || payingInvoice.id; 
+      const dbId = payingInvoice.dbId || payingInvoice.id || payingInvoice.colis; 
       
-      const res = await registerPayment(dbId, amount, 'CASH');
+      const res = await registerPayment(dbId, amount, paymentMethod);
       
       if (res.success) {
         // Update local state
@@ -332,10 +333,11 @@ export default function InvoicesPage() {
               
               <div className={styles.formGroup}>
                 <label className={styles.label}>Mode de paiement</label>
-                <select className={styles.input}>
-                  <option>Espèces (CASH)</option>
-                  <option>Zelle</option>
-                  <option>Orange Money</option>
+                <select className={styles.input} value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                  <option value="CASH">Espèces (CASH)</option>
+                  <option value="ZELLE">Zelle</option>
+                  <option value="ORANGE_MONEY">Orange Money</option>
+                  <option value="VIREMENT">Virement bancaire</option>
                 </select>
               </div>
             </div>

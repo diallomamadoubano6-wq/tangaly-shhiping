@@ -199,47 +199,87 @@ export async function updateShipmentStatus(id: string, statut: string, commentai
   }
 }
 
-export async function registerPayment(shipmentId: string, amount: number, method: string) {
+export async function registerPayment(shipmentId: string, amount: number, method: string = 'CASH') {
   const user = await checkAuth();
   
   try {
-    const shipment = await prisma.shipment.findUnique({
-      where: { id: shipmentId },
-      include: { invoice: true }
+    const cleanId = (shipmentId || '').trim();
+    // Chercher le colis par ID, numéro de suivi, ID de facture ou numéro de facture
+    let shipment = await prisma.shipment.findFirst({
+      where: {
+        OR: [
+          { id: cleanId },
+          { tracking_number: cleanId },
+          { invoice: { id: cleanId } },
+          { invoice: { number: cleanId } },
+        ]
+      },
+      include: { invoice: true, client: true }
     });
     
-    if (!shipment || !shipment.invoice) {
-      return { success: false, message: 'Facture introuvable' };
+    if (!shipment) {
+      return { success: false, message: 'Colis ou facture introuvable dans le système.' };
     }
 
-    const newAmountPaid = shipment.invoice.amountPaid + amount;
-    const newBalance = shipment.invoice.total - newAmountPaid;
-    
-    await prisma.invoice.update({
-      where: { id: shipment.invoice.id },
-      data: {
-        amountPaid: newAmountPaid,
-        balance: newBalance > 0 ? newBalance : 0,
-        status: newBalance <= 0 ? 'PAID' : 'PENDING',
-        payments: {
-          create: {
-            amount: amount,
-            method: method,
-            recordedBy: user.id
+    const currentTotal = Number(shipment.invoice?.total ?? shipment.totalAmount ?? 0);
+    const currentPaid = Number(shipment.invoice?.amountPaid ?? shipment.amountPaid ?? 0);
+    const newAmountPaid = currentPaid + amount;
+    const newBalance = Math.max(0, currentTotal - newAmountPaid);
+    const newStatus = newBalance <= 0 && currentTotal > 0 ? 'PAID' : 'PENDING';
+
+    // Si la facture n'a pas encore été créée pour ce colis, on la génère automatiquement !
+    if (!shipment.invoice) {
+      await prisma.invoice.create({
+        data: {
+          number: `FAC-${shipment.tracking_number.replace('TGL-', '')}`,
+          shipmentId: shipment.id,
+          clientId: shipment.clientId,
+          subtotal: Number(shipment.freightCost || 0) + Number(shipment.docFee || 0),
+          total: currentTotal,
+          amountPaid: newAmountPaid,
+          balance: newBalance,
+          status: newStatus,
+          payments: {
+            create: {
+              amount: amount,
+              method: method || 'CASH',
+              recordedBy: user.id
+            }
           }
         }
-      }
-    });
+      });
+    } else {
+      // Si la facture existe déjà, on la met à jour et on enregistre le paiement
+      await prisma.invoice.update({
+        where: { id: shipment.invoice.id },
+        data: {
+          amountPaid: newAmountPaid,
+          balance: newBalance,
+          status: newStatus,
+          payments: {
+            create: {
+              amount: amount,
+              method: method || 'CASH',
+              recordedBy: user.id
+            }
+          }
+        }
+      });
+    }
 
+    // Mettre à jour également les montants du colis
     await prisma.shipment.update({
-      where: { id: shipmentId },
+      where: { id: shipment.id },
       data: {
         amountPaid: newAmountPaid,
-        balance: newBalance > 0 ? newBalance : 0
+        balance: newBalance,
       }
     });
 
     revalidatePath('/operations/invoices');
+    revalidatePath('/admin/invoices');
+    revalidatePath('/admin/shipments');
+    revalidatePath('/operations');
     return { success: true };
   } catch (error) {
     console.error("Error registering payment:", error);
@@ -568,6 +608,24 @@ export async function createOperationShipment(data: OperationShipmentData) {
             userId: agentUser.id,
           },
         },
+        invoice: {
+          create: {
+            number: `FAC-${trackingNumber.replace('TGL-', '')}`,
+            clientId: client.id,
+            subtotal: (parseFloat(data.freightCost as any || 0) + parseFloat(data.docFee as any || 0)) || 0,
+            total: parseFloat(data.totalAmount as any || 0),
+            amountPaid: parseFloat(data.amountPaid as any || 0),
+            balance: parseFloat(data.balance as any || 0),
+            status: parseFloat(data.balance as any || 0) <= 0 && parseFloat(data.totalAmount as any || 0) > 0 ? 'PAID' : 'PENDING',
+            payments: (parseFloat(data.amountPaid as any || 0) > 0) ? {
+              create: {
+                amount: parseFloat(data.amountPaid as any || 0),
+                method: data.paymentMethod || 'CASH',
+                recordedBy: agentUser.id
+              }
+            } : undefined
+          }
+        }
       },
     });
 

@@ -143,6 +143,24 @@ export async function createOperationShipment(data: OperationShipmentData) {
             userId: agentUser.id,
           },
         },
+        invoice: {
+          create: {
+            number: `FAC-${trackingNumber.replace('TGL-', '')}`,
+            clientId: client.id,
+            subtotal: (parseFloat(data.freightCost as any || 0) + parseFloat(data.docFee as any || 0)) || 0,
+            total: parseFloat(data.totalAmount as any || 0),
+            amountPaid: parseFloat(data.amountPaid as any || 0),
+            balance: parseFloat(data.balance as any || 0),
+            status: parseFloat(data.balance as any || 0) <= 0 && parseFloat(data.totalAmount as any || 0) > 0 ? 'PAID' : 'PENDING',
+            payments: (parseFloat(data.amountPaid as any || 0) > 0) ? {
+              create: {
+                amount: parseFloat(data.amountPaid as any || 0),
+                method: data.paymentMethod || 'CASH',
+                recordedBy: agentUser.id
+              }
+            } : undefined
+          }
+        }
       },
     });
 
