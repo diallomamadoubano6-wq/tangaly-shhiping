@@ -21,7 +21,7 @@ export default function LoginPage() {
     setError('');
     
     if (!email.trim() || !password) {
-      setError('Veuillez renseigner votre email et votre mot de passe.');
+      setError('Veuillez renseigner votre email ou téléphone et votre mot de passe.');
       return;
     }
     
@@ -80,16 +80,16 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} noValidate className={styles.form}>
           <div className="form-group">
-            <label htmlFor="email" className="form-label">Adresse email</label>
+            <label htmlFor="email" className="form-label">Email ou Numéro de téléphone</label>
             <input
               id="email"
-              type="email"
+              type="text"
               className="form-input"
-              placeholder="votre@email.com"
+              placeholder="ex: 622 00 00 00 ou votre@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="username"
               autoFocus
               aria-describedby={error ? 'login-error' : undefined}
             />
@@ -123,6 +123,10 @@ export default function LoginPage() {
                 {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+          </div>
+
+          <div className={styles.hint} style={{ margin: '8px 0 16px', padding: '10px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.82rem', color: '#64748b', lineHeight: 1.4 }}>
+            💡 <strong>Clients :</strong> Connectez-vous avec votre numéro de téléphone. Votre mot de passe par défaut est <code>tangaly</code> suivi des 4 derniers chiffres de votre numéro (ex: <code>tangaly3456</code>).
           </div>
 
           <button

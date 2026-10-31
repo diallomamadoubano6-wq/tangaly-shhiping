@@ -271,6 +271,12 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
         </div>
       </div>
 
+      <!-- ── ACCÈS ESPACE CLIENT ── -->
+      <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 5px; padding: 6px 10px; margin-bottom: 10px; font-size: 8.5px; color: #334155; display: flex; justify-content: space-between; align-items: center;">
+        <span>📱 <strong>Espace Client :</strong> Suivez vos colis sur <strong>tangaly.com/login</strong> avec votre téléphone</span>
+        <span style="color: #64748b;">Mot de passe initial : <strong>tangaly</strong> + 4 derniers chiffres</span>
+      </div>
+
       <!-- ── CONDITIONS GÉNÉRALES BILINGUES (2 COLONNES) ── -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 8px; color: #64748b; line-height: 1.45; border-top: 1px solid #e2e8f0; padding-top: 8px;">
         <div>

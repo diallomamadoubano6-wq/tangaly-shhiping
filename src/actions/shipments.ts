@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { generateDefaultClientPassword, hashPassword, normalizePhone } from '@/lib/clientAuthUtils';
 
 async function checkAuth() {
   const session = await getServerSession(authOptions);
@@ -59,26 +60,54 @@ export async function createShipment(data: any) {
 
     let actualClientId = data.clientId;
     if (!actualClientId) {
-      const phone = data.senderPhone || '000000000';
-      const email = `client_${phone.replace(/\s+/g, '')}@tangaly.local`;
-      const clientUser = await prisma.user.upsert({
-        where: { email },
-        update: {},
-        create: {
-          nom: data.senderName || 'Client Inconnu',
-          email,
-          password_hash: '',
-          role: 'CLIENT',
-          client: {
-            create: {
-              telephone: phone,
-              adresse: data.senderAddress || ''
-            }
-          }
+      const rawPhone = data.senderPhone || '000000000';
+      const cleanPhone = normalizePhone(rawPhone);
+      const email = `client_${cleanPhone || Date.now()}@tangaly.local`;
+      const defaultPassword = generateDefaultClientPassword(rawPhone);
+      const passwordHash = await hashPassword(defaultPassword);
+
+      // Check if user already exists with this phone or email
+      let existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email },
+            ...(cleanPhone ? [{ telephone: cleanPhone }] : []),
+          ],
         },
-        include: { client: true }
+        include: { client: true },
       });
-      actualClientId = clientUser.client?.id;
+
+      if (!existingUser) {
+        existingUser = await prisma.user.create({
+          data: {
+            nom: data.senderName || 'Client Inconnu',
+            email,
+            telephone: cleanPhone || null,
+            password_hash: passwordHash,
+            mustChangePassword: true,
+            role: 'CLIENT',
+            client: {
+              create: {
+                telephone: rawPhone,
+                adresse: data.senderAddress || '',
+              },
+            },
+          },
+          include: { client: true },
+        });
+      } else if (!existingUser.password_hash) {
+        existingUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            telephone: cleanPhone || existingUser.telephone,
+            password_hash: passwordHash,
+            mustChangePassword: true,
+          },
+          include: { client: true },
+        });
+      }
+
+      actualClientId = existingUser.client?.id;
     }
     
     const shipment = await prisma.shipment.create({
@@ -439,46 +468,74 @@ export async function createOperationShipment(data: OperationShipmentData) {
   const agentUser = session.user as any;
 
   try {
+    const cleanPhone = normalizePhone(data.senderPhone);
+    const defaultPassword = generateDefaultClientPassword(data.senderPhone);
+    const passwordHash = await hashPassword(defaultPassword);
+
     // Trouver ou créer un client walk-in basé sur le téléphone de l'expéditeur
     let client = await prisma.client.findFirst({
-      where: { telephone: data.senderPhone || undefined },
+      where: {
+        OR: [
+          ...(data.senderPhone ? [{ telephone: data.senderPhone }] : []),
+          ...(cleanPhone ? [{ telephone: cleanPhone }] : []),
+        ],
+      },
+      include: { user: true },
     });
 
     if (!client) {
-      const emailSafe = (data.senderPhone || `walkin-${Date.now()}`).replace(/[^a-zA-Z0-9]/g, '');
-      const walkinEmail = `walkin-${emailSafe}@tangaly.local`;
+      const emailSafe = cleanPhone || `walkin-${Date.now()}`;
+      const walkinEmail = `client_${emailSafe}@tangaly.local`;
 
-      let walkinUser = await prisma.user.findUnique({ where: { email: walkinEmail } });
+      let walkinUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: walkinEmail },
+            ...(cleanPhone ? [{ telephone: cleanPhone }] : []),
+          ],
+        },
+      });
+
       if (!walkinUser) {
         walkinUser = await prisma.user.create({
           data: {
             nom: data.senderName || 'Client Walk-in',
             email: walkinEmail,
-            password_hash: 'walkin-no-login',
+            telephone: cleanPhone || null,
+            password_hash: passwordHash,
+            mustChangePassword: true,
             role: 'CLIENT',
           },
         });
-
-        // Créer le profil Client associé
-        client = await prisma.client.create({
+      } else if (!walkinUser.password_hash || walkinUser.password_hash === 'walkin-no-login') {
+        walkinUser = await prisma.user.update({
+          where: { id: walkinUser.id },
           data: {
-            userId: walkinUser.id,
-            telephone: data.senderPhone || null,
-            adresse: data.senderAddress || null,
-          },
-        });
-      } else {
-        // L'user existe mais pas le client — le créer
-        client = await prisma.client.upsert({
-          where: { userId: walkinUser.id },
-          update: {},
-          create: {
-            userId: walkinUser.id,
-            telephone: data.senderPhone || null,
-            adresse: data.senderAddress || null,
+            telephone: cleanPhone || walkinUser.telephone,
+            password_hash: passwordHash,
+            mustChangePassword: true,
           },
         });
       }
+
+      // Créer le profil Client associé
+      client = await prisma.client.create({
+        data: {
+          userId: walkinUser.id,
+          telephone: data.senderPhone || cleanPhone || null,
+          adresse: data.senderAddress || null,
+        },
+        include: { user: true },
+      });
+    } else if (client.user && (!client.user.password_hash || client.user.password_hash === 'walkin-no-login')) {
+      await prisma.user.update({
+        where: { id: client.user.id },
+        data: {
+          telephone: cleanPhone || client.user.telephone,
+          password_hash: passwordHash,
+          mustChangePassword: true,
+        },
+      });
     }
 
     const trackingNumber = generateTrackingNumber();

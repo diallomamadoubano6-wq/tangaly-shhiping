@@ -5,6 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
+import { generateDefaultClientPassword, hashPassword, normalizePhone } from '@/lib/clientAuthUtils';
+
 function generateTrackingNumber() {
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -41,31 +43,52 @@ export async function createOperationShipment(data: OperationShipmentData) {
   const agentUser = session.user as any;
 
   try {
+    const cleanPhone = normalizePhone(data.senderPhone);
+    const defaultPassword = generateDefaultClientPassword(data.senderPhone);
+    const passwordHash = await hashPassword(defaultPassword);
+
     // Trouver ou créer un client walk-in basé sur le téléphone de l'expéditeur
-    // On cherche d'abord un user existant avec ce téléphone
     let client = await prisma.client.findFirst({
       where: {
-        telephone: data.senderPhone || undefined,
+        OR: [
+          ...(data.senderPhone ? [{ telephone: data.senderPhone }] : []),
+          ...(cleanPhone ? [{ telephone: cleanPhone }] : []),
+        ],
       },
+      include: { user: true },
     });
 
-    // Si aucun client n'existe, on crée un compte walk-in générique
     if (!client) {
-      // Créer un user walk-in avec un email généré automatiquement
-      const emailSafe = (data.senderPhone || `walkin-${Date.now()}`).replace(/[^a-zA-Z0-9]/g, '');
-      const walkinEmail = `walkin-${emailSafe}@tangaly.local`;
+      const emailSafe = cleanPhone || `walkin-${Date.now()}`;
+      const walkinEmail = `client_${emailSafe}@tangaly.local`;
 
-      // Vérifier si cet email existe déjà
-      const existingUser = await prisma.user.findUnique({ where: { email: walkinEmail } });
+      let walkinUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: walkinEmail },
+            ...(cleanPhone ? [{ telephone: cleanPhone }] : []),
+          ],
+        },
+      });
 
-      let walkinUser = existingUser;
       if (!walkinUser) {
         walkinUser = await prisma.user.create({
           data: {
             nom: data.senderName || 'Client Walk-in',
             email: walkinEmail,
-            password_hash: 'walkin-no-login',
+            telephone: cleanPhone || null,
+            password_hash: passwordHash,
+            mustChangePassword: true,
             role: 'CLIENT',
+          },
+        });
+      } else if (!walkinUser.password_hash || walkinUser.password_hash === 'walkin-no-login') {
+        walkinUser = await prisma.user.update({
+          where: { id: walkinUser.id },
+          data: {
+            telephone: cleanPhone || walkinUser.telephone,
+            password_hash: passwordHash,
+            mustChangePassword: true,
           },
         });
       }
@@ -74,8 +97,18 @@ export async function createOperationShipment(data: OperationShipmentData) {
       client = await prisma.client.create({
         data: {
           userId: walkinUser.id,
-          telephone: data.senderPhone || null,
+          telephone: data.senderPhone || cleanPhone || null,
           adresse: data.senderAddress || null,
+        },
+        include: { user: true },
+      });
+    } else if (client.user && (!client.user.password_hash || client.user.password_hash === 'walkin-no-login')) {
+      await prisma.user.update({
+        where: { id: client.user.id },
+        data: {
+          telephone: cleanPhone || client.user.telephone,
+          password_hash: passwordHash,
+          mustChangePassword: true,
         },
       });
     }

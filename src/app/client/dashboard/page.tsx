@@ -59,6 +59,30 @@ export default function ClientDashboardPage() {
         </Link>
       </div>
 
+      {user?.mustChangePassword && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+          padding: '12px 18px',
+          background: '#fffbeb',
+          border: '1px solid #fde68a',
+          borderRadius: 10,
+          color: '#92400e',
+          marginBottom: 20,
+          fontSize: '0.9rem',
+        }}>
+          <div>
+            ⚠️ <strong>Mot de passe par défaut actif :</strong> Pour sécuriser votre compte, personnalisez votre mot de passe dès maintenant.
+          </div>
+          <Link href="/client/profile" className="btn btn-sm" style={{ background: '#d97706', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 6, textDecoration: 'none', fontWeight: 600 }}>
+            Changer le mot de passe →
+          </Link>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <ul className={styles.kpiGrid} role="list" aria-label="Indicateurs clés">
         {data.stats.map((s) => {

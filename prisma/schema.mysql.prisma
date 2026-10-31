@@ -19,13 +19,15 @@ enum Role {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  nom            String
-  email          String          @unique
-  password_hash  String
-  role           Role            @default(CLIENT)
-  localisation   String?         @default("Conakry")
-  agencyId       String?
+  id                 String          @id @default(uuid())
+  nom                String
+  email              String          @unique
+  telephone          String?         @unique
+  password_hash      String
+  mustChangePassword Boolean         @default(false)
+  role               Role            @default(CLIENT)
+  localisation       String?         @default("Conakry")
+  agencyId           String?
   agency         Agency?         @relation(fields: [agencyId], references: [id])
   client         Client?
   notifications  Notification[]

@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        email: { label: 'Email ou Téléphone', type: 'text' },
         password: { label: 'Mot de passe', type: 'password' },
       },
       async authorize(credentials) {
@@ -24,10 +24,42 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Identifiants manquants');
         }
 
-        console.log("Login attempt for email:", credentials.email);
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const identifier = credentials.email.trim();
+        console.log("Login attempt for:", identifier);
+
+        // Try to find user by email first, then by telephone
+        let user = await prisma.user.findUnique({
+          where: { email: identifier },
         });
+
+        const cleanPhone = identifier.replace(/[\s\-\(\)\.]/g, '');
+
+        if (!user) {
+          user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { telephone: identifier },
+                { telephone: cleanPhone },
+              ],
+            },
+          });
+        }
+
+        // If not found in User.telephone, check in Client.telephone
+        if (!user) {
+          const client = await prisma.client.findFirst({
+            where: {
+              OR: [
+                { telephone: identifier },
+                { telephone: cleanPhone },
+              ],
+            },
+            include: { user: true },
+          });
+          if (client?.user) {
+            user = client.user;
+          }
+        }
 
         if (!user || !user.password_hash) {
           console.log("User not found or no password hash");
@@ -52,6 +84,7 @@ export const authOptions: NextAuthOptions = {
           nom: user.nom,
           role: user.role,
           localisation: user.localisation || 'Agence Principale',
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -64,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         token.name = (user as any).nom || user.name;
         (token as any).nom = (user as any).nom || user.name;
         (token as any).localisation = (user as any).localisation || 'Agence Principale';
+        (token as any).mustChangePassword = (user as any).mustChangePassword || false;
       }
       return token;
     },
@@ -76,9 +110,11 @@ export const authOptions: NextAuthOptions = {
               id: true, 
               nom: true, 
               email: true, 
+              telephone: true,
               role: true, 
               localisation: true,
               agencyId: true,
+              mustChangePassword: true,
               agency: {
                 select: { id: true, nom: true, pays: true, ville: true }
               }
@@ -91,10 +127,12 @@ export const authOptions: NextAuthOptions = {
               name: freshUser.nom,
               nom: freshUser.nom,
               email: freshUser.email,
+              telephone: freshUser.telephone,
               role: freshUser.role,
               localisation: freshUser.localisation || 'Agence Principale',
               agencyId: freshUser.agencyId,
               agency: freshUser.agency,
+              mustChangePassword: freshUser.mustChangePassword,
             } as any;
             return session;
           }
@@ -109,6 +147,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).name = (token as any).nom || (token as any).name;
         (session.user as any).nom = (token as any).nom || (token as any).name;
         (session.user as any).localisation = (token as any).localisation || 'Agence Principale';
+        (session.user as any).mustChangePassword = (token as any).mustChangePassword || false;
       }
       return session;
     },
