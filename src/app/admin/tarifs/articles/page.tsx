@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Edit2, Package, Tag, Check } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, Tag, Check, Sparkles, RefreshCw } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import {
@@ -9,6 +9,7 @@ import {
   createArticleTarif,
   updateArticleTarif,
   deleteArticleTarif,
+  seedNewYorkArticles,
   ArticleTarifItem,
 } from '@/actions/articles';
 
@@ -31,6 +32,11 @@ const SERVICES = [
 ];
 
 const CATEGORIES = [
+  'Produits traditionnels et de soin',
+  'Produits alimentaires',
+  'Vêtements et accessoires',
+  'Appareils électroniques',
+  'Documents et courriers',
   'Électronique', 'Téléphonie', 'Vêtements & Textiles', 'Chaussures',
   'Fruits & Denrées', 'Liquides & Huiles', 'Médicaments', 'Cosmétiques & Beauté',
   'Électroménager', 'Mobilier', 'Jouets', 'Autre',
@@ -39,12 +45,12 @@ const CATEGORIES = [
 const emptyForm = {
   nom: '',
   description: '',
-  categorie: 'Électronique',
+  categorie: 'Produits traditionnels et de soin',
   prixParKg: '' as string | number,
   prixParPiece: '' as string | number,
   unite: 'PIECE' as 'KG' | 'PIECE' | 'KG_ET_PIECE',
-  direction: 'LES_DEUX' as 'USA_CONAKRY' | 'CONAKRY_USA' | 'LES_DEUX',
-  service: 'LES_DEUX' as 'AERIEN' | 'MARITIME' | 'LES_DEUX',
+  direction: 'CONAKRY_USA' as 'USA_CONAKRY' | 'CONAKRY_USA' | 'LES_DEUX',
+  service: 'AERIEN' as 'AERIEN' | 'MARITIME' | 'LES_DEUX',
   devise: 'USD',
   actif: true,
 };
@@ -54,6 +60,7 @@ export default function CatalogueArticlesPage() {
   const confirm = useConfirm();
   const [articles, setArticles] = useState<ArticleTarifItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; isNew: boolean; id?: string }>({ open: false, isNew: true });
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -150,6 +157,33 @@ export default function CatalogueArticlesPage() {
     }
   };
 
+  const handleImportNewYork = async () => {
+    const ok = await confirm({
+      title: 'Importer les articles New York',
+      message: 'Voulez-vous importer la liste complète des articles expédiés à New York (Produits traditionnels, Alimentation, Vêtements, Électronique, Documents) avec leurs tarifs indicatifs ?\n\nLes articles déjà existants ne seront pas écrasés.',
+      type: 'info',
+      confirmText: 'Importer les articles',
+      cancelText: 'Annuler',
+    });
+    if (!ok) return;
+
+    setImporting(true);
+    try {
+      const res = await seedNewYorkArticles();
+      if (res.success) {
+        addToast('success', 'Catalogue importé', res.message);
+        await fetchArticles();
+      } else {
+        addToast('error', 'Erreur', res.message);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur imprévue';
+      addToast('error', 'Erreur', msg);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const filtered = articles.filter(a => {
     if (filterCategorie && a.categorie !== filterCategorie) return false;
     if (filterDirection && a.direction !== filterDirection && a.direction !== 'LES_DEUX') return false;
@@ -162,7 +196,7 @@ export default function CatalogueArticlesPage() {
   return (
     <div style={{ padding: '24px', maxWidth: 1100, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', margin: 0 }}>
             📦 Catalogue des Articles & Tarifs
@@ -171,17 +205,32 @@ export default function CatalogueArticlesPage() {
             Définissez les articles expédiés et leurs prix. Les agents les sélectionneront lors de chaque expédition.
           </p>
         </div>
-        <button
-          onClick={openNew}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
-            color: 'white', border: 'none', borderRadius: 10,
-            padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-          }}
-        >
-          <Plus size={16} /> Nouvel Article
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={handleImportNewYork}
+            disabled={importing}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1',
+              borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600,
+              cursor: importing ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {importing ? <RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={15} color="#2563eb" />}
+            Importer Catalogue New York
+          </button>
+          <button
+            onClick={openNew}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+              color: 'white', border: 'none', borderRadius: 10,
+              padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            <Plus size={16} /> Nouvel Article
+          </button>
+        </div>
       </div>
 
       {/* Filtres */}
@@ -218,12 +267,28 @@ export default function CatalogueArticlesPage() {
         }}>
           <Package size={40} color="#cbd5e1" style={{ marginBottom: 12 }} />
           <p style={{ color: '#94a3b8', fontSize: 15 }}>Aucun article dans le catalogue.</p>
-          <button onClick={openNew} style={{
-            marginTop: 16, background: '#2563eb', color: 'white',
-            border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontSize: 14,
-          }}>
-            Ajouter le premier article
-          </button>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleImportNewYork}
+              disabled={importing}
+              style={{
+                background: '#2563eb', color: 'white',
+                border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <Sparkles size={16} /> Importer le Catalogue New York (21 articles)
+            </button>
+            <button
+              onClick={openNew}
+              style={{
+                background: 'white', color: '#334155',
+                border: '1px solid #cbd5e1', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontSize: 14,
+              }}
+            >
+              Ajouter manuellement
+            </button>
+          </div>
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>

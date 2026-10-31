@@ -135,7 +135,267 @@ async function main() {
     console.log(`✓ Remise à zéro déjà exécutée le ${resetSetting.value}. Pas de réinitialisation nécessaire.`);
   }
 
-  console.log('--- Initialisation terminée : Compte Administrateur configuré ---');
+  console.log('--- Initialisation du catalogue des articles New York ---');
+  const articlesToSeed = [
+    {
+      nom: 'Médicaments traditionnels',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Plantes et décoctions traditionnelles',
+      prixParKg: 15,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Coton à usage médicinal traditionnel',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Coton naturel et mèches médicinales traditionnelles',
+      prixParKg: 12,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Beurre de karité',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Beurre de karité pur de Guinée (pot ou vrac)',
+      prixParKg: 14,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'LES_DEUX',
+      devise: 'USD',
+    },
+    {
+      nom: 'Savon noir',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Savon noir traditionnel artisanal',
+      prixParKg: 12,
+      prixParPiece: 5,
+      unite: 'KG_ET_PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'LES_DEUX',
+      devise: 'USD',
+    },
+    {
+      nom: 'Cosmétiques',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Produits de beauté et soins corporels',
+      prixParKg: 15,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Pommades pour femmes',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Pommades corporelles et crèmes de soins féminins',
+      prixParKg: 14,
+      prixParPiece: 10,
+      unite: 'KG_ET_PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Parfums',
+      categorie: 'Produits traditionnels et de soin',
+      description: 'Parfums et eaux de senteur',
+      prixParKg: null,
+      prixParPiece: 15,
+      unite: 'PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Huile rouge',
+      categorie: 'Produits alimentaires',
+      description: 'Huile de palme rouge pure de Guinée (bidon étanche)',
+      prixParKg: 15,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Poisson fumé',
+      categorie: 'Produits alimentaires',
+      description: 'Poisson fumé artisanal conditionné sous vide',
+      prixParKg: 18,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Poisson séché',
+      categorie: 'Produits alimentaires',
+      description: 'Poisson séché traditionnel bien emballé',
+      prixParKg: 18,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Soumbara',
+      categorie: 'Produits alimentaires',
+      description: 'Épice traditionnelle Soumbara (poudre ou boules)',
+      prixParKg: 15,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Pâte d’arachide',
+      categorie: 'Produits alimentaires',
+      description: 'Pâte d\'arachide locale fraîche (pot ou seau)',
+      prixParKg: 12,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Attiéké',
+      categorie: 'Produits alimentaires',
+      description: 'Semoule de manioc attiéké séchée ou fraîche sous vide',
+      prixParKg: 12,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Vêtements',
+      categorie: 'Vêtements et accessoires',
+      description: 'Habits confectionnés, tenues diverses au kilo',
+      prixParKg: 15,
+      prixParPiece: null,
+      unite: 'KG',
+      direction: 'CONAKRY_USA',
+      service: 'LES_DEUX',
+      devise: 'USD',
+    },
+    {
+      nom: 'Chaussures de marque',
+      categorie: 'Vêtements et accessoires',
+      description: 'Paire de chaussures, baskets ou souliers de marque',
+      prixParKg: null,
+      prixParPiece: 25,
+      unite: 'PIECE',
+      direction: 'LES_DEUX',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Pagnes africains et tissus pour femmes',
+      categorie: 'Vêtements et accessoires',
+      description: 'Pagnes traditionnels (lépis, kendeli, wax, bazin)',
+      prixParKg: 16,
+      prixParPiece: 20,
+      unite: 'KG_ET_PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Ceintures',
+      categorie: 'Vêtements et accessoires',
+      description: 'Ceintures en cuir et accessoires de mode',
+      prixParKg: null,
+      prixParPiece: 10,
+      unite: 'PIECE',
+      direction: 'LES_DEUX',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Téléphones iPhone',
+      categorie: 'Appareils électroniques',
+      description: 'Smartphones Apple iPhone (avec déclaration IMEI)',
+      prixParKg: null,
+      prixParPiece: 50,
+      unite: 'PIECE',
+      direction: 'LES_DEUX',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Tablettes pour enfants',
+      categorie: 'Appareils électroniques',
+      description: 'Tablettes éducatives et multimédia pour enfants',
+      prixParKg: null,
+      prixParPiece: 35,
+      unite: 'PIECE',
+      direction: 'LES_DEUX',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Documents administratifs',
+      categorie: 'Documents et courriers',
+      description: 'Dossiers, passeports, certificats express sous pli scellé',
+      prixParKg: null,
+      prixParPiece: 30,
+      unite: 'PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+    {
+      nom: 'Enveloppes',
+      categorie: 'Documents et courriers',
+      description: 'Courrier simple ou recommandé sous enveloppe renforcée',
+      prixParKg: null,
+      prixParPiece: 20,
+      unite: 'PIECE',
+      direction: 'CONAKRY_USA',
+      service: 'AERIEN',
+      devise: 'USD',
+    },
+  ];
+
+  let addedArticles = 0;
+  for (const art of articlesToSeed) {
+    try {
+      const existing = await prisma.articleTarif.findFirst({
+        where: {
+          nom: art.nom,
+          categorie: art.categorie,
+        },
+      });
+
+      if (!existing) {
+        await prisma.articleTarif.create({
+          data: {
+            ...art,
+            actif: true,
+          },
+        });
+        addedArticles++;
+      }
+    } catch (e) {
+      console.log(`Article "${art.nom}":`, e.message);
+    }
+  }
+  console.log(`✓ Articles New York initialisés : ${addedArticles} nouveaux ajoutés`);
+
+  console.log('--- Initialisation terminée : Compte Administrateur et Articles configurés ---');
 }
 
 main()
