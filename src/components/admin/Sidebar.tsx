@@ -19,7 +19,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const user = session?.user as { role?: string; name?: string; email?: string } | undefined;
+  const user = session?.user as { role?: string; name?: string; nom?: string; email?: string } | undefined;
 
   const isActive = (path: string) => {
     return pathname === path || (path !== '/admin' && pathname.startsWith(`${path}/`));
