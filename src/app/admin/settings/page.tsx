@@ -1,13 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
 import styles from '../admin.module.css';
-import { Shield, User } from 'lucide-react';
+import { Shield, User, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { updateProfile, updatePassword } from '@/actions/settings';
+import { updateProfile, updatePassword, resetDatabaseAction } from '@/actions/settings';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
+
+interface UserSession {
+  nom?: string;
+  email?: string;
+  role?: string;
+}
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
-  const user = session?.user as any;
+  const user = session?.user as UserSession | undefined;
+  const { addToast } = useToast();
+  const confirm = useConfirm();
 
   const [nom, setNom] = useState('');
   const [email, setEmail] = useState('');
@@ -16,10 +25,17 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  // État pour la remise à zéro de la base de données
+  const [resetLoading, setResetLoading] = useState(false);
+  const [keepArticles, setKeepArticles] = useState(true);
+
   useEffect(() => {
     if (user) {
-      setNom(user.nom || '');
-      setEmail(user.email || '');
+      const t = setTimeout(() => {
+        setNom(user.nom || '');
+        setEmail(user.email || '');
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [user]);
 
@@ -58,12 +74,43 @@ export default function SettingsPage() {
     setLoading(false);
   };
 
+  const handleResetDatabase = async () => {
+    const ok = await confirm({
+      title: 'Remise à zéro de la base de données',
+      message: `Êtes-vous absolument sûr ?\n\nCette action supprimera DÉFINITIVEMENT toutes les données de test (colis, expéditions, factures, paiements, clients et devis).\n\nLe compte Administrateur (${user?.email || 'admin@tangaly.com'}) et vos accès seront intégralement conservés.`,
+      type: 'danger',
+      confirmText: 'Oui, tout remettre à zéro',
+      cancelText: 'Annuler',
+    });
+
+    if (!ok) return;
+
+    setResetLoading(true);
+    try {
+      const res = await resetDatabaseAction(keepArticles);
+      if (res.success) {
+        addToast('success', 'Base de données réinitialisée', res.message);
+        setMessage({ text: res.message, type: 'success' });
+      } else {
+        addToast('error', 'Erreur de réinitialisation', res.message);
+        setMessage({ text: res.message, type: 'error' });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur imprévue';
+      addToast('error', 'Erreur', msg);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+
   return (
     <div className={styles.dashboard}>
       <div className={styles.cardHeader}>
         <div>
           <h2 className={styles.cardTitle}>Paramètres du Compte</h2>
-          <p className={styles.cardSubtitle}>Gérez vos informations personnelles et vos préférences.</p>
+          <p className={styles.cardSubtitle}>Gérez vos informations personnelles et les options du système.</p>
         </div>
       </div>
       
@@ -108,6 +155,74 @@ export default function SettingsPage() {
             </div>
          </div>
       </div>
+
+      {isAdmin && (
+        <div style={{ marginTop: 32, padding: 24, borderRadius: 12, border: '1px solid #fecaca', background: '#fff1f2' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 8, background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dc2626' }}>
+              <AlertTriangle size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: '#991b1b', margin: 0 }}>Zone Dangereuse : Remise à zéro de la base de données</h3>
+              <p style={{ fontSize: 13, color: '#7f1d1d', margin: '4px 0 0 0' }}>
+                Efface toutes les données de test (colis, expéditions, factures, paiements, clients et devis) pour repartir sur une base de données entièrement neuve.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ margin: '16px 0', padding: 12, borderRadius: 8, background: 'white', border: '1px solid #fca5a5' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#334155', fontWeight: 500 }}>
+              <input
+                type="checkbox"
+                checked={keepArticles}
+                onChange={e => setKeepArticles(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: '#0f172a' }}
+              />
+              Conserver le catalogue des Tarifs & Articles (Recommandé)
+            </label>
+            <p style={{ margin: '4px 0 0 28px', fontSize: 12, color: '#64748b' }}>
+              Si cette case est cochée, la liste de vos tarifs et articles configurés reste intacte. Seules les transactions de test sont purgées.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
+            <span style={{ fontSize: 12, color: '#991b1b', fontWeight: 600 }}>
+              * Le compte Super Admin (admin@tangaly.com) ne sera jamais supprimé.
+            </span>
+            <button
+              onClick={handleResetDatabase}
+              disabled={resetLoading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 20px',
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                cursor: resetLoading ? 'not-allowed' : 'pointer',
+                fontWeight: 600,
+                fontSize: 14,
+                boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)',
+                opacity: resetLoading ? 0.7 : 1,
+              }}
+            >
+              {resetLoading ? (
+                <>
+                  <RefreshCw size={16} className={styles.spin} />
+                  Nettoyage en cours...
+                </>
+              ) : (
+                <>
+                  <Trash2 size={16} />
+                  Remettre la base de données à zéro
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
