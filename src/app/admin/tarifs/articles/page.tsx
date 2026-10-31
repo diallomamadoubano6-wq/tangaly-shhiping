@@ -133,7 +133,13 @@ export default function CatalogueArticlesPage() {
   };
 
   const handleDelete = async (id: string, nom: string) => {
-    const ok = await confirm(`Supprimer l'article "${nom}" ?`, 'Cette action est irréversible.');
+    const ok = await confirm({
+      title: 'Supprimer cet article ?',
+      message: `Voulez-vous vraiment supprimer l'article "${nom}" du catalogue ? Cette action est irréversible.`,
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
     if (!ok) return;
     const res = await deleteArticleTarif(id);
     if (res.success) {
