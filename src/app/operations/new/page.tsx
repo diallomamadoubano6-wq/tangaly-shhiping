@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { createOperationShipment } from '@/actions/shipments';
 import { printShippingLabel } from '@/lib/shippingLabelTemplate';
 import { generateDefaultClientPassword } from '@/lib/clientAuthUtils';
+import { TANGALY_LOGO_BASE64 } from '@/lib/tangalyLogo';
 
 // ── Types & Catégories de produits avec tarifs par défaut ──
 interface ProductCategory {
@@ -1530,7 +1531,7 @@ export default function NewShipmentPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/lo.jpeg"
+                src={TANGALY_LOGO_BASE64}
                 alt="TANGALY Logo"
                 style={{
                   height: '52px',

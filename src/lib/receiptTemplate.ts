@@ -1,4 +1,5 @@
 import { generateDefaultClientPassword } from './clientAuthUtils';
+import { TANGALY_LOGO_BASE64 } from './tangalyLogo';
 
 export interface ReceiptData {
   id: string;
@@ -45,7 +46,7 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
         <div style="display: flex; align-items: center; gap: 14px;">
           <img 
-            src="/lo.jpeg" 
+            src="${TANGALY_LOGO_BASE64}" 
             alt="TANGALY Logo" 
             style="height: 56px; max-width: 170px; object-fit: contain; border-radius: 6px; display: block;" 
           />
