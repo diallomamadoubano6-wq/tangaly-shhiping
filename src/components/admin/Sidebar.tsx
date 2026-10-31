@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { 
-  LayoutDashboard, Users, Package, CreditCard, FileText, Settings, Database, 
-  LogOut, MapPin, CheckCircle, RotateCcw, ArrowLeftRight, 
+  LayoutDashboard, Users, Package, CreditCard, FileText, Settings,
+  LogOut, CheckCircle, RotateCcw, ArrowLeftRight, 
   Scan, Calculator, Shield, X 
 } from 'lucide-react';
 import styles from '../../app/admin/admin.module.css';
@@ -120,14 +120,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className={styles.navGroup}>
             <p className={styles.navTitle}>LOGISTIQUE</p>
-            <Link href="/admin/services" onClick={handleLinkClick} className={isActive('/admin/services') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><Database size={18} /></div> Services
-            </Link>
             <Link href="/admin/tarifs" onClick={handleLinkClick} className={isActive('/admin/tarifs') ? styles.navLinkActive : styles.navLink}>
               <div className={styles.iconWrapper}><CreditCard size={18} /></div> Tarifs & Zones
-            </Link>
-            <Link href="/admin/agences" onClick={handleLinkClick} className={isActive('/admin/agences') ? styles.navLinkActive : styles.navLink}>
-              <div className={styles.iconWrapper}><MapPin size={18} /></div> Agences
             </Link>
             <Link href="/admin/settings" onClick={handleLinkClick} className={isActive('/admin/settings') ? styles.navLinkActive : styles.navLink}>
               <div className={styles.iconWrapper}><Settings size={18} /></div> Paramètres
