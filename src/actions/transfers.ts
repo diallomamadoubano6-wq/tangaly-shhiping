@@ -131,11 +131,27 @@ export async function createAgentTransfer(data: {
         },
       });
     } catch (auditErr) {
-      console.warn('AuditLog fallback warning:', auditErr);
+      console.warn('AuditLog creation warning:', auditErr);
+    }
+
+    // 3. Créer une notification pour l'administrateur
+    try {
+      await prisma.notification.create({
+        data: {
+          sujet: 'Nouveau versement reçu',
+          message: `${agentDisplayName} a transmis un versement de ${data.amount} ${data.currency} (${reference}). En attente de validation.`,
+          type: 'VERSEMENT',
+          canal: 'ADMIN',
+          lu: false,
+        },
+      });
+    } catch (notifErr) {
+      console.warn('Notification creation warning:', notifErr);
     }
 
     revalidatePath('/operations/transfers');
     revalidatePath('/admin/transfers');
+    revalidatePath('/admin');
 
     return {
       success: true,
@@ -220,8 +236,25 @@ export async function validateRemittance(
       console.warn('AuditLog update error:', auditErr);
     }
 
+    // 3. Notifier l'agent du résultat de la validation
+    try {
+      await prisma.notification.create({
+        data: {
+          sujet: status === 'VALIDATED' ? 'Versement validé' : 'Versement refusé',
+          message: `Votre versement ${referenceOrId} a été ${status === 'VALIDATED' ? 'validé et encaissé par le Siège.' : 'refusé par le Siège.'}`,
+          type: 'VERSEMENT',
+          canal: 'AGENT',
+          lu: false,
+        },
+      });
+    } catch (notifErr) {
+      console.warn('Agent notification warning:', notifErr);
+    }
+
     revalidatePath('/admin/transfers');
     revalidatePath('/operations/transfers');
+    revalidatePath('/admin');
+    revalidatePath('/operations');
 
     return { 
       success: true, 
