@@ -26,6 +26,8 @@ model User {
   trackingEvents     TrackingEvent[]
   auditLogs          AuditLog[]
   paymentsRecorded   Payment[]
+  remittances        CashRemittance[] @relation("AgentRemittances")
+  validatedRemittances CashRemittance[] @relation("ValidatedRemittances")
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 }
@@ -192,6 +194,7 @@ model Agency {
   users     User[]
   clients   Client[]
   shipments Shipment[]
+  remittances CashRemittance[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -322,3 +325,30 @@ model Payment {
   @@index([invoiceId])
   @@index([recordedBy])
 }
+
+model CashRemittance {
+  id          String    @id @default(uuid())
+  reference   String    @unique
+  agentId     String?
+  agent       User?     @relation("AgentRemittances", fields: [agentId], references: [id], onDelete: SetNull)
+  agencyId    String?
+  agency      Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  fromName    String
+  toName      String    @default("Administration TANGALY (Siège)")
+  amount      Float
+  currency    String    @default("USD")
+  method      String    @default("ESPECES") // ESPECES, VIREMENT_BANCAIRE, ZELLE, ORANGE_MONEY
+  status      String    @default("PENDING") // PENDING, VALIDATED, REJECTED
+  note        String?
+  validatedAt DateTime?
+  validatedBy String?
+  validator   User?     @relation("ValidatedRemittances", fields: [validatedBy], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([agentId])
+  @@index([agencyId])
+  @@index([status])
+  @@index([validatedBy])
+}
+

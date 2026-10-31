@@ -164,13 +164,13 @@ export default function TransfersPage() {
   // Calculate real metrics
   const totalCollectedUSD = shipments.reduce((sum, s) => sum + (Number(s.amountPaid) || 0), 0);
   
-  // Total transferred to admin by this agent (strictly this agent)
+  // Total transferred to admin by this agent (pending or completed)
   const totalTransferredUSD = transfers
-    .filter(t => t.status === 'completed' && t.currency === 'USD')
+    .filter(t => (t.status === 'completed' || t.status === 'pending') && t.currency === 'USD')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const totalTransferredGNF = transfers
-    .filter(t => t.status === 'completed' && t.currency === 'GNF')
+    .filter(t => (t.status === 'completed' || t.status === 'pending') && t.currency === 'GNF')
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Solde disponible en caisse de l'agent
@@ -240,7 +240,7 @@ export default function TransfersPage() {
           amount,
           currency: newCurrency,
           date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-          status: 'completed',
+          status: 'pending',
           note: newNote || 'Versement de caisse expéditions vers l\'Administration',
           createdAt: new Date().toISOString(),
         };

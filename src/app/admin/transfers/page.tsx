@@ -3,22 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../operations.module.css';
 import { 
-  ArrowRightLeft, Search, Plus, CheckCircle, Clock, 
+  ArrowRightLeft, Search, CheckCircle, Clock, 
   XCircle, Send, Building2, User, Wallet, FileText,
-  Printer, RefreshCw, Eye
+  Printer, RefreshCw, Eye, Check, X, AlertCircle
 } from 'lucide-react';
 import { getShipments } from '@/actions/shipments';
-import { getAllTransfers, createAgentTransfer, TransferItem } from '@/actions/transfers';
-
-const AGENCIES = [
-  'Administration TANGALY (Siège)',
-  'Hub New York (USA)',
-  'Agence Conakry (Madina)',
-  'Agence Matam',
-  'Agence Labé',
-  'Agence Kindia',
-  'Agence Mamou'
-];
+import { getAllTransfers, validateRemittance, TransferItem } from '@/actions/transfers';
 
 interface ShipmentItem {
   id: string;
@@ -28,36 +18,19 @@ interface ShipmentItem {
 export default function AdminTransfersPage() {
   const [shipments, setShipments] = useState<ShipmentItem[]>([]);
   const [loadingShipments, setLoadingShipments] = useState(true);
-  const [transfers, setTransfers] = useState<TransferItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('tangaly_internal_transfers');
-        if (saved) return JSON.parse(saved);
-      } catch {
-        // ignore
-      }
-    }
-    return [];
-  });
+  const [transfers, setTransfers] = useState<TransferItem[]>([]);
   const [loadingTransfers, setLoadingTransfers] = useState(true);
 
-  const [showNewModal, setShowNewModal] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<TransferItem | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Filtre et recherche
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'completed' | 'pending' | 'failed'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed' | 'failed'>('ALL');
+  const [currencyFilter, setCurrencyFilter] = useState<'ALL' | 'USD' | 'GNF'>('ALL');
 
-  // Form state
-  const [newAmount, setNewAmount] = useState('');
-  const [newCurrency, setNewCurrency] = useState<'USD' | 'GNF'>('USD');
-  const [newNote, setNewNote] = useState('');
-  const [sourceAgency, setSourceAgency] = useState<string>('Administration TANGALY (Siège)');
-  const [targetAgency, setTargetAgency] = useState<string>('Agence Conakry (Madina)');
-  const [formError, setFormError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // 1. Fetch real shipments to get global collected cash
+  // 1. Charger les expéditions réelles
   useEffect(() => {
     let active = true;
     getShipments()
@@ -77,45 +50,13 @@ export default function AdminTransfersPage() {
     };
   }, []);
 
-  // 2. Load all transfers from server and localStorage
-  const loadAllTransfersData = async () => {
+  // 2. Charger tous les versements reçus des agents
+  const loadTransfers = async () => {
     setLoadingTransfers(true);
     try {
       const res = await getAllTransfers();
-      let serverTransfers = (res.success && res.data) ? res.data : [];
-
-      // Sync localStorage items if any
-      try {
-        const localRaw = localStorage.getItem('tangaly_internal_transfers');
-        if (localRaw) {
-          const localList: TransferItem[] = JSON.parse(localRaw);
-          for (const localT of localList) {
-            const already = serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id));
-            if (!already && localT.amount > 0) {
-              const syncRes = await createAgentTransfer({
-                amount: localT.amount,
-                currency: localT.currency || 'USD',
-                note: localT.note,
-                toName: localT.toName,
-                clientGeneratedId: localT.reference || localT.id,
-              });
-              if (syncRes.success && syncRes.data) {
-                serverTransfers = [syncRes.data as TransferItem, ...serverTransfers];
-              } else {
-                serverTransfers = [localT, ...serverTransfers];
-              }
-            }
-          }
-        }
-      } catch (storageErr) {
-        console.warn("Storage sync warning:", storageErr);
-      }
-
-      setTransfers(serverTransfers);
-      try {
-        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(serverTransfers));
-      } catch {
-        // ignore
+      if (res.success && res.data) {
+        setTransfers(res.data);
       }
     } catch (err) {
       console.error("Erreur chargement transferts admin:", err);
@@ -125,51 +66,57 @@ export default function AdminTransfersPage() {
   };
 
   useEffect(() => {
-    let isSubscribed = true;
-    getAllTransfers()
-      .then((res) => {
-        if (!isSubscribed) return;
-        const serverTransfers = (res.success && res.data) ? res.data : [];
-        try {
-          const localRaw = localStorage.getItem('tangaly_internal_transfers');
-          if (localRaw) {
-            const localList: TransferItem[] = JSON.parse(localRaw);
-            for (const localT of localList) {
-              if (!serverTransfers.some(st => st.id === localT.id || st.reference === (localT.reference || localT.id))) {
-                serverTransfers.push(localT);
-              }
-            }
-          }
-        } catch {
-          // ignore
-        }
-        setTransfers(serverTransfers);
-      })
-      .catch((err) => {
-        console.error("Erreur chargement initial transferts admin:", err);
-      })
-      .finally(() => {
-        if (isSubscribed) setLoadingTransfers(false);
-      });
-    return () => {
-      isSubscribed = false;
-    };
+    loadTransfers();
   }, []);
 
-  // Metrics
-  const totalCollectedUSD = shipments.reduce((sum, s) => sum + (Number(s.amountPaid) || 0), 0);
-  
-  const totalTransfersToAdminUSD = transfers
-    .filter(t => t.toName.includes('Administration') && t.status === 'completed' && t.currency === 'USD')
+  // Action de validation par l'administrateur
+  const handleValidate = async (t: TransferItem, status: 'VALIDATED' | 'REJECTED') => {
+    setActionLoadingId(t.id);
+    setToastMsg(null);
+    try {
+      const res = await validateRemittance(t.reference || t.id, status);
+      if (res.success) {
+        setToastMsg({ 
+          type: 'success', 
+          text: status === 'VALIDATED' 
+            ? `Versement ${t.reference} validé et encaissé avec succès !` 
+            : `Versement ${t.reference} marqué comme refusé.` 
+        });
+        await loadTransfers();
+        if (selectedTransfer && (selectedTransfer.id === t.id || selectedTransfer.reference === t.reference)) {
+          setSelectedTransfer({
+            ...selectedTransfer,
+            status: status === 'VALIDATED' ? 'completed' : 'failed',
+          });
+        }
+      } else {
+        setToastMsg({ type: 'error', text: res.message || 'Erreur lors de la validation.' });
+      }
+    } catch (err: any) {
+      setToastMsg({ type: 'error', text: err.message || 'Erreur inattendue.' });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // KPIs
+  const totalReceivedUSD = transfers
+    .filter(t => t.status === 'completed' && t.currency === 'USD')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const baseAdminUSD = 10000;
-  const currentAdminUSD = baseAdminUSD + totalTransfersToAdminUSD;
+  const totalReceivedGNF = transfers
+    .filter(t => t.status === 'completed' && t.currency === 'GNF')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const pendingTransfers = transfers.filter(t => t.status === 'pending');
+  const pendingCount = pendingTransfers.length;
+  const pendingAmountUSD = pendingTransfers.filter(t => t.currency === 'USD').reduce((sum, t) => sum + t.amount, 0);
 
   // Filtrage
   const filteredTransfers = useMemo(() => {
     return transfers.filter((t) => {
       if (statusFilter !== 'ALL' && t.status !== statusFilter) return false;
+      if (currencyFilter !== 'ALL' && t.currency !== currencyFilter) return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         const refMatch = (t.reference || t.id || '').toLowerCase().includes(query);
@@ -177,73 +124,12 @@ export default function AdminTransfersPage() {
         const toMatch = (t.toName || '').toLowerCase().includes(query);
         const noteMatch = (t.note || '').toLowerCase().includes(query);
         const amountMatch = t.amount.toString().includes(query);
-        return refMatch || fromMatch || toMatch || noteMatch || amountMatch;
+        const dateMatch = (t.date || '').toLowerCase().includes(query);
+        return refMatch || fromMatch || toMatch || noteMatch || amountMatch || dateMatch;
       }
       return true;
     });
-  }, [transfers, statusFilter, searchQuery]);
-
-  const handleSubmit = async () => {
-    setFormError('');
-    const amount = Number(newAmount);
-    if (!amount || amount <= 0) {
-      setFormError('Veuillez saisir un montant valide.');
-      return;
-    }
-
-    if (sourceAgency === targetAgency) {
-      setFormError('L\'agence source et l\'agence destinataire doivent être différentes.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const generatedRef = `VIR-${Date.now().toString().slice(-4)}`;
-      const res = await createAgentTransfer({
-        amount,
-        currency: newCurrency,
-        note: newNote || 'Transfert de fonds validé par l\'Administration',
-        toName: targetAgency,
-        clientGeneratedId: generatedRef,
-      });
-
-      let newTransferItem: TransferItem;
-      if (res.success && res.data) {
-        newTransferItem = res.data as TransferItem;
-      } else {
-        newTransferItem = {
-          id: generatedRef,
-          reference: generatedRef,
-          fromName: sourceAgency,
-          toName: targetAgency,
-          amount,
-          currency: newCurrency,
-          date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-          status: 'completed',
-          note: newNote || 'Transfert de fonds validé par l\'Administration',
-          createdAt: new Date().toISOString(),
-        };
-      }
-
-      const updatedList = [newTransferItem, ...transfers.filter(t => t.id !== newTransferItem.id && t.reference !== newTransferItem.reference)];
-      setTransfers(updatedList);
-      try {
-        localStorage.setItem('tangaly_internal_transfers', JSON.stringify(updatedList));
-      } catch {
-        // ignore localStorage error
-      }
-
-      setShowNewModal(false);
-      setNewAmount('');
-      setNewNote('');
-      setSelectedTransfer(newTransferItem);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erreur réseau inattendue.';
-      setFormError(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }, [transfers, statusFilter, currencyFilter, searchQuery]);
 
   const formatBalance = (amount: number, currency: 'USD' | 'GNF') => {
     if (currency === 'USD') return `$${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -258,7 +144,7 @@ export default function AdminTransfersPage() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Reçu de Virement - ${t.reference || t.id}</title>
+        <title>Reçu Officiel de Versement - ${t.reference || t.id}</title>
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #1e293b; background: white; }
           .receipt-box { max-width: 650px; margin: 0 auto; border: 2px solid #0f172a; border-radius: 12px; padding: 32px; }
@@ -290,11 +176,11 @@ export default function AdminTransfersPage() {
               <div class="logo">TANGALY</div>
               <div class="logo-sub">Shipping & Logistics Express</div>
             </div>
-            <div class="badge">VIREMENT CENTRAL ENREGISTRÉ</div>
+            <div class="badge">${t.status === 'completed' ? 'VERSEMENT VALIDÉ & ENCAISSÉ' : 'VERSEMENT TRANSMIS'}</div>
           </div>
 
-          <h1 class="title">Bordereau Officiel de Trésorerie</h1>
-          <p class="subtitle">Suivi central des transferts inter-agences et versements des caisses</p>
+          <h1 class="title">Bordereau Officiel de Versement de Caisse</h1>
+          <p class="subtitle">Justificatif officiel d'encaissement au Siège de l'Administration Centrale TANGALY</p>
 
           <div class="grid">
             <div>
@@ -302,32 +188,32 @@ export default function AdminTransfersPage() {
               <div class="field-value">${t.reference || t.id}</div>
             </div>
             <div>
-              <div class="field-label">Date & Heure</div>
+              <div class="field-label">Date & Heure d'Enregistrement</div>
               <div class="field-value">${t.date}</div>
             </div>
             <div>
-              <div class="field-label">Agence Émettrice</div>
+              <div class="field-label">Agent Déposant (Source)</div>
               <div class="field-value">${t.fromName}</div>
             </div>
             <div>
-              <div class="field-label">Agence Destinataire</div>
+              <div class="field-label">Bénéficiaire (Récepteur)</div>
               <div class="field-value">${t.toName}</div>
             </div>
           </div>
 
           <div class="amount-box">
-            <div class="amount-label">Montant de la Transaction</div>
+            <div class="amount-label">Montant Total Reversé</div>
             <div class="amount-val">${formatBalance(t.amount, t.currency)}</div>
           </div>
 
           <div style="background: #fafafa; border: 1px solid #f1f5f9; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #475569;">
-            <strong>Motif / Observation :</strong> ${t.note || 'Opération de trésorerie centrale.'}
+            <strong>Motif / Observation :</strong> ${t.note || 'Versement des fonds de caisse collectés sur les expéditions.'}
           </div>
 
           <div class="footer">
             <div>
-              <div class="stamp">VALIDÉ ADMINISTRATION</div>
-              <p style="font-size: 11px; color: #94a3b8; margin: 8px 0 0;">Certifié conforme par la Direction Tangaly</p>
+              <div class="stamp">ENCAISSÉ AU SIÈGE</div>
+              <p style="font-size: 11px; color: #94a3b8; margin: 8px 0 0;">Transaction certifiée conforme par l'Administration Tangaly</p>
             </div>
             <div class="signature-box">
               Direction Financière
@@ -345,92 +231,138 @@ export default function AdminTransfersPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Toast de notification */}
+      {toastMsg && (
+        <div style={{
+          padding: '12px 18px',
+          borderRadius: 8,
+          background: toastMsg.type === 'success' ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${toastMsg.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+          color: toastMsg.type === 'success' ? '#15803d' : '#b91c1c',
+          fontSize: 14,
+          fontWeight: 600,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {toastMsg.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            <span>{toastMsg.text}</span>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => setToastMsg(null)} 
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* En-tête */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', margin: '0 0 6px 0' }}>
-            Virements & Trésorerie Centrale
+            Historique des Versements Reçus des Agents
           </h1>
           <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
-            Supervision de tous les versements de caisse reçus des agences et transferts inter-agences.
+            Supervision et validation de tous les reversements de caisse effectués par les agents vers le Siège de l&apos;Administration.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
             type="button"
-            onClick={() => loadAllTransfersData()} 
+            onClick={() => loadTransfers()} 
             title="Rafraîchir les données"
             style={{ 
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', 
+              background: '#ffffff', color: '#475569', border: '1px solid #cbd5e1', 
               borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' 
             }}
           >
             <RefreshCw size={15} className={loadingTransfers ? 'animate-spin' : ''} /> Actualiser
           </button>
-          <button 
-            type="button"
-            className={styles.primaryButton} 
-            onClick={() => { setFormError(''); setShowNewModal(true); }}
-            style={{ padding: '9px 18px', fontSize: 14 }}
-          >
-            <Plus size={18} /> Nouveau virement
-          </button>
         </div>
       </div>
 
-      {/* KPI Cards connectées */}
+      {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-        {/* Carte 1 : Trésorerie Siège */}
-        <div style={{ background: '#faf5ff', border: '1.5px solid #f3e8ff', borderRadius: 12, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        {/* Total Validé USD */}
+        <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#7e22ce' }}>Trésorerie Centrale (Siège)</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Total Encaissé Siège (USD)</span>
             <div style={{ background: '#f3e8ff', borderRadius: 8, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Building2 size={16} color="#7e22ce" />
             </div>
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#7e22ce', marginBottom: 6 }}>
-            ${currentAdminUSD.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${totalReceivedUSD.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div style={{ fontSize: 12, color: '#9333ea', fontWeight: 500 }}>
-            Versements reçus de toutes les agences : <strong>+${totalTransfersToAdminUSD.toFixed(2)}</strong>
+            Fonds validés reçus des agents en dollars
           </div>
         </div>
 
-        {/* Carte 2 : Total collecté réseau */}
+        {/* Total Validé GNF */}
         <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Total Collecté Réseau (Colis)</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Total Encaissé Siège (GNF)</span>
             <div style={{ background: '#eff6ff', borderRadius: 8, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Wallet size={16} color="#2563eb" />
             </div>
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>
-            {loadingShipments ? '...' : `$${totalCollectedUSD.toFixed(2)}`}
+            {totalReceivedGNF.toLocaleString('fr-FR')} GNF
           </div>
           <div style={{ fontSize: 12, color: '#64748b' }}>
-            {shipments.length} expéditions enregistrées au total
+            Fonds validés reçus des agents en francs guinéens
           </div>
         </div>
 
-        {/* Carte 3 : Total virements */}
+        {/* En attente de validation */}
+        <div style={{ 
+          background: pendingCount > 0 ? '#fffbeb' : '#ffffff', 
+          border: `1.5px solid ${pendingCount > 0 ? '#fde68a' : '#e2e8f0'}`, 
+          borderRadius: 12, 
+          padding: 18, 
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)' 
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: pendingCount > 0 ? '#b45309' : '#475569' }}>
+              En Attente de Validation
+            </span>
+            <div style={{ background: pendingCount > 0 ? '#fef3c7' : '#f1f5f9', borderRadius: 8, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={16} color={pendingCount > 0 ? '#d97706' : '#64748b'} />
+            </div>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: pendingCount > 0 ? '#b45309' : '#0f172a', marginBottom: 6 }}>
+            {pendingCount} versement{pendingCount > 1 ? 's' : ''}
+          </div>
+          <div style={{ fontSize: 12, color: pendingCount > 0 ? '#b45309' : '#64748b', fontWeight: 500 }}>
+            {pendingCount > 0 ? `Montant en attente : $${pendingAmountUSD.toFixed(2)} USD` : 'Toutes les remises ont été traitées'}
+          </div>
+        </div>
+
+        {/* Total opérations */}
         <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Total Opérations Réseau</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Total Versements Transmis</span>
             <div style={{ background: '#dcfce7', borderRadius: 8, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowRightLeft size={16} color="#16a34a" />
             </div>
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#16a34a', marginBottom: 6 }}>
-            {transfers.filter(t => t.status === 'completed').length}
+            {transfers.length}
           </div>
           <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
-            Versements & transferts validés
+            Historique complet des agents
           </div>
         </div>
       </div>
 
-      {/* Tableau des virements */}
+      {/* Tableau des versements */}
       <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+        {/* Barre d'outils */}
         <div style={{ 
           padding: '14px 18px', 
           borderBottom: '1px solid #e2e8f0', 
@@ -441,11 +373,11 @@ export default function AdminTransfersPage() {
           gap: 12,
           background: '#ffffff'
         }}>
-          <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 400 }}>
+          <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 420 }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: '#94a3b8' }} />
             <input 
               type="text" 
-              placeholder="Rechercher par référence, agence, motif..." 
+              placeholder="Rechercher par référence, nom de l'agent, agence..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -460,41 +392,66 @@ export default function AdminTransfersPage() {
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Statut :</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'completed' | 'pending' | 'failed')}
-              style={{
-                padding: '7px 12px',
-                borderRadius: 8,
-                border: '1px solid #cbd5e1',
-                fontSize: 13,
-                background: '#ffffff',
-                cursor: 'pointer',
-                outline: 'none',
-                fontWeight: 500
-              }}
-            >
-              <option value="ALL">Tous les statuts</option>
-              <option value="completed">Effectués / Validés</option>
-              <option value="pending">En attente</option>
-              <option value="failed">Refusés</option>
-            </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Statut :</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  fontSize: 13,
+                  background: '#ffffff',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: 500
+                }}
+              >
+                <option value="ALL">Tous les statuts</option>
+                <option value="pending">En attente de validation</option>
+                <option value="completed">Validés / Encaissés</option>
+                <option value="failed">Refusés</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Devise :</span>
+              <select
+                value={currencyFilter}
+                onChange={(e) => setCurrencyFilter(e.target.value as any)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  fontSize: 13,
+                  background: '#ffffff',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: 500
+                }}
+              >
+                <option value="ALL">Toutes devises</option>
+                <option value="USD">USD ($)</option>
+                <option value="GNF">GNF</option>
+              </select>
+            </div>
           </div>
         </div>
 
+        {/* Table */}
         <div style={{ overflowX: 'auto', width: '100%' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 780 }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0', color: '#475569', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Réf</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Source / Expéditeur</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Réf. Versement</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Agent Déposant (Source)</th>
                 <th style={{ padding: '14px 18px', fontWeight: 700 }}>Bénéficiaire</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Montant</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Montant Versé</th>
                 <th style={{ padding: '14px 18px', fontWeight: 700 }}>Date</th>
                 <th style={{ padding: '14px 18px', fontWeight: 700 }}>Statut</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Motif</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Observation</th>
                 <th style={{ padding: '14px 18px', fontWeight: 700, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -504,7 +461,7 @@ export default function AdminTransfersPage() {
                   <td colSpan={8} style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                       <RefreshCw size={24} className="animate-spin" color="#3b82f6" />
-                      <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>Chargement des données de trésorerie...</p>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>Chargement des versements...</p>
                     </div>
                   </td>
                 </tr>
@@ -513,9 +470,9 @@ export default function AdminTransfersPage() {
                   <td colSpan={8} style={{ textAlign: 'center', padding: '44px 20px', color: '#64748b' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                       <ArrowRightLeft size={30} color="#94a3b8" />
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>Aucune opération trouvée.</p>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>Aucun versement d&apos;agent trouvé.</p>
                       <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>
-                        Les versements enregistrés par les agents s&apos;afficheront ici automatiquement.
+                        Dès qu&apos;un agent enregistre un versement de sa caisse vers l&apos;Administration, il apparaîtra ici avec son statut.
                       </p>
                     </div>
                   </td>
@@ -530,22 +487,27 @@ export default function AdminTransfersPage() {
                     </td>
                     <td style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ background: t.fromName.includes('Administration') ? '#f3e8ff' : '#eff6ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
-                          {t.fromName.includes('Administration') ? <Building2 size={13} color="#7e22ce" /> : <User size={13} color="#2563eb" />}
+                        <div style={{ background: '#eff6ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
+                          <User size={13} color="#2563eb" />
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{t.fromName}</span>
+                        <div>
+                          <strong style={{ fontSize: 13, color: '#1e293b', display: 'block' }}>{t.fromName}</strong>
+                          {t.agentEmail && (
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>{t.agentEmail}</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ background: t.toName.includes('Administration') ? '#f3e8ff' : '#eff6ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
-                          {t.toName.includes('Administration') ? <Building2 size={13} color="#7e22ce" /> : <User size={13} color="#2563eb" />}
+                        <div style={{ background: '#f3e8ff', borderRadius: '50%', padding: 4, display: 'inline-flex' }}>
+                          <Building2 size={13} color="#7e22ce" />
                         </div>
-                        <span style={{ fontSize: 13, color: '#581c87', fontWeight: 500 }}>{t.toName}</span>
+                        <span style={{ fontSize: 13, color: '#581c87', fontWeight: 600 }}>{t.toName}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '14px 18px', fontWeight: 800, color: '#0f172a', fontSize: 14, whiteSpace: 'nowrap' }}>
-                      {formatBalance(t.amount, t.currency)}
+                    <td style={{ padding: '14px 18px', fontWeight: 800, color: '#16a34a', fontSize: 15, whiteSpace: 'nowrap' }}>
+                      +{formatBalance(t.amount, t.currency)}
                     </td>
                     <td style={{ padding: '14px 18px', fontSize: 13, color: '#64748b', whiteSpace: 'nowrap' }}>
                       {t.date}
@@ -553,7 +515,7 @@ export default function AdminTransfersPage() {
                     <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
                       {t.status === 'completed' && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
-                          <CheckCircle size={13}/> Effectué
+                          <CheckCircle size={13}/> Encaissé au Siège
                         </span>
                       )}
                       {t.status === 'pending' && (
@@ -567,11 +529,35 @@ export default function AdminTransfersPage() {
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '14px 18px', fontSize: 12, color: '#64748b', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.note}>
+                    <td style={{ padding: '14px 18px', fontSize: 12, color: '#64748b', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.note}>
                       {t.note}
                     </td>
                     <td style={{ padding: '14px 18px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'inline-flex', gap: 6 }}>
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                        {/* Bouton rapide de validation si en attente */}
+                        {t.status === 'pending' && (
+                          <button
+                            type="button"
+                            onClick={() => handleValidate(t, 'VALIDATED')}
+                            disabled={actionLoadingId === t.id}
+                            style={{
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: 6,
+                              padding: '5px 10px',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                            title="Valider la réception de ce versement"
+                          >
+                            <Check size={13} /> {actionLoadingId === t.id ? 'Validation...' : 'Valider'}
+                          </button>
+                        )}
                         <button 
                           type="button"
                           onClick={() => setSelectedTransfer(t)}
@@ -607,7 +593,7 @@ export default function AdminTransfersPage() {
                             alignItems: 'center',
                             gap: 4
                           }}
-                          title="Imprimer le reçu"
+                          title="Imprimer le bordereau officiel"
                         >
                           <Printer size={13} />
                         </button>
@@ -621,163 +607,107 @@ export default function AdminTransfersPage() {
         </div>
       </div>
 
-      {/* Modal Détails */}
+      {/* Modal Détails & Reçu de Versement */}
       {selectedTransfer && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent} style={{ maxWidth: 540 }}>
             <div className={styles.modalHeader}>
               <div>
-                <h2 style={{ fontSize: 17, margin: 0, fontWeight: 700 }}>Reçu de Virement {selectedTransfer.reference || selectedTransfer.id}</h2>
-                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0 0' }}>Bordereau officiel d&apos;opération de trésorerie</p>
+                <h2 style={{ fontSize: 17, margin: 0, fontWeight: 700 }}>
+                  Bordereau de Versement {selectedTransfer.reference || selectedTransfer.id}
+                </h2>
+                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0 0' }}>
+                  Justificatif officiel d&apos;encaissement par l&apos;Administration TANGALY
+                </p>
               </div>
               <button className={styles.closeButton} onClick={() => setSelectedTransfer(null)}>&times;</button>
             </div>
             <div className={styles.modalBody}>
               <div style={{ textAlign: 'center', padding: '16px', background: '#f8fafc', borderRadius: 10, border: '1.5px dashed #cbd5e1', marginBottom: 16 }}>
-                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Montant de l&apos;Opération</span>
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>
-                  {formatBalance(selectedTransfer.amount, selectedTransfer.currency)}
+                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Montant du Versement</span>
+                <div style={{ fontSize: 28, fontWeight: 900, color: '#16a34a', marginTop: 4 }}>
+                  +{formatBalance(selectedTransfer.amount, selectedTransfer.currency)}
                 </div>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700 }}>
-                    TRANSACTION VALIDÉE
-                  </span>
+                  {selectedTransfer.status === 'completed' ? (
+                    <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700 }}>
+                      ENCAISSÉ & VALIDÉ PAR L&apos;ADMINISTRATION
+                    </span>
+                  ) : selectedTransfer.status === 'pending' ? (
+                    <span style={{ background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700 }}>
+                      EN ATTENTE DE VALIDATION
+                    </span>
+                  ) : (
+                    <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700 }}>
+                      REFUSÉ
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className={styles.infoList}>
                 <div className={styles.infoItem}>
-                  <Send size={15}/>
-                  <span className={styles.infoLabel}>Source</span>
+                  <User size={15}/>
+                  <span className={styles.infoLabel}>Agent Déposant</span>
                   <span className={styles.infoValue}>{selectedTransfer.fromName}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <ArrowRightLeft size={15}/>
+                  <Building2 size={15}/>
                   <span className={styles.infoLabel}>Bénéficiaire</span>
                   <span className={styles.infoValue}>{selectedTransfer.toName}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <Clock size={15}/>
-                  <span className={styles.infoLabel}>Date</span>
+                  <span className={styles.infoLabel}>Date d&apos;émission</span>
                   <span className={styles.infoValue}>{selectedTransfer.date}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <FileText size={15}/>
-                  <span className={styles.infoLabel}>Motif</span>
+                  <span className={styles.infoLabel}>Observation / Motif</span>
                   <span className={styles.infoValue}>{selectedTransfer.note}</span>
                 </div>
               </div>
             </div>
-            <div className={styles.modalFooter} style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <button className={styles.secondaryButton} onClick={() => setSelectedTransfer(null)}>Fermer</button>
-              <button 
-                type="button" 
-                className={styles.primaryButton} 
-                onClick={() => handlePrintReceipt(selectedTransfer)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Printer size={16} /> Imprimer le reçu officiel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Nouveau Virement Central */}
-      {showNewModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: 500 }}>
-            <div className={styles.modalHeader}>
-              <div>
-                <h2 style={{ fontSize: 17, margin: 0, fontWeight: 700 }}>Nouveau Virement Inter-Agences</h2>
-                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0 0' }}>Transfert de trésorerie validé par le Siège</p>
-              </div>
-              <button className={styles.closeButton} onClick={() => setShowNewModal(false)}>&times;</button>
-            </div>
-            <div className={styles.modalBody}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Agence Source</label>
-                <select 
-                  className={styles.input} 
-                  value={sourceAgency} 
-                  onChange={e => setSourceAgency(e.target.value)}
-                >
-                  {AGENCIES.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Agence Destinataire</label>
-                <select 
-                  className={styles.input} 
-                  value={targetAgency} 
-                  onChange={e => setTargetAgency(e.target.value)}
-                >
-                  {AGENCIES.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Montant</label>
-                  <input 
-                    type="number" 
-                    step="any"
-                    className={styles.input} 
-                    placeholder="Ex: 5000" 
-                    value={newAmount} 
-                    onChange={e => setNewAmount(e.target.value)} 
-                    autoFocus
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Devise</label>
-                  <select 
-                    className={styles.input} 
-                    value={newCurrency} 
-                    onChange={e => setNewCurrency(e.target.value as 'USD' | 'GNF')}
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="GNF">GNF</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Motif / Référence interne</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  placeholder="Ex: Approvisionnement de caisse agence..." 
-                  value={newNote} 
-                  onChange={e => setNewNote(e.target.value)} 
-                />
-              </div>
-
-              {formError && (
-                <div style={{ padding: '10px 12px', background: '#fef2f2', borderRadius: 8, color: '#b91c1c', fontSize: 13, borderLeft: '3px solid #ef4444' }}>
-                  {formError}
-                </div>
-              )}
-            </div>
-            <div className={styles.modalFooter}>
+            <div className={styles.modalFooter} style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
               <button 
                 type="button" 
                 className={styles.secondaryButton} 
-                onClick={() => setShowNewModal(false)}
-                disabled={isSubmitting}
+                onClick={() => setSelectedTransfer(null)}
               >
-                Annuler
+                Fermer
               </button>
-              <button 
-                type="button" 
-                className={styles.primaryButton} 
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Send size={16}/> {isSubmitting ? 'Validation...' : 'Valider le virement'}
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {selectedTransfer.status === 'pending' && (
+                  <button
+                    type="button"
+                    onClick={() => handleValidate(selectedTransfer, 'VALIDATED')}
+                    disabled={actionLoadingId === selectedTransfer.id}
+                    style={{
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '8px 16px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6
+                    }}
+                  >
+                    <Check size={16} /> Valider l&apos;encaissement
+                  </button>
+                )}
+                <button 
+                  type="button" 
+                  className={styles.primaryButton} 
+                  onClick={() => handlePrintReceipt(selectedTransfer)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Printer size={16} /> Imprimer le reçu officiel
+                </button>
+              </div>
             </div>
           </div>
         </div>
