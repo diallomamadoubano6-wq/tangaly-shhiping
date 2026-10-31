@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link2, Plus, MapPin, Trash2, Edit2 } from 'lucide-react';
 
 import Modal from '@/components/ui/Modal';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import { getTarifs, createTarif, updateTarif, deleteTarif } from '@/actions/logistics';
 import styles from './tarifs.module.css';
 
@@ -24,6 +24,7 @@ const ZONES = ['Conakry', 'Labé', 'Kindia', 'N\'Zérékoré', 'Kankan', 'Mamou'
 
 export default function TarifsAdminPage() {
   const { addToast } = useToast();
+  const confirm = useConfirm();
   const [tarifs, setTarifs] = useState<Tarif[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; tarif: Partial<Tarif> | null; isNew: boolean }>({ open: false, tarif: null, isNew: false });
@@ -73,7 +74,14 @@ export default function TarifsAdminPage() {
   };
 
   const handleDeleteTarif = async (id: string) => {
-    if (!confirm('Supprimer ce tarif ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer ce tarif ?',
+      message: 'Voulez-vous vraiment supprimer cette ligne tarifaire ?',
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
+    if (!ok) return;
     try {
       await deleteTarif(id);
       addToast('success', 'Tarif supprimé');

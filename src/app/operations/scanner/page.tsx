@@ -10,7 +10,7 @@ import {
   FileEdit, Cog, Plane, RotateCcw
 } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import { findShipmentByTracking, scanShipmentAction } from '@/actions/shipments';
 import { SHIPMENT_STATUSES, getStatusInfo, getStatusIndex } from '@/lib/trackingStatuses';
 import styles from './scanner.module.css';
@@ -25,6 +25,7 @@ interface ScannedHistoryItem {
 
 export default function AdminScannerPage() {
   const { addToast } = useToast();
+  const confirm = useConfirm();
 
   // Mode state
   const [activeTab, setActiveTab] = useState<'camera' | 'manual'>('camera');
@@ -447,9 +448,13 @@ export default function AdminScannerPage() {
     const { tracking_number, previousStatus, location } = lastSuccessfulBatchScan;
 
     const prevLabel = getStatusInfo(previousStatus).label;
-    const confirmed = window.confirm(
-      `Annuler le dernier pointage du colis "${tracking_number}" et le rétablir au statut "${prevLabel}" ?`
-    );
+    const confirmed = await confirm({
+      title: 'Annulation du pointage',
+      message: `Annuler le dernier pointage du colis "${tracking_number}" et le rétablir au statut "${prevLabel}" ?`,
+      type: 'warning',
+      confirmText: 'Oui, rétablir',
+      cancelText: 'Annuler',
+    });
     if (!confirmed) return;
 
     setActionLoading(true);
@@ -506,9 +511,13 @@ export default function AdminScannerPage() {
     if (currentIndex >= 0 && targetIndex >= 0 && targetIndex < currentIndex) {
       const currentLabel = getStatusInfo(shipment.statut).label;
       const targetLabel = getStatusInfo(targetStatus).label;
-      const confirmed = window.confirm(
-        `Attention : Le statut sélectionné "${targetLabel}" est antérieur au statut actuel "${currentLabel}".\n\nConfirmez-vous ce retour en arrière ?`
-      );
+      const confirmed = await confirm({
+        title: 'Confirmation de retour en arrière',
+        message: `Attention : Le statut sélectionné "${targetLabel}" est antérieur au statut actuel "${currentLabel}". Confirmez-vous ce changement ?`,
+        type: 'warning',
+        confirmText: 'Confirmer le retour',
+        cancelText: 'Annuler',
+      });
       if (!confirmed) {
         return;
       }

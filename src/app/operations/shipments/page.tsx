@@ -7,6 +7,7 @@ import Modal from '@/components/ui/Modal';
 import { QRCodeCanvas } from 'qrcode.react';
 
 import { getShipments, updateShipmentStatus } from '@/actions/shipments';
+import { useToast } from '@/components/ui/ToastProvider';
 
 export default function ShipmentsPageWrapper() {
   return (
@@ -78,6 +79,8 @@ function ShipmentsPage() {
     fetchShipments();
   }, []);
 
+  const { addToast } = useToast();
+
   const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!statusModal.shipment || !newStatus) return;
@@ -85,15 +88,16 @@ function ShipmentsPage() {
     try {
       const res = await updateShipmentStatus(statusModal.shipment.dbId, newStatus);
       if (res.success) {
+        addToast('success', 'Statut mis à jour', `Le colis a été mis à jour avec le statut "${newStatus}".`);
         setStatusModal({ open: false, shipment: null });
         setNewStatus('');
         fetchShipments(); // refresh
       } else {
-        alert(res.message || "Erreur lors de la mise à jour");
+        addToast('error', 'Erreur de mise à jour', res.message || "Erreur lors de la mise à jour");
       }
     } catch (error) {
       console.error("Erreur:", error);
-      alert("Erreur réseau");
+      addToast('error', 'Erreur réseau', "Impossible de mettre à jour le statut.");
     }
   };
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DataTable from '@/components/admin/DataTable';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import { getClients } from '@/actions/clients';
 
 const columns = [
@@ -14,6 +14,7 @@ const columns = [
 
 export default function ClientsPage() {
   const { addToast } = useToast();
+  const confirm = useConfirm();
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,12 +44,19 @@ export default function ClientsPage() {
   }, [addToast]);
 
   const handleEdit = (row: any) => {
-    alert(`Ouvrir la modale d'édition pour le client: ${row.nom}`);
+    addToast('info', 'Fiche client', `Consultation du client ${row.nom}`);
   };
 
-  const handleDelete = (row: any) => {
-    if(confirm(`Voulez-vous vraiment supprimer ${row.nom} ?`)) {
-      alert(`Client ${row.nom} supprimé.`);
+  const handleDelete = async (row: any) => {
+    const ok = await confirm({
+      title: 'Supprimer ce client ?',
+      message: `Voulez-vous vraiment supprimer le client "${row.nom}" ? Cette action est irréversible.`,
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
+    if (ok) {
+      addToast('success', 'Client supprimé', `Le client ${row.nom} a été supprimé.`);
     }
   };
 

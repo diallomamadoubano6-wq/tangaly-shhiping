@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import Modal from '@/components/ui/Modal';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import { getArticles, createArticle, updateArticle, deleteArticle } from '@/actions/cms';
 import styles from './blog.module.css';
 
@@ -30,6 +30,7 @@ function slugify(text: string) {
 
 export default function BlogAdminPage() {
   const { addToast } = useToast();
+  const confirm = useConfirm();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; post: Partial<BlogPost> | null; isNew: boolean }>({ open: false, post: null, isNew: false });
@@ -101,7 +102,14 @@ export default function BlogAdminPage() {
   };
 
   const handleDeletePost = async (id: string) => {
-    if (!confirm('Supprimer cet article ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer cet article ?',
+      message: 'Voulez-vous vraiment supprimer cet article de blog ? Cette action est irréversible.',
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
+    if (!ok) return;
     try {
       await deleteArticle(id);
       addToast('success', 'Article supprimé');

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import Modal from '@/components/ui/Modal';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import { getFaqs, createFaq, updateFaq, deleteFaq } from '@/actions/cms';
 import styles from './faq.module.css';
 
@@ -17,6 +17,7 @@ type FaqItem = {
 
 export default function FaqAdminPage() {
   const { addToast } = useToast();
+  const confirm = useConfirm();
   const [items, setItems] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; item: Partial<FaqItem> | null; isNew: boolean }>({ open: false, item: null, isNew: false });
@@ -76,7 +77,14 @@ export default function FaqAdminPage() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Supprimer cette question ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer cette question ?',
+      message: 'Voulez-vous vraiment retirer cette question de la FAQ ?',
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
+    if (!ok) return;
     try {
       await deleteFaq(id);
       addToast('success', 'Question supprimée');

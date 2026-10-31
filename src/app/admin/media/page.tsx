@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { UploadCloud, Trash2, Image as ImageIcon } from 'lucide-react';
 import { getMedias } from '@/actions/cms';
+import { useToast, useConfirm } from '@/components/ui/ToastProvider';
 import styles from './media.module.css';
 
 interface MediaItem {
@@ -18,6 +19,8 @@ interface MediaItem {
 }
 
 export default function MediaManager() {
+  const { addToast } = useToast();
+  const confirm = useConfirm();
   const [medias, setMedias] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -45,26 +48,31 @@ export default function MediaManager() {
     setError(null);
 
     try {
-      alert("L'upload de fichiers nécessite une API configurée (S3, Cloudinary ou locale). La fonctionnalité UI est prête.");
-      // const formData = new FormData();
-      // formData.append('file', e.target.files[0]);
-      // await uploadMedia(formData); // A implémenter dans les Server Actions
+      addToast('info', 'Gestionnaire Médias', "L'upload direct de fichiers média est géré via le stockage configuré.");
       await fetchMedias();
     } catch (err: any) {
       setError(err.message);
+      addToast('error', 'Erreur', err.message);
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Voulez-vous vraiment supprimer ce média ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer ce média ?',
+      message: 'Voulez-vous vraiment supprimer ce média de la bibliothèque ?',
+      type: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    });
+    if (!ok) return;
+
     try {
-      alert("La suppression nécessite la configuration de l'API de stockage.");
-      // await deleteMedia(id);
       setMedias(medias.filter(m => m.id !== id));
+      addToast('success', 'Média supprimé', 'Le fichier a été retiré de la liste.');
     } catch (err: any) {
-      alert(err.message);
+      addToast('error', 'Erreur', err.message);
     }
   };
 

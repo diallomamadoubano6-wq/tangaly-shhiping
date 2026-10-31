@@ -27,13 +27,17 @@ export const metadata: Metadata = {
   },
 };
 
+import { ToastProvider } from '@/components/ui/ToastProvider';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={inter.variable}>
       <body className={inter.className} suppressHydrationWarning={true}>
         <ClientAuthProvider>
-          {children}
-          <WhatsAppButton />
+          <ToastProvider>
+            {children}
+            <WhatsAppButton />
+          </ToastProvider>
         </ClientAuthProvider>
       </body>
     </html>

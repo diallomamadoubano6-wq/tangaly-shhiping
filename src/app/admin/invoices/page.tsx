@@ -7,6 +7,7 @@ import { getShipments, registerPayment } from '@/actions/shipments';
 import { generateModernReceiptHTML } from '@/lib/receiptTemplate';
 import { printShippingLabel } from '@/lib/shippingLabelTemplate';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useToast } from '@/components/ui/ToastProvider';
 
 type Invoice = {
   id: string;
@@ -81,6 +82,8 @@ export default function InvoicesPage() {
     fetchInvoices();
   }, []);
 
+  const { addToast } = useToast();
+
   const handlePaymentSubmit = async () => {
     if (!payingInvoice) return;
     const amount = Number(paymentAmount);
@@ -91,6 +94,7 @@ export default function InvoicesPage() {
       const res = await registerPayment(dbId, amount, paymentMethod);
       
       if (res.success) {
+        addToast('success', 'Paiement Enregistré', `Paiement de ${formatAmount(amount)} validé avec succès.`);
         // Update local state
         setInvoices(prev => prev.map(inv => {
           if (inv.id === payingInvoice.id) {
@@ -108,11 +112,11 @@ export default function InvoicesPage() {
         setPayingInvoice(null);
         setPaymentAmount('');
       } else {
-        alert(res.message || "Erreur lors de l'enregistrement du paiement");
+        addToast('error', 'Erreur de paiement', res.message || "Erreur lors de l'enregistrement du paiement");
       }
     } catch (error) {
       console.error("Erreur de paiement:", error);
-      alert("Erreur réseau");
+      addToast('error', 'Erreur réseau', "Impossible de communiquer avec le serveur.");
     }
   };
 
