@@ -1977,7 +1977,7 @@ export default function NewShipmentPage() {
                 ['Nom / Name', receiverName, true],
                 ['Tél. / Phone', receiverPhone, true],
                 ['Ville / City', receiverAddress, false],
-                ['Suivi colis', 'tangaly.com/tracking', false],
+                ['Suivi colis', 'tangalyshipping.com/tracking', false],
               ].map(([label, val, bold], idx) => (
                 <div key={String(label)} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
                   <span style={{ color: idx === 3 ? '#15803d' : '#64748b', fontWeight: idx === 3 ? 'bold' : 'normal', whiteSpace: 'nowrap', fontSize: '9px', minWidth: '85px' }}>{String(label)}</span>

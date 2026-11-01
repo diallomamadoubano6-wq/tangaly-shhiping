@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tangaly.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tangalyshipping.com';
 
   const routes = ['', '/services', '/blog', '/contact', '/about'].map((route) => ({
     url: `${baseUrl}${route}`,

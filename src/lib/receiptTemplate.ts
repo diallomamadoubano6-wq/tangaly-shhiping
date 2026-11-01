@@ -158,7 +158,7 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
             <div style="display: flex; align-items: baseline; gap: 6px;">
               <span style="color: #15803d; font-weight: 600; white-space: nowrap; font-size: 10px; min-width: 85px;">Suivi colis</span>
               <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #15803d; font-size: 10px;">
-                tangaly.com/tracking
+                tangalyshipping.com/tracking
               </span>
             </div>
           </div>

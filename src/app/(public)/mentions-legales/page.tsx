@@ -40,7 +40,7 @@ export default function MentionsLegalesPage() {
               <h2 className={styles.sectionTitle}>1. Éditeur de la Plateforme</h2>
             </div>
             <p className={styles.paragraph}>
-              Le présent site internet accessible à l’adresse <strong>https://tangalylogistics.com</strong> (et ses sous-domaines associés) est édité et exploité conjointement par les entités du groupe <strong>TANGALY Shipping & Logistics</strong> :
+              Le présent site internet accessible à l’adresse <strong>https://tangalyshipping.com</strong> (et ses sous-domaines associés) est édité et exploité conjointement par les entités du groupe <strong>TANGALY Shipping & Logistics</strong> :
             </p>
 
             <div className={styles.contactGrid}>

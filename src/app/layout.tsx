@@ -13,6 +13,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://tangalyshipping.com'),
   title: {
     template: '%s | TANGALY Shipping & Logistics',
     default: 'TANGALY Shipping & Logistics — Transport USA ↔ Guinée',
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'TANGALY Shipping & Logistics',
+    url: 'https://tangalyshipping.com',
   },
 };
 

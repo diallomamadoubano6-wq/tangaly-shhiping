@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Plane, Ship, Package, Building2, ShieldCheck, Zap, MessageSquareText, BadgeDollarSign, MapPin, Search, CheckCircle2, ArrowRight, ArrowLeftRight } from 'lucide-react';
+import { Plane, Package, Building2, ShieldCheck, MessageSquareText, MapPin, Search, CheckCircle2, ArrowRight, ArrowLeftRight } from 'lucide-react';
 import styles from './home.module.css';
 import Image from 'next/image';
 
@@ -26,7 +26,7 @@ export default async function HomePage() {
             "@context": "https://schema.org",
             "@type": "LogisticsService",
             "name": "TANGALY Shipping",
-            "url": "https://tangaly.com",
+            "url": "https://tangalyshipping.com",
             "description": data.hero.subheadline,
             "areaServed": ["US", "GN"],
           })
@@ -75,7 +75,7 @@ export default async function HomePage() {
         <section className={styles.statsBar} aria-label="Chiffres clés">
           <div className="container">
             <ul className={styles.statsGrid} role="list">
-              {data.stats.map((s: any) => (
+              {data.stats.map((s: { label: string; value: string }) => (
                 <li key={s.label} className={styles.statItem}>
                   <span className={styles.statValue}>{s.value}</span>
                   <span className={styles.statLabel}>{s.label}</span>
@@ -123,7 +123,7 @@ export default async function HomePage() {
               <p>Que vous soyez un particulier achetant sur Amazon ou une entreprise important des marchandises, nous avons la solution.</p>
             </div>
             <ul className={styles.servicesGrid} role="list">
-              {data.services.map((s: any) => (
+              {data.services.map((s: { id: string; href?: string; image_url: string; titre: string; description: string }) => (
                 <li key={s.id}>
                   <Link href={s.href || '/services'} className={styles.serviceCard}>
                     <div className={styles.serviceImageWrap}>
