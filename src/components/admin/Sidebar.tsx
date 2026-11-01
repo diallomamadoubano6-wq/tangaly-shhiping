@@ -34,14 +34,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`} 
       aria-label="Navigation administration"
     >
-      <div className={styles.logoArea}>
-        <Image 
-          src="/lo.jpeg" 
-          alt="TANGALY" 
-          width={180} 
-          height={55} 
-          style={{ objectFit: 'contain' }} 
-        />
+      <div className={styles.logoArea} style={{ position: 'relative', overflow: 'hidden', minHeight: 85, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Link href="/admin" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', textDecoration: 'none' }}>
+          <Image 
+            src="/lo.jpeg" 
+            alt="TANGALY Shipping & Logistics" 
+            width={240} 
+            height={80} 
+            style={{ 
+              objectFit: 'contain', 
+              width: 'auto', 
+              maxWidth: '96%', 
+              height: '74px',
+              transform: 'scale(1.22)',
+            }} 
+            priority
+          />
+        </Link>
         {onClose && (
           <button 
             id="admin-sidebar-close"
@@ -49,6 +58,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             className={styles.closeSidebar} 
             onClick={onClose} 
             aria-label="Fermer le menu"
+            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={20} />
           </button>

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
-  LayoutDashboard, PlusSquare, List, MapPin, Package, Truck, 
-  CheckCircle, RotateCcw, CreditCard, FileText, ArrowRightLeft, 
+  LayoutDashboard, PlusSquare, List, MapPin, 
+  RotateCcw, CreditCard, FileText, ArrowRightLeft, 
   Users, ScanLine, ListPlus, Calculator, Settings, LogOut, X 
 } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
@@ -20,7 +20,7 @@ interface OperationsSidebarProps {
 export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user as { name?: string; nom?: string; email?: string; role?: string; localisation?: string } | undefined;
 
   const isActive = (path: string) => {
     return pathname === path || (path !== '/operations' && pathname.startsWith(`${path}/`));
@@ -35,14 +35,23 @@ export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebar
       className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
       aria-label="Navigation espace agent"
     >
-      <div className={styles.logoArea}>
-        <Image 
-          src="/lo.jpeg" 
-          alt="TANGALY" 
-          width={180} 
-          height={55} 
-          style={{ objectFit: 'contain' }} 
-        />
+      <div className={styles.logoArea} style={{ position: 'relative', overflow: 'hidden', minHeight: 85, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Link href="/operations" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', textDecoration: 'none' }}>
+          <Image 
+            src="/lo.jpeg" 
+            alt="TANGALY Shipping & Logistics" 
+            width={240} 
+            height={80} 
+            style={{ 
+              objectFit: 'contain', 
+              width: 'auto', 
+              maxWidth: '96%', 
+              height: '74px',
+              transform: 'scale(1.22)',
+            }} 
+            priority
+          />
+        </Link>
         {onClose && (
           <button 
             id="operations-sidebar-close"
@@ -50,6 +59,7 @@ export default function OperationsSidebar({ isOpen, onClose }: OperationsSidebar
             className={styles.closeSidebar} 
             onClick={onClose} 
             aria-label="Fermer le menu"
+            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={20} />
           </button>

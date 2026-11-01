@@ -33,7 +33,7 @@ const navItems = [
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user as { name?: string; nom?: string; email?: string } | undefined;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -41,17 +41,24 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`} aria-label="Navigation espace client">
         {/* Logo */}
-        <div className={styles.sidebarHeader}>
-          <Link href="/" className={styles.logo}>
+        <div className={styles.sidebarHeader} style={{ minHeight: 85, padding: '10px 14px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Link href="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <Image 
               src="/lo.jpeg" 
               alt="TANGALY Logo" 
-              width={180} 
-              height={50} 
-              style={{ objectFit: 'contain', width: 'auto', height: '100%', maxHeight: '55px' }} 
+              width={240} 
+              height={80} 
+              style={{ 
+                objectFit: 'contain', 
+                width: 'auto', 
+                maxWidth: '96%', 
+                height: '74px',
+                transform: 'scale(1.22)',
+              }} 
+              priority
             />
           </Link>
-          <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu">
+          <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
             <X size={18} />
           </button>
         </div>
