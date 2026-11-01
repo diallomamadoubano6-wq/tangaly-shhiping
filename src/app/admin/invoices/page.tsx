@@ -216,17 +216,17 @@ export default function InvoicesPage() {
           </button>
         </div>
 
-        <div className={styles.tableContainer}>
-          <table className={styles.table} style={{tableLayout: 'fixed', width: '100%'}}>
+        <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+          <table className={styles.table} style={{ width: '100%', minWidth: '960px', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th style={{width: '140px'}}>Reçu N°</th>
-                <th style={{width: '130px'}}>Colis</th>
-                <th>Expéditeur</th>
-                <th style={{width: '110px'}}>Montant ({currency})</th>
-                <th style={{width: '110px'}}>Date</th>
-                <th style={{width: '110px'}}>Statut</th>
-                <th style={{width: '240px'}}>Actions</th>
+              <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                <th style={{ width: '130px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Reçu N°</th>
+                <th style={{ width: '130px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Colis</th>
+                <th style={{ minWidth: '170px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Expéditeur</th>
+                <th style={{ width: '160px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Montant ({currency})</th>
+                <th style={{ width: '110px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Date</th>
+                <th style={{ width: '120px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Statut</th>
+                <th style={{ width: '240px', whiteSpace: 'nowrap', padding: '12px 14px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
