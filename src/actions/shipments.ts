@@ -211,7 +211,7 @@ export async function registerPayment(shipmentId: string, amount: number, method
   try {
     const cleanId = (shipmentId || '').trim();
     // Chercher le colis par ID, numéro de suivi, ID de facture ou numéro de facture
-    let shipment = await prisma.shipment.findFirst({
+    const shipment = await prisma.shipment.findFirst({
       where: {
         OR: [
           { id: cleanId },
@@ -321,7 +321,7 @@ export async function addShipmentEvent(id: string, statut: string, commentaire: 
 }
 
 function extractTrackingCode(input: string): string {
-  let clean = input.trim();
+  const clean = input.trim();
   if (clean.includes('http://') || clean.includes('https://')) {
     try {
       const urlObj = new URL(clean);

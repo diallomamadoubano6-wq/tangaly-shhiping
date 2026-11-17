@@ -78,7 +78,7 @@ export function CurrencyProvider({
   // Synchroniser avec initialCurrency si storageKey n'est pas défini (ex: pour les agents selon leur session)
   useEffect(() => {
     if (!storageKey) {
-      setCurrencyState(initialCurrency);
+      setCurrencyState(prev => (prev !== initialCurrency ? initialCurrency : prev));
     }
   }, [initialCurrency, storageKey]);
 
