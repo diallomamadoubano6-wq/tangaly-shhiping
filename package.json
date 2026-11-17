@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "chmod +x node_modules/@prisma/engines/* && prisma db push --accept-data-loss && node prisma/seed.js && prisma generate && next build --webpack && node scripts/prepare-standalone.js",
-    "start": "node server.js",
+    "build": "chmod +x node_modules/@prisma/engines/* && prisma db push --accept-data-loss && node prisma/seed.js && prisma generate && next build --webpack",
+    "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
