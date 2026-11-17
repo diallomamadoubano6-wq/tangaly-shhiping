@@ -8,3 +8,4 @@ Disallow: /api/auth/
 Content-Signal: search=yes, ai-train=no
 
 Sitemap: https://tangalyshipping.com/sitemap.xml
+

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import styles from './Footer.module.css';
+import { getPublicContactInfo } from '@/actions/cms';
 
 const footerLinks = {
   services: [
@@ -21,7 +22,9 @@ const footerLinks = {
   ],
 };
 
-export default function Footer() {
+export default async function Footer() {
+  const contact = await getPublicContactInfo();
+
   return (
     <footer className={styles.footer} role="contentinfo">
       <div className="container">
@@ -43,9 +46,9 @@ export default function Footer() {
               Votre partenaire logistique de confiance entre les États-Unis et la Guinée.
             </p>
             <div className={styles.socials} aria-label="Réseaux sociaux">
-              <a href="https://www.facebook.com/tangalyshipping" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={styles.social}>f</a>
-              <a href="https://wa.me/16463820065" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={styles.social}>W</a>
-              <a href="https://www.instagram.com/tangalyshipping" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.social}>in</a>
+              <a href={contact.facebook || "https://www.facebook.com/tangalyshipping"} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={styles.social}>f</a>
+              <a href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={styles.social}>W</a>
+              <a href={contact.instagram || "https://www.instagram.com/tangalyshipping"} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.social}>in</a>
             </div>
           </div>
 
@@ -75,27 +78,27 @@ export default function Footer() {
             <address className={styles.address}>
               <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Phone size={14} className="text-primary" />
-                <a href="tel:+16463820065" className={styles.footerLink} title="Appeler l'agence USA">
-                  USA : +1 (646) 382-0065
+                <a href={`tel:${contact.phoneUSA.replace(/\s+/g, '')}`} className={styles.footerLink} title="Appeler l'agence USA">
+                  USA : {contact.phoneUSA}
                 </a>
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Phone size={14} className="text-primary" />
-                <a href="tel:+224626985254" className={styles.footerLink} title="Appeler l'agence Guinée">
-                  GN : +224 626 98 52 54
+                <a href={`tel:${contact.phoneGN.replace(/\s+/g, '')}`} className={styles.footerLink} title="Appeler l'agence Guinée">
+                  GN : {contact.phoneGN}
                 </a>
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Mail size={14} className="text-primary" />
-                <a href="mailto:contact@tangalyshipping.com" className={styles.footerLink} title="Envoyer un email">
-                  contact@tangalyshipping.com
+                <a href={`mailto:${contact.email}`} className={styles.footerLink} title="Envoyer un email">
+                  {contact.email}
                 </a>
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={14} className="text-primary" /> 3429 3rd Ave, Bronx, NY 10456
+                <MapPin size={14} className="text-primary" /> {contact.addressUSA}
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={14} className="text-primary" /> Cité Enco 5, Conakry, Guinée
+                <MapPin size={14} className="text-primary" /> {contact.addressGN}
               </p>
             </address>
           </div>

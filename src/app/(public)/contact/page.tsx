@@ -2,28 +2,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Send, Phone, MessageSquare, Mail, Clock } from 'lucide-react';
 import styles from './contact.module.css';
+import { getPublicContactInfo } from '@/actions/cms';
 
 export const metadata: Metadata = {
   title: 'Contact',
   description: 'Contactez l\'équipe TANGALY pour toute question sur vos expéditions, tarifs ou services logistiques USA ↔ Guinée.',
 };
 
-async function getContactInfo() {
-  // À connecter à l'API : fetch(`${process.env.API_URL}/api/cms/settings?keys=contact`)
-  return {
-    telephone: '+1 (555) 000-0000',
-    email: 'contact@tangaly.com',
-    whatsapp: '+1 (555) 000-0000',
-    adresses: [
-      { pays: 'États-Unis', adresse: '123 Atlantic Ave, Brooklyn, New York, NY 11201' },
-      { pays: 'Guinée', adresse: 'Avenue de la République, Conakry, Guinée' },
-    ],
-    horaires: 'Lundi – Samedi : 8h00 – 20h00 (Heure de New York)',
-  };
-}
-
 export default async function ContactPage() {
-  const info = await getContactInfo();
+  const info = await getPublicContactInfo();
 
   return (
     <>
@@ -83,8 +70,17 @@ export default async function ContactPage() {
                     <Phone size={20} />
                   </span>
                   <div>
-                    <strong>Téléphone</strong>
-                    <a href={`tel:${info.telephone}`}>{info.telephone}</a>
+                    <strong>Téléphone (USA)</strong>
+                    <a href={`tel:${info.phoneUSA.replace(/\s+/g, '')}`}>{info.phoneUSA}</a>
+                  </div>
+                </li>
+                <li className={styles.contactItem}>
+                  <span className={styles.contactIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Phone size={20} />
+                  </span>
+                  <div>
+                    <strong>Téléphone (Guinée)</strong>
+                    <a href={`tel:${info.phoneGN.replace(/\s+/g, '')}`}>{info.phoneGN}</a>
                   </div>
                 </li>
                 <li className={styles.contactItem}>
@@ -101,7 +97,7 @@ export default async function ContactPage() {
                     <Mail size={20} />
                   </span>
                   <div>
-                    <strong>Email</strong>
+                    <strong>Email officiel</strong>
                     <a href={`mailto:${info.email}`}>{info.email}</a>
                   </div>
                 </li>
@@ -118,13 +114,15 @@ export default async function ContactPage() {
 
               <div className={styles.divider} />
 
-              <h3 className={styles.adresseTitle}>Nos bureaux</h3>
-              {info.adresses.map((a) => (
-                <div key={a.pays} className={styles.adresseCard}>
-                  <strong>{a.pays}</strong>
-                  <p>{a.adresse}</p>
-                </div>
-              ))}
+              <h3 className={styles.adresseTitle}>Nos bureaux &amp; agences</h3>
+              <div className={styles.adresseCard}>
+                <strong>États-Unis (New York)</strong>
+                <p>{info.addressUSA}</p>
+              </div>
+              <div className={styles.adresseCard}>
+                <strong>Guinée (Conakry)</strong>
+                <p>{info.addressGN}</p>
+              </div>
             </aside>
           </div>
         </div>

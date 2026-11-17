@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from '../admin.module.css';
-import { Shield, User, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
+import { Shield, User, AlertTriangle, Trash2, RefreshCw, Globe, ArrowRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { updateProfile, updatePassword, resetDatabaseAction } from '@/actions/settings';
 import { useToast, useConfirm } from '@/components/ui/ToastProvider';
@@ -121,6 +122,39 @@ export default function SettingsPage() {
       )}
 
       <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:24}}>
+         {isAdmin && (
+           <div className={styles.chartCard} style={{ gridColumn: '1 / -1', background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)', border: '1px solid #bfdbfe' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+               <div>
+                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17, margin: '0 0 6px 0', color: '#1e3a8a' }}>
+                   <Globe size={20} color="#2563eb" /> Personnalisation du Site Web &amp; Coordonnées
+                 </h3>
+                 <p style={{ margin: 0, fontSize: 14, color: '#475569' }}>
+                   Personnalisez vos coordonnées de contact (Email officiel / Gmail, téléphones USA &amp; Guinée, WhatsApp) et adresses des agences.
+                 </p>
+               </div>
+               <Link
+                 href="/admin/cms"
+                 style={{
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: 8,
+                   padding: '10px 20px',
+                   background: '#2563eb',
+                   color: 'white',
+                   borderRadius: 8,
+                   fontWeight: 600,
+                   fontSize: 14,
+                   textDecoration: 'none',
+                   boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
+                 }}
+               >
+                 Gérer les coordonnées du site <ArrowRight size={16} />
+               </Link>
+             </div>
+           </div>
+         )}
+
          <div className={styles.chartCard}>
             <h3 style={{display:'flex', alignItems:'center', gap:8, fontSize:16, marginBottom:24, color:'#0f172a'}}><User size={18}/> Mon Profil</h3>
             <div style={{display:'flex', flexDirection:'column', gap:16}}>

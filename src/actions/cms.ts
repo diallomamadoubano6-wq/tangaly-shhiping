@@ -4,13 +4,45 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { SiteContactInfo, DEFAULT_CONTACT_INFO } from '@/lib/contact';
 
 const requireAdmin = async () => {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user || (session.user as any).role !== 'SUPER_ADMIN') {
-    throw new Error('Non autorisé');
+  const role = (session?.user as any)?.role;
+  if (!session || !session.user || (role !== 'SUPER_ADMIN' && role !== 'ADMIN')) {
+    throw new Error('Non autorisé. Seul un administrateur peut modifier ces informations.');
   }
 };
+
+export async function getPublicContactInfo(): Promise<SiteContactInfo> {
+  try {
+    const setting = await prisma.cmsSetting.findUnique({
+      where: { key: 'contact_info' },
+    });
+    if (setting?.value) {
+      const parsed = JSON.parse(setting.value);
+      return { ...DEFAULT_CONTACT_INFO, ...parsed };
+    }
+  } catch (e) {
+    console.error('Failed to load contact info from DB, using fallback:', e);
+  }
+  return DEFAULT_CONTACT_INFO;
+}
+
+export async function updateContactInfo(info: Partial<SiteContactInfo>) {
+  await requireAdmin();
+  const current = await getPublicContactInfo();
+  const updated = { ...current, ...info };
+  await prisma.cmsSetting.upsert({
+    where: { key: 'contact_info' },
+    update: { value: JSON.stringify(updated), description: 'Coordonnées officielles de contact du site' },
+    create: { key: 'contact_info', value: JSON.stringify(updated), description: 'Coordonnées officielles de contact du site' }
+  });
+  revalidatePath('/');
+  revalidatePath('/contact');
+  revalidatePath('/admin/cms');
+  return { success: true, data: updated };
+}
 
 export async function getCmsSettings() {
   const settings = await prisma.cmsSetting.findMany();
@@ -27,6 +59,8 @@ export async function updateCmsSetting(key: string, value: string, description?:
     create: { key, value, description: description || '' }
   });
   revalidatePath('/');
+  revalidatePath('/contact');
+  revalidatePath('/admin/cms');
 }
 
 export async function getArticles() {
