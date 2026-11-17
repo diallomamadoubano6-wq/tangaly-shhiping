@@ -9,20 +9,26 @@ export async function getHomeData() {
   let cmsStats: any = null;
 
   try {
-    const [dbServices, dbFaqs, dbSettings] = await Promise.all([
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const queryPromise = Promise.all([
       prisma.service.findMany({ where: { actif: true } }),
       prisma.faq.findMany({ orderBy: { ordre: 'asc' } }),
       prisma.cmsSetting.findMany()
-    ]);
-    services = dbServices;
-    faqs = dbFaqs;
-    const settingsMap: Record<string, string> = {};
-    dbSettings.forEach((s: any) => { settingsMap[s.key] = s.value; });
-    if (settingsMap['hero']) {
-      try { cmsHero = JSON.parse(settingsMap['hero']); } catch (e) {}
-    }
-    if (settingsMap['stats']) {
-      try { cmsStats = JSON.parse(settingsMap['stats']); } catch (e) {}
+    ]).catch(() => null);
+
+    const result = await Promise.race([queryPromise, timeoutPromise]);
+    if (result) {
+      const [dbServices, dbFaqs, dbSettings] = result;
+      services = dbServices || [];
+      faqs = dbFaqs || [];
+      const settingsMap: Record<string, string> = {};
+      (dbSettings || []).forEach((s: any) => { settingsMap[s.key] = s.value; });
+      if (settingsMap['hero']) {
+        try { cmsHero = JSON.parse(settingsMap['hero']); } catch (e) {}
+      }
+      if (settingsMap['stats']) {
+        try { cmsStats = JSON.parse(settingsMap['stats']); } catch (e) {}
+      }
     }
   } catch (error) {
     console.warn("Could not query database during render/build, using fallback data:", error);
