@@ -1,4 +1,8 @@
 // Phusion Passenger / Hostinger production server for Tangaly Next.js
+if (typeof(PhusionPassenger) !== 'undefined') {
+  PhusionPassenger.configure({ autoInstall: false });
+}
+
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -60,8 +64,8 @@ server.once('error', (err) => {
   process.exit(1);
 });
 
-// Under Phusion Passenger, process.env.PORT is either a socket path, 'passenger', or a port
-const listenTarget = process.env.PORT || 3000;
+// Under Phusion Passenger, explicitly listen on 'passenger'
+const listenTarget = (typeof(PhusionPassenger) !== 'undefined') ? 'passenger' : (process.env.PORT || 3000);
 server.listen(listenTarget, () => {
   console.log(`> Tangaly Next.js Server Ready on ${listenTarget}`);
 });
