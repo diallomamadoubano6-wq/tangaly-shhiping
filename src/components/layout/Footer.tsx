@@ -43,9 +43,9 @@ export default function Footer() {
               Votre partenaire logistique de confiance entre les États-Unis et la Guinée.
             </p>
             <div className={styles.socials} aria-label="Réseaux sociaux">
-              <a href="#" aria-label="Facebook" className={styles.social}>f</a>
-              <a href="#" aria-label="WhatsApp" className={styles.social}>W</a>
-              <a href="#" aria-label="Instagram" className={styles.social}>in</a>
+              <a href="https://www.facebook.com/tangalyshipping" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={styles.social}>f</a>
+              <a href="https://wa.me/16463820065" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={styles.social}>W</a>
+              <a href="https://www.instagram.com/tangalyshipping" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.social}>in</a>
             </div>
           </div>
 
@@ -73,10 +73,30 @@ export default function Footer() {
           <div>
             <h3 className={styles.colTitle}>Contact</h3>
             <address className={styles.address}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={14} className="text-primary" /> +1 (555) 000-0000</p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={14} className="text-primary" /> contact@tangaly.com</p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={14} className="text-primary" /> New York, USA</p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={14} className="text-primary" /> Conakry, Guinée</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Phone size={14} className="text-primary" />
+                <a href="tel:+16463820065" className={styles.footerLink} title="Appeler l'agence USA">
+                  USA : +1 (646) 382-0065
+                </a>
+              </p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Phone size={14} className="text-primary" />
+                <a href="tel:+224626985254" className={styles.footerLink} title="Appeler l'agence Guinée">
+                  GN : +224 626 98 52 54
+                </a>
+              </p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Mail size={14} className="text-primary" />
+                <a href="mailto:contact@tangalyshipping.com" className={styles.footerLink} title="Envoyer un email">
+                  contact@tangalyshipping.com
+                </a>
+              </p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={14} className="text-primary" /> 3429 3rd Ave, Bronx, NY 10456
+              </p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={14} className="text-primary" /> Cité Enco 5, Conakry, Guinée
+              </p>
             </address>
           </div>
         </div>

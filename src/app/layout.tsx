@@ -19,17 +19,23 @@ export const metadata: Metadata = {
     default: 'TANGALY Shipping & Logistics — Transport USA ↔ Guinée',
   },
   description:
-    'TANGALY, votre partenaire de confiance pour le transport et la logistique entre les États-Unis et la Guinée.',
-  keywords: ['transport', 'logistique', 'expédition', 'USA', 'Guinée', 'shipping', 'TANGALY'],
+    'TANGALY, votre partenaire de confiance pour le transport et la logistique entre les États-Unis et la Guinée. Fret aérien express et fret maritime régulier dans les deux sens.',
+  keywords: ['transport', 'logistique', 'expédition', 'USA', 'Guinée', 'shipping', 'fret aérien', 'fret maritime', 'TANGALY'],
+  alternates: {
+    canonical: 'https://tangalyshipping.com',
+  },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'TANGALY Shipping & Logistics',
     url: 'https://tangalyshipping.com',
+    title: 'TANGALY Shipping & Logistics — Transport USA ↔ Guinée',
+    description: 'TANGALY, votre partenaire de confiance pour le transport et la logistique entre les États-Unis et la Guinée.',
   },
 };
 
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import WebMCPRegistrar from '@/components/agent/WebMCPRegistrar';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -39,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             {children}
             <WhatsAppButton />
+            <WebMCPRegistrar />
           </ToastProvider>
         </ClientAuthProvider>
       </body>

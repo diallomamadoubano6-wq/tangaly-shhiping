@@ -77,7 +77,17 @@ export default function DevisPage() {
 
         <div className={styles.layout}>
           {/* Formulaire */}
-          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <form
+            className={styles.form}
+            onSubmit={handleSubmit}
+            noValidate
+            {...({
+              toolname: 'calculate_shipping_quote',
+              tooldescription: 'Calculer une estimation du tarif d\'expédition aérienne ou maritime entre les USA et la Guinée selon le poids et le type de colis',
+              'data-toolname': 'calculate_shipping_quote',
+              'data-tooldescription': 'Calculer une estimation du tarif d\'expédition aérienne ou maritime entre les USA et la Guinée selon le poids et le type de colis',
+            } as any)}
+          >
             <h2 className={styles.formSection}>Vos coordonnées</h2>
 
             <div className={styles.row}>

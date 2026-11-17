@@ -139,6 +139,12 @@ export default function TrackingPage() {
           onSubmit={handleSearch}
           role="search"
           aria-label="Rechercher un colis"
+          {...({
+            toolname: 'track_shipment',
+            tooldescription: 'Rechercher le statut et les étapes de livraison d\'un colis TANGALY via son numéro de tracking',
+            'data-toolname': 'track_shipment',
+            'data-tooldescription': 'Rechercher le statut et les étapes de livraison d\'un colis TANGALY via son numéro de tracking',
+          } as any)}
         >
           <label htmlFor="tracking-input" className="sr-only">Numéro de tracking</label>
           <input

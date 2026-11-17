@@ -1,7 +1,8 @@
 import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAgentMarkdown } from '@/lib/agentMarkdown';
 
-export default withAuth(
+const authMiddleware = withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
@@ -36,6 +37,32 @@ export default withAuth(
   }
 );
 
+export default async function middleware(req: NextRequest, event: any) {
+  const acceptHeader = req.headers.get('accept') || '';
+  const path = req.nextUrl.pathname;
+
+  // Servir du Markdown structuré lorsque les agents IA le réclament via Accept: text/markdown
+  if (acceptHeader.includes('text/markdown')) {
+    const md = getAgentMarkdown(path);
+    return new NextResponse(md, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/markdown; charset=utf-8',
+        'Vary': 'Accept',
+      },
+    });
+  }
+
+  // Protection des routes sous authentification
+  if (path.startsWith('/admin') || path.startsWith('/client') || path.startsWith('/operations')) {
+    return (authMiddleware as any)(req, event);
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
-  matcher: ['/client/:path*', '/admin/:path*', '/operations/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)',
+  ],
 };

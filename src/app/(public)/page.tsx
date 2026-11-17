@@ -10,6 +10,9 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Transport USA ↔ Guinée (Dans les 2 sens) — Rapide, Fiable, Sécurisé',
   description: 'TANGALY, la référence du transport et de la logistique bilatérale entre les États-Unis et la Guinée. Expéditions dans les deux sens : USA ➔ Guinée et Guinée ➔ USA.',
+  alternates: {
+    canonical: 'https://tangalyshipping.com',
+  },
 };
 
 import { getHomeData } from '@/actions/public';
@@ -17,19 +20,132 @@ import { getHomeData } from '@/actions/public';
 export default async function HomePage() {
   const { data } = await getHomeData();
 
+  const faqSchema = data.faq && data.faq.length > 0 ? {
+    "@type": "FAQPage",
+    "mainEntity": data.faq.map((f: any) => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": f.a
+      }
+    }))
+  } : null;
+
+  const jsonLdGraph = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://tangalyshipping.com/#organization",
+        "name": "TANGALY Shipping & Logistics",
+        "legalName": "TANGALY Shipping & Logistics LLC",
+        "url": "https://tangalyshipping.com",
+        "logo": "https://tangalyshipping.com/lo.jpeg",
+        "description": "Leader du fret aérien et maritime bilatéral entre les États-Unis et la Guinée (dans les deux sens).",
+        "telephone": "+1-646-382-0065",
+        "email": "contact@tangalyshipping.com",
+        "sameAs": [
+          "https://www.facebook.com/tangalyshipping",
+          "https://www.instagram.com/tangalyshipping",
+          "https://wa.me/16463820065",
+          "https://www.linkedin.com/company/tangalyshipping"
+        ],
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "telephone": "+1-646-382-0065",
+            "contactType": "customer service",
+            "email": "contact@tangalyshipping.com",
+            "areaServed": "US",
+            "availableLanguage": ["French", "English"]
+          },
+          {
+            "@type": "ContactPoint",
+            "telephone": "+224-626-98-52-54",
+            "contactType": "customer service",
+            "email": "contact@tangalyshipping.com",
+            "areaServed": "GN",
+            "availableLanguage": ["French"]
+          }
+        ]
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://tangalyshipping.com/#localbusiness-usa",
+        "name": "TANGALY Shipping USA - Hub New York",
+        "image": "https://tangalyshipping.com/lo.jpeg",
+        "telephone": "+1-646-382-0065",
+        "email": "contact@tangalyshipping.com",
+        "url": "https://tangalyshipping.com",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "3429 3rd Ave",
+          "addressLocality": "Bronx",
+          "addressRegion": "NY",
+          "postalCode": "10456",
+          "addressCountry": "US"
+        }
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://tangalyshipping.com/#localbusiness-guinee",
+        "name": "TANGALY Shipping Guinée - Hub Conakry",
+        "image": "https://tangalyshipping.com/lo.jpeg",
+        "telephone": "+224-626-98-52-54",
+        "email": "contact@tangalyshipping.com",
+        "url": "https://tangalyshipping.com",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Cité Enco 5",
+          "addressLocality": "Conakry",
+          "addressCountry": "GN"
+        }
+      },
+      {
+        "@type": "LogisticsService",
+        "@id": "https://tangalyshipping.com/#service-air",
+        "name": "Fret Aérien Express USA ↔ Guinée",
+        "provider": { "@id": "https://tangalyshipping.com/#organization" },
+        "serviceType": "Fret Aérien",
+        "areaServed": ["US", "GN"],
+        "description": "Transport aérien rapide sécurisé entre les États-Unis et la Guinée en 48h à 72h."
+      },
+      {
+        "@type": "LogisticsService",
+        "@id": "https://tangalyshipping.com/#service-sea",
+        "name": "Fret Maritime Régulier USA ↔ Guinée",
+        "provider": { "@id": "https://tangalyshipping.com/#organization" },
+        "serviceType": "Fret Maritime",
+        "areaServed": ["US", "GN"],
+        "description": "Groupage et conteneurs maritimes réguliers entre les États-Unis et la Guinée."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://tangalyshipping.com/#website",
+        "url": "https://tangalyshipping.com",
+        "name": "TANGALY Shipping & Logistics",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://tangalyshipping.com/tracking?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      ...(faqSchema ? [faqSchema] : [])
+    ]
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LogisticsService",
-            "name": "TANGALY Shipping",
-            "url": "https://tangalyshipping.com",
-            "description": data.hero.subheadline,
-            "areaServed": ["US", "GN"],
-          })
+          __html: JSON.stringify(jsonLdGraph)
         }}
       />
 
