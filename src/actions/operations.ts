@@ -35,13 +35,18 @@ interface OperationShipmentData {
   balance: number;
 }
 
+const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'GERANT_USA', 'GERANT_GUINEE', 'AGENT'];
+
 export async function createOperationShipment(data: OperationShipmentData) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return { success: false, message: 'Non autorisé. Veuillez vous connecter.' };
   }
 
   const agentUser = session.user as any;
+  if (!agentUser.role || !STAFF_ROLES.includes(agentUser.role)) {
+    return { success: false, message: 'Accès refusé : privilèges agents ou administrateurs requis.' };
+  }
 
   try {
     const cleanPhone = normalizePhone(data.senderPhone);

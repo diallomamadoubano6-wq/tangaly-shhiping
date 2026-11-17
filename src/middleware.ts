@@ -6,9 +6,12 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // Protection des routes admin
-    if (path.startsWith('/admin') && token?.role !== 'SUPER_ADMIN' && token?.role !== 'AGENT') {
-      return NextResponse.redirect(new URL('/login', req.url));
+    // Protection des routes admin (Réservé exclusivement aux administrateurs)
+    if (path.startsWith('/admin')) {
+      const allowedAdminRoles = ['SUPER_ADMIN', 'ADMIN'];
+      if (!token || !allowedAdminRoles.includes(token.role as string)) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
     }
 
     // Protection des routes client

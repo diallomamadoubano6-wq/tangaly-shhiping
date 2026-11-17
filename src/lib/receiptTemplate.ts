@@ -23,14 +23,33 @@ export interface ReceiptData {
   paymentMethod?: string;
 }
 
+export function escapeHtml(text?: string | number | null): string {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function generateModernReceiptHTML(inv: ReceiptData): string {
-  const trackingNumber = inv.colis || inv.id;
-  const defaultClientPwd = generateDefaultClientPassword(inv.senderPhone);
-  const transportMode =
+  const trackingNumber = escapeHtml(inv.colis || inv.id);
+  const defaultClientPwd = escapeHtml(generateDefaultClientPassword(inv.senderPhone));
+  const transportMode = escapeHtml(
     inv.typeTransport === 'MARITIME' || inv.typeTransport === 'SEA'
       ? 'MARITIME (SEA)'
-      : 'AÉRIEN (AIR)';
-  const method = (inv.paymentMethod || 'CASH').toUpperCase();
+      : 'AÉRIEN (AIR)'
+  );
+  const method = escapeHtml((inv.paymentMethod || 'CASH').toUpperCase());
+  const displayDate = escapeHtml(inv.date);
+  const senderName = escapeHtml(inv.senderName) || '—';
+  const senderPhone = escapeHtml(inv.senderPhone) || '—';
+  const senderAddress = escapeHtml(inv.senderAddress) || '—';
+  const receiverName = escapeHtml(inv.receiverName) || '—';
+  const receiverPhone = escapeHtml(inv.receiverPhone) || '—';
+  const receiverAddress = escapeHtml(inv.receiverAddress) || '—';
+  const description = escapeHtml(inv.description) || 'Marchandises diverses';
 
   const formattedFreight = Number(inv.freightCost || inv.total || 0).toFixed(2);
   const formattedTotal = Number(inv.total || 0).toFixed(2);
@@ -38,6 +57,7 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
   const formattedBalance = Number(inv.balance || 0).toFixed(2);
   const formattedWeight = Number(inv.weight || 0).toFixed(1);
   const formattedRate = Number(inv.ratePerKg || (Number(inv.weight) > 0 ? Number(inv.total) / Number(inv.weight) : 12)).toFixed(2);
+  const boxes = Math.max(1, Number(inv.boxes) || 1);
 
   return `
     <div style="font-family: Arial, sans-serif; color: #111; background: white; padding: 18px 24px; max-width: 800px; margin: 0 auto; box-sizing: border-box; font-size: 11px;">
@@ -71,7 +91,7 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
             <span style="color: #dc2626; font-weight: 900; font-size: 15px; letter-spacing: 0.5px;">N° ${trackingNumber}</span>
           </div>
           <div style="font-size: 11px; color: #334155;">
-            Date : <strong>${inv.date}</strong> · Mode : <strong>${transportMode}</strong>
+            Date : <strong>${displayDate}</strong> · Mode : <strong>${transportMode}</strong>
           </div>
         </div>
       </div>
@@ -118,15 +138,15 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
           <div style="padding: 8px 10px; font-size: 11px; line-height: 1.5;">
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Nom / Name</span>
-              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.senderName || '—'}</span>
+              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${senderName}</span>
             </div>
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Tél. / Phone</span>
-              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.senderPhone || '—'}</span>
+              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${senderPhone}</span>
             </div>
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Adresse / Address</span>
-              <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.senderAddress || '—'}</span>
+              <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${senderAddress}</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 6px;">
               <span style="color: #1d4ed8; font-weight: bold; white-space: nowrap; font-size: 10px; min-width: 85px;">Mot de passe / Pwd</span>
@@ -145,15 +165,15 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
           <div style="padding: 8px 10px; font-size: 11px; line-height: 1.5;">
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Nom / Name</span>
-              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.receiverName || '—'}</span>
+              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${receiverName}</span>
             </div>
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Tél. / Phone</span>
-              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.receiverPhone || '—'}</span>
+              <span style="font-weight: bold; border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${receiverPhone}</span>
             </div>
             <div style="display: flex; align-items: baseline; margin-bottom: 3px; gap: 6px;">
               <span style="color: #64748b; white-space: nowrap; font-size: 10px; min-width: 85px;">Ville / City</span>
-              <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${inv.receiverAddress || '—'}</span>
+              <span style="border-bottom: 1px solid #e2e8f0; flex: 1; color: #0f172a;">${receiverAddress}</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 6px;">
               <span style="color: #15803d; font-weight: 600; white-space: nowrap; font-size: 10px; min-width: 85px;">Suivi colis</span>
@@ -184,10 +204,10 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
           <tbody>
             <tr style="border-bottom: 1px solid #e2e8f0;">
               <td style="padding: 8px 10px; font-weight: 600; color: #0f172a;">
-                ${inv.description || 'Marchandises diverses'}
+                ${description}
               </td>
               <td style="padding: 8px 10px; text-align: center; color: #475569;">
-                Carton (${inv.boxes || 1})
+                Carton (${boxes})
               </td>
               <td style="padding: 8px 10px; text-align: right; font-weight: 600;">
                 ${formattedWeight} kg
@@ -206,7 +226,7 @@ export function generateModernReceiptHTML(inv: ReceiptData): string {
                 TOTAL CUMULÉ (1 article)
               </td>
               <td style="padding: 7px 10px; text-align: center; border-top: 1.5px solid #cbd5e1;">
-                ${inv.boxes || 1} Carton${Number(inv.boxes) > 1 ? 's' : ''}
+                ${boxes} Carton${boxes > 1 ? 's' : ''}
               </td>
               <td style="padding: 7px 10px; text-align: right; border-top: 1.5px solid #cbd5e1;">
                 ${formattedWeight} kg

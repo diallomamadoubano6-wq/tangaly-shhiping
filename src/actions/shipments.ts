@@ -7,16 +7,22 @@ import { revalidatePath } from 'next/cache';
 import { generateDefaultClientPassword, normalizePhone } from '@/lib/clientAuthUtils';
 import { hashPassword } from '@/lib/serverAuth';
 
-async function checkAuth() {
+const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'GERANT_USA', 'GERANT_GUINEE', 'AGENT'];
+
+async function checkStaffAuth() {
   const session = await getServerSession(authOptions);
-  if (!session) {
-    throw new Error('Unauthorized');
+  if (!session || !session.user) {
+    throw new Error('Non autorisé. Veuillez vous connecter.');
   }
-  return session.user as any;
+  const user = session.user as any;
+  if (!user.role || !STAFF_ROLES.includes(user.role)) {
+    throw new Error('Accès refusé : privilèges staff/admin requis.');
+  }
+  return user;
 }
 
 export async function getShipments() {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
   
   try {
     const shipments = await prisma.shipment.findMany({
@@ -54,7 +60,7 @@ function generateTrackingNumber() {
 }
 
 export async function createShipment(data: any) {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
   
   try {
     const trackingNumber = generateTrackingNumber();
@@ -174,7 +180,7 @@ export async function createShipment(data: any) {
 }
 
 export async function updateShipmentStatus(id: string, statut: string, commentaire?: string) {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
   
   try {
     const shipment = await prisma.shipment.update({
@@ -200,7 +206,7 @@ export async function updateShipmentStatus(id: string, statut: string, commentai
 }
 
 export async function registerPayment(shipmentId: string, amount: number, method: string = 'CASH') {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
   
   try {
     const cleanId = (shipmentId || '').trim();
@@ -288,7 +294,7 @@ export async function registerPayment(shipmentId: string, amount: number, method
 }
 
 export async function addShipmentEvent(id: string, statut: string, commentaire: string) {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
   
   try {
     await prisma.trackingEvent.create({
@@ -332,7 +338,7 @@ function extractTrackingCode(input: string): string {
 }
 
 export async function findShipmentByTracking(trackingNumber: string) {
-  await checkAuth();
+  await checkStaffAuth();
   
   try {
     const cleanNum = extractTrackingCode(trackingNumber);
@@ -390,7 +396,7 @@ export async function scanShipmentAction(
   commentaire?: string,
   localisation?: string
 ) {
-  const user = await checkAuth();
+  const user = await checkStaffAuth();
 
   try {
     const cleanNum = extractTrackingCode(trackingNumber);
@@ -501,12 +507,12 @@ interface OperationShipmentData {
 }
 
 export async function createOperationShipment(data: OperationShipmentData) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return { success: false, message: 'Non autorisé. Veuillez vous connecter.' };
+  let agentUser: any;
+  try {
+    agentUser = await checkStaffAuth();
+  } catch (authErr: any) {
+    return { success: false, message: authErr.message || 'Non autorisé. Privilèges staff requis.' };
   }
-
-  const agentUser = session.user as any;
 
   try {
     const cleanPhone = normalizePhone(data.senderPhone);

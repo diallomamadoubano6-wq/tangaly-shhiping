@@ -43,15 +43,32 @@ export function cleanLabelDescription(desc: string): string {
   return cleaned || desc;
 }
 
+function escapeHtml(text?: string | number | null): string {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /**
  * Génère le code HTML de l'étiquette complète au format 100mm x 150mm
  */
 export function generateShippingLabelHTML(data: ShippingLabelData): string {
-  const trackingNumber = data.trackingNumber || 'TGL-NON-DEFINI';
-  const displayDate = data.date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  const cleanedDesc = cleanLabelDescription(data.description);
-  const formattedWeight = typeof data.weight === 'number' ? data.weight.toFixed(1) : data.weight || '0';
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=0&data=${encodeURIComponent(trackingNumber)}`;
+  const trackingNumber = escapeHtml(data.trackingNumber || 'TGL-NON-DEFINI');
+  const displayDate = escapeHtml(data.date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }));
+  const cleanedDesc = escapeHtml(cleanLabelDescription(data.description));
+  const senderName = escapeHtml(data.senderName || '—');
+  const senderPhone = escapeHtml(data.senderPhone);
+  const senderAddress = escapeHtml(data.senderAddress);
+  const receiverName = escapeHtml(data.receiverName || '—');
+  const receiverPhone = escapeHtml(data.receiverPhone);
+  const receiverAddress = escapeHtml(data.receiverAddress);
+  const formattedWeight = escapeHtml(typeof data.weight === 'number' ? data.weight.toFixed(1) : data.weight || '0');
+  const boxes = escapeHtml(data.boxes || 1);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=0&data=${encodeURIComponent(data.trackingNumber || 'TGL-NON-DEFINI')}`;
 
   return `
     <div class="label-container">
@@ -72,15 +89,15 @@ export function generateShippingLabelHTML(data: ShippingLabelData): string {
       <div class="addresses">
         <div class="sender">
           <p class="section-title">FROM / EXPÉDITEUR :</p>
-          <p class="sender-name">${data.senderName || '—'}</p>
-          ${data.senderPhone ? `<p style="font-size: 11px;">${data.senderPhone}</p>` : ''}
-          ${data.senderAddress ? `<p style="font-size: 10px; color: #333;">${data.senderAddress}</p>` : ''}
+          <p class="sender-name">${senderName}</p>
+          ${senderPhone ? `<p style="font-size: 11px;">${senderPhone}</p>` : ''}
+          ${senderAddress ? `<p style="font-size: 10px; color: #333;">${senderAddress}</p>` : ''}
         </div>
         <div class="receiver">
           <p class="section-title">TO / DESTINATAIRE :</p>
-          <p class="receiver-name">${data.receiverName || '—'}</p>
-          ${data.receiverPhone ? `<p style="font-size: 13px; font-weight: bold;">${data.receiverPhone}</p>` : ''}
-          ${data.receiverAddress ? `<p style="font-size: 12px; font-weight: bold; color: #111;">${data.receiverAddress}</p>` : ''}
+          <p class="receiver-name">${receiverName}</p>
+          ${receiverPhone ? `<p style="font-size: 13px; font-weight: bold;">${receiverPhone}</p>` : ''}
+          ${receiverAddress ? `<p style="font-size: 12px; font-weight: bold; color: #111;">${receiverAddress}</p>` : ''}
         </div>
       </div>
 
@@ -97,7 +114,7 @@ export function generateShippingLabelHTML(data: ShippingLabelData): string {
           </div>
           <div>
             <p class="section-title">COLIS</p>
-            <p class="stat-val">${data.boxes || 1}</p>
+            <p class="stat-val">${boxes}</p>
           </div>
         </div>
       </div>

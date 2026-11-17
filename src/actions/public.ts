@@ -116,8 +116,9 @@ export async function submitQuote(data: {
 
 export async function publicTracking(trackingNumber: string) {
   try {
+    const cleanNum = trackingNumber.trim().toUpperCase();
     const shipment = await prisma.shipment.findUnique({
-      where: { tracking_number: trackingNumber },
+      where: { tracking_number: cleanNum },
       include: {
         tracking_events: {
           orderBy: { date: 'asc' }
@@ -129,7 +130,26 @@ export async function publicTracking(trackingNumber: string) {
       return { success: false, message: 'Colis introuvable' };
     }
 
-    return { success: true, data: shipment };
+    // Sécurité PII : Ne renvoyer que les métadonnées de suivi public, jamais les données privées
+    const safeData = {
+      id: shipment.id,
+      tracking_number: shipment.tracking_number,
+      statut: shipment.statut,
+      origine: shipment.origine,
+      destination: shipment.destination,
+      type_transport: shipment.type_transport,
+      poids: shipment.poids,
+      updatedAt: shipment.updatedAt,
+      tracking_events: shipment.tracking_events.map(ev => ({
+        id: ev.id,
+        statut: ev.statut,
+        date: ev.date,
+        commentaire: ev.commentaire,
+        localisation: ev.localisation
+      }))
+    };
+
+    return { success: true, data: safeData };
   } catch (error) {
     console.error("Error tracking shipment:", error);
     return { success: false, message: 'Erreur lors de la recherche' };
