@@ -23,7 +23,7 @@ export async function getQuotes() {
     });
     
     // Convert created_at to string to match client interface if needed
-    const formatted = quotes.map(q => ({
+    const formatted = quotes.map((q: any) => ({
       ...q,
       created_at: q.createdAt.toISOString()
     }));

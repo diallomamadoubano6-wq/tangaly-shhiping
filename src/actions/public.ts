@@ -17,7 +17,7 @@ export async function getHomeData() {
     services = dbServices;
     faqs = dbFaqs;
     const settingsMap: Record<string, string> = {};
-    dbSettings.forEach(s => { settingsMap[s.key] = s.value; });
+    dbSettings.forEach((s: any) => { settingsMap[s.key] = s.value; });
     if (settingsMap['hero']) {
       try { cmsHero = JSON.parse(settingsMap['hero']); } catch (e) {}
     }
@@ -140,7 +140,7 @@ export async function publicTracking(trackingNumber: string) {
       type_transport: shipment.type_transport,
       poids: shipment.poids,
       updatedAt: shipment.updatedAt,
-      tracking_events: shipment.tracking_events.map(ev => ({
+      tracking_events: shipment.tracking_events.map((ev: any) => ({
         id: ev.id,
         statut: ev.statut,
         date: ev.date,

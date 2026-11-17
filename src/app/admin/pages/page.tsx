@@ -37,7 +37,7 @@ export default function SeoAdminPage() {
     setLoading(true);
     try {
       const data = await getPages();
-      const mapped = data.map(p => {
+      const mapped = data.map((p: any) => {
         const seoData = p.seo ? JSON.parse(p.seo) : {};
         return {
           id: p.id,
@@ -49,7 +49,7 @@ export default function SeoAdminPage() {
       });
       // Add default pages if they don't exist yet
       for (const slug of Object.keys(PAGE_NAMES)) {
-        if (!mapped.find(m => m.page_slug === slug)) {
+        if (!mapped.find((m: any) => m.page_slug === slug)) {
           const newPage = await createPage({ slug, titre: PAGE_NAMES[slug], contenu: '', seo: '{}' });
           mapped.push({ id: newPage.id, page_slug: newPage.slug, titre: newPage.titre, meta_description: '', og_image: '' });
         }

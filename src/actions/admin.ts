@@ -45,7 +45,7 @@ export async function getAdminDashboardStats() {
         livres: deliveredShipments,
         montantCollecte: result._sum.amountPaid || 0,
       },
-      recentShipments: recentShipments.map(s => ({
+      recentShipments: recentShipments.map((s: any) => ({
         id: s.id,
         tracking_number: s.tracking_number,
         expediteur: s.client?.user?.nom || 'Inconnu',

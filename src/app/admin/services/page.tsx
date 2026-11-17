@@ -33,7 +33,7 @@ export default function ServicesAdminPage() {
     try {
       const data = await getServices();
       // map image to image_url and href to prevent TS errors in the old UI since schema differs slightly
-      const mapped = data.map(s => ({...s, image_url: s.image, href: `/services/${s.id}`, ordre: 0 }));
+      const mapped = data.map((s: any) => ({...s, image_url: s.image, href: `/services/${s.id}`, ordre: 0 }));
       setServices(mapped as any);
     } catch (e) {
       addToast('error', 'Erreur chargement services');

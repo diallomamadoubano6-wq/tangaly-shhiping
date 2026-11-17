@@ -33,7 +33,7 @@ export default function FaqAdminPage() {
       // The schema for Faq may not have `publie`. If so we map it. 
       // Wait, in schema, Faq doesn't have `publie`! Let's map it to always true for now, or use `actif` if we added it?
       // Looking at Prisma schema: Faq: id, question, reponse, ordre, createdAt, updatedAt
-      const mapped = data.map(f => ({ ...f, publie: true }));
+      const mapped = data.map((f: any) => ({ ...f, publie: true }));
       setItems(mapped as any);
     } catch (e) {
       addToast('error', 'Erreur chargement FAQ');

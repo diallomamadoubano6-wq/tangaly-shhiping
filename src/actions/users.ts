@@ -28,7 +28,10 @@ export async function getUsers() {
     });
     
     // On ne renvoie jamais les mots de passe côté client
-    const safeUsers = users.map(({ password_hash, ...rest }) => rest);
+    const safeUsers = users.map((u: any) => {
+      const { password_hash, ...rest } = u;
+      return rest;
+    });
     
     return { success: true, data: safeUsers };
   } catch (error) {
@@ -149,7 +152,7 @@ export async function deleteUser(id: string) {
     }
 
     // Nettoyage et suppression sécurisée en transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. Déconnecter les événements de suivi enregistrés par cet utilisateur
       await tx.trackingEvent.updateMany({
         where: { userId: id },

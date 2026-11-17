@@ -47,7 +47,7 @@ export async function updateContactInfo(info: Partial<SiteContactInfo>) {
 export async function getCmsSettings() {
   const settings = await prisma.cmsSetting.findMany();
   const config: Record<string, string> = {};
-  settings.forEach(s => { config[s.key] = s.value; });
+  settings.forEach((s: any) => { config[s.key] = s.value; });
   return config;
 }
 

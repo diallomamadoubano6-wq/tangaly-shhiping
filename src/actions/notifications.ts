@@ -205,7 +205,7 @@ export async function getAgentNotifications(): Promise<{
       take: 15,
     });
 
-    const items: NotificationItem[] = notifs.map(n => {
+    const items: NotificationItem[] = notifs.map((n: any) => {
       const d = new Date(n.createdAt);
       return {
         id: n.id,

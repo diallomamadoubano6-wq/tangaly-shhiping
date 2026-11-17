@@ -43,7 +43,7 @@ export default function BlogAdminPage() {
     setLoading(true);
     try {
       const data = await getArticles();
-      const mapped = data.map(p => ({
+      const mapped = data.map((p: any) => ({
         ...p,
         image_url: p.image || '',
         created_at: p.createdAt.toISOString(),
