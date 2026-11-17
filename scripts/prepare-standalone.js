@@ -41,12 +41,8 @@ if (fs.existsSync(envSrc)) {
   console.log('✓ Copied .env to .next/standalone/.env');
 }
 
-// 5. Generate dedicated Passenger-compatible server.js
-const serverJsContent = `// Phusion Passenger / Hostinger production server for Tangaly Next.js
-if (typeof(PhusionPassenger) !== 'undefined') {
-  PhusionPassenger.configure({ autoInstall: false });
-}
-
+// 5. Generate dedicated CloudLinux / Passenger compatible server.js
+const serverJsContent = `// CloudLinux / LiteSpeed / Passenger production server for Tangaly Next.js
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -108,13 +104,26 @@ server.once('error', (err) => {
   process.exit(1);
 });
 
-// Under Phusion Passenger, explicitly listen on 'passenger'
-const listenTarget = (typeof(PhusionPassenger) !== 'undefined') ? 'passenger' : (process.env.PORT || 3000);
-server.listen(listenTarget, () => {
-  console.log(\`> Tangaly Next.js Server Ready on \${listenTarget}\`);
-});
+// Under CloudLinux / LiteSpeed Passenger:
+// - If process.env.PORT is passed, listen on that port/socket.
+// - If running under LiteSpeed/Passenger (LSNODE_CONSOLE_LOG or PASSENGER_APP_ENV), call server.listen() without args
+//   so Passenger/LiteSpeed automatically binds to its assigned internal socket/port.
+// - Otherwise, fallback to port 3000 for standalone local runs.
+if (process.env.PORT) {
+  server.listen(process.env.PORT, () => {
+    console.log(\`> Tangaly Next.js Server Ready on port \${process.env.PORT}\`);
+  });
+} else if (process.env.LSNODE_CONSOLE_LOG || process.env.PASSENGER_APP_ENV || typeof PhusionPassenger !== 'undefined') {
+  server.listen(() => {
+    console.log('> Tangaly Next.js Server Ready on CloudLinux/LiteSpeed Passenger socket');
+  });
+} else {
+  server.listen(3000, () => {
+    console.log('> Tangaly Next.js Server Ready on port 3000');
+  });
+}
 `;
 
 fs.writeFileSync(path.join(standaloneDir, 'server.js'), serverJsContent, 'utf8');
 fs.writeFileSync(path.join(rootDir, 'server.js'), serverJsContent, 'utf8');
-console.log('✓ Successfully wrote Passenger-compatible server.js to both root and standalone');
+console.log('✓ Successfully wrote CloudLinux/Passenger-compatible server.js to both root and standalone');
