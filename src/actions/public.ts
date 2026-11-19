@@ -9,12 +9,15 @@ export async function getHomeData() {
   let cmsStats: any = null;
 
   try {
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000));
     const queryPromise = Promise.all([
       prisma.service.findMany({ where: { actif: true } }),
       prisma.faq.findMany({ orderBy: { ordre: 'asc' } }),
       prisma.cmsSetting.findMany()
-    ]).catch(() => null);
+    ]).catch((err) => {
+      console.warn("Prisma query error in getHomeData:", err);
+      return null;
+    });
 
     const result = await Promise.race([queryPromise, timeoutPromise]);
     if (result) {

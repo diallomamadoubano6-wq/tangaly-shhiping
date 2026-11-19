@@ -4,6 +4,8 @@ import { Send, Phone, MessageSquare, Mail, Clock } from 'lucide-react';
 import styles from './contact.module.css';
 import { getPublicContactInfo } from '@/actions/cms';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Contact',
   description: 'Contactez l\'équipe TANGALY pour toute question sur vos expéditions, tarifs ou services logistiques USA ↔ Guinée.',

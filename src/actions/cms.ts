@@ -16,10 +16,13 @@ const requireAdmin = async () => {
 
 export async function getPublicContactInfo(): Promise<SiteContactInfo> {
   try {
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200));
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3500));
     const queryPromise = prisma.cmsSetting.findUnique({
       where: { key: 'contact_info' },
-    }).catch(() => null);
+    }).catch((err) => {
+      console.warn("Prisma query error in getPublicContactInfo:", err);
+      return null;
+    });
 
     const setting = await Promise.race([queryPromise, timeoutPromise]);
     if (setting?.value) {
