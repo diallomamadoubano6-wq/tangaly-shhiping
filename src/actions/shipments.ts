@@ -53,6 +53,35 @@ export async function getShipments() {
   }
 }
 
+export async function getReturnedShipments() {
+  await checkStaffAuth();
+  try {
+    const shipments = await prisma.shipment.findMany({
+      where: {
+        statut: { in: ['RETURNED', 'RETOURNÉ', 'RETURN', 'EN_ATTENTE_CLIENT', 'RETOURNE_AGENCE'] }
+      },
+      include: {
+        client: {
+          include: {
+            user: true
+          }
+        },
+        tracking_events: {
+          orderBy: { date: 'desc' },
+          take: 1
+        }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+    return { success: true, data: shipments };
+  } catch (error) {
+    console.error("Error fetching returned shipments:", error);
+    return { success: false, data: [] };
+  }
+}
+
 function generateTrackingNumber() {
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
   const random = Math.floor(100000 + Math.random() * 900000);

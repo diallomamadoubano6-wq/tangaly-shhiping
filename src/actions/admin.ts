@@ -61,3 +61,32 @@ export async function getAdminDashboardStats() {
     return { success: false, stats: null, recentShipments: [] };
   }
 }
+
+export async function getReportsStats() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return { success: false, data: { revenue: 0, totalShipments: 0, totalClients: 0 } };
+  }
+
+  try {
+    const totalShipments = await prisma.shipment.count();
+    const totalClients = await prisma.client.count();
+    const result = await prisma.shipment.aggregate({
+      _sum: {
+        amountPaid: true,
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        revenue: result._sum.amountPaid || 0,
+        totalShipments,
+        totalClients,
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching reports stats:", error);
+    return { success: false, data: { revenue: 0, totalShipments: 0, totalClients: 0 } };
+  }
+}

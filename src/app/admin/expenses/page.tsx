@@ -5,10 +5,7 @@ import { PlusSquare, Search, Filter, Trash2 } from 'lucide-react';
 
 export default function ExpensesPage() {
   const [showModal, setShowModal] = useState(false);
-  const [expenses, setExpenses] = useState([
-    { id: "EXP-001", description: "Carburant camionnette", amount: "$50", date: "06 Sep 2026", user: "Adama Diallo", category: "Transport" },
-    { id: "EXP-002", description: "Fournitures bureau", amount: "$15", date: "05 Sep 2026", user: "Adama Diallo", category: "Fournitures" }
-  ]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   
   const [newDesc, setNewDesc] = useState('');
   const [newAmount, setNewAmount] = useState('');
@@ -70,19 +67,27 @@ export default function ExpensesPage() {
               </tr>
             </thead>
             <tbody>
-              {expenses.map((e, i) => (
-                <tr key={i}>
-                  <td><strong>{e.id}</strong></td>
-                  <td>{e.description}</td>
-                  <td><span className={`${styles.badge} ${styles.badgeInfo}`}>{e.category}</span></td>
-                  <td style={{fontWeight: 700, color: '#ef4444'}}>{e.amount}</td>
-                  <td>{e.date}</td>
-                  <td>{e.user}</td>
-                  <td>
-                    <button className={styles.textButton}><Trash2 size={14}/> Supprimer</button>
+              {expenses.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                    Aucune dépense enregistrée pour le moment.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                expenses.map((e, i) => (
+                  <tr key={i}>
+                    <td><strong>{e.id}</strong></td>
+                    <td>{e.description}</td>
+                    <td><span className={`${styles.badge} ${styles.badgeInfo}`}>{e.category}</span></td>
+                    <td style={{fontWeight: 700, color: '#ef4444'}}>{e.amount}</td>
+                    <td>{e.date}</td>
+                    <td>{e.user}</td>
+                    <td>
+                      <button className={styles.textButton}><Trash2 size={14}/> Supprimer</button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

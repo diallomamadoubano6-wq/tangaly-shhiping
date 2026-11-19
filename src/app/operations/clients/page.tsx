@@ -1,14 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../operations.module.css';
 import { UserPlus, Search, X, History } from 'lucide-react';
+import { getClients } from '@/actions/clients';
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState([
-    { id: "CL-001", name: "Mamadou Diallo", phone: "620123456", email: "mamadou@email.com", address: "Dixinn, Conakry", totalShipments: 12 },
-    { id: "CL-002", name: "Fatoumata Camara", phone: "621987654", email: "fatou.c@email.com", address: "Kipé, Conakry", totalShipments: 5 },
-    { id: "CL-003", name: "Ousmane Sylla", phone: "628112233", email: "ousmane@email.com", address: "Kaloum, Conakry", totalShipments: 2 }
-  ]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -18,16 +17,43 @@ export default function ClientsPage() {
   const [newPhone, setNewPhone] = useState('');
   const [newAddress, setNewAddress] = useState('');
 
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await getClients();
+        if (res.success && res.data) {
+          const formatted = res.data.map((c: any) => ({
+            id: c.id,
+            name: c.user?.nom || 'Client',
+            phone: c.telephone || 'N/A',
+            email: c.user?.email || '',
+            address: c.adresse || '',
+            totalShipments: c.shipments?.length || 0,
+            shipments: c.shipments || []
+          }));
+          setClients(formatted);
+        }
+      } catch (err) {
+        console.error("Erreur chargement clients:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   const handleAddClient = () => {
-    if(!newName || !newPhone) return;
+    if (!newName || !newPhone) return;
     setClients([
       { 
-        id: `CL-00${clients.length + 1}`, 
+        id: `CL-${Date.now().toString().slice(-4)}`, 
         name: newName, 
         phone: newPhone, 
         email: "", 
         address: newAddress, 
-        totalShipments: 0 
+        totalShipments: 0,
+        shipments: []
       },
       ...clients
     ]);
@@ -42,6 +68,11 @@ export default function ClientsPage() {
     setShowHistoryModal(true);
   };
 
+  const filteredClients = clients.filter(c => {
+    const term = searchTerm.toLowerCase();
+    return (c.name || '').toLowerCase().includes(term) || (c.phone || '').includes(term);
+  });
+
   return (
     <>
       <div className={styles.cardHeader} style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap: 16}}>
@@ -52,7 +83,13 @@ export default function ClientsPage() {
         <div style={{display:'flex', gap:12, flexWrap:'wrap', alignItems:'center'}}>
           <div className={styles.searchBox} style={{display:'flex', alignItems:'center', background:'white', padding:'8px 12px', borderRadius:8, border:'1px solid #cbd5e1', flex:'1 1 200px', minWidth: 180}}>
             <Search size={18} color="#64748b" style={{marginRight:8}} />
-            <input type="text" placeholder="Rechercher (Nom, N° Tel)" style={{border:'none', outline:'none', background:'transparent', width:'100%'}} />
+            <input 
+              type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rechercher (Nom, N° Tel)" 
+              style={{border:'none', outline:'none', background:'transparent', width:'100%'}} 
+            />
           </div>
           <button onClick={() => setShowAddModal(true)} className={styles.primaryButton} >
             <UserPlus size={18} /> Nouveau Client
@@ -73,18 +110,32 @@ export default function ClientsPage() {
             </tr>
           </thead>
           <tbody>
-            {clients.map((c, i) => (
-              <tr key={i}>
-                <td style={{fontWeight:500, color:'#0f172a'}}>{c.id}</td>
-                <td style={{fontWeight:600}}>{c.name}</td>
-                <td>{c.phone}</td>
-                <td style={{color:'#64748b'}}>{c.address}</td>
-                <td>{c.totalShipments} colis</td>
-                <td>
-                  <button onClick={() => openHistory(c)} className={styles.textButton}>Voir historique</button>
+            {loading ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                  Chargement des clients...
                 </td>
               </tr>
-            ))}
+            ) : filteredClients.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                  {searchTerm ? 'Aucun client ne correspond à votre recherche.' : 'Aucun client enregistré dans la base de données.'}
+                </td>
+              </tr>
+            ) : (
+              filteredClients.map((c, i) => (
+                <tr key={c.id || i}>
+                  <td style={{fontWeight:500, color:'#0f172a'}}>{c.id}</td>
+                  <td style={{fontWeight:600}}>{c.name}</td>
+                  <td>{c.phone}</td>
+                  <td style={{color:'#64748b'}}>{c.address || '-'}</td>
+                  <td>{c.totalShipments} colis</td>
+                  <td>
+                    <button onClick={() => openHistory(c)} className={styles.textButton}>Voir historique</button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -139,16 +190,13 @@ export default function ClientsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{borderBottom:'1px solid #f1f5f9'}}>
-                    <td style={{padding:'12px 0', fontWeight:500}}>TGL-9921</td>
-                    <td style={{padding:'12px 0'}}>10 Sep 2026</td>
-                    <td style={{padding:'12px 0'}}><span style={{background:'#dbeafe', color:'#1e3a8a', padding:'4px 8px', borderRadius:4, fontSize:'0.75rem'}}>En Transit</span></td>
-                  </tr>
-                  <tr>
-                    <td style={{padding:'12px 0', fontWeight:500}}>TGL-7734</td>
-                    <td style={{padding:'12px 0'}}>01 Aou 2026</td>
-                    <td style={{padding:'12px 0'}}><span style={{background:'#dcfce7', color:'#166534', padding:'4px 8px', borderRadius:4, fontSize:'0.75rem'}}>Livré</span></td>
-                  </tr>
+                  {(selectedClient.shipments || []).map((s: any, idx: number) => (
+                    <tr key={idx} style={{borderBottom:'1px solid #f1f5f9'}}>
+                      <td style={{padding:'12px 0', fontWeight:500}}>{s.tracking_number || s.id}</td>
+                      <td style={{padding:'12px 0'}}>{new Date(s.createdAt).toLocaleDateString('fr-FR')}</td>
+                      <td style={{padding:'12px 0'}}><span style={{background:'#dbeafe', color:'#1e3a8a', padding:'4px 8px', borderRadius:4, fontSize:'0.75rem'}}>{s.statut}</span></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             ) : (

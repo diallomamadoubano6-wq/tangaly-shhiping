@@ -4,15 +4,16 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-async function checkAdminAuth() {
+async function checkStaffAuth() {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any).role !== 'SUPER_ADMIN') {
+  const role = (session?.user as any)?.role;
+  if (!session || !['SUPER_ADMIN', 'ADMIN', 'AGENT'].includes(role)) {
     throw new Error('Unauthorized');
   }
 }
 
 export async function getClients() {
-  await checkAdminAuth();
+  await checkStaffAuth();
   
   try {
     const clients = await prisma.client.findMany({
