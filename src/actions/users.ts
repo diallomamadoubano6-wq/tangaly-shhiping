@@ -8,7 +8,8 @@ import { revalidatePath } from 'next/cache';
 
 async function checkAdminAuth() {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any).role !== 'SUPER_ADMIN') {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== 'SUPER_ADMIN' && role !== 'ADMIN')) {
     throw new Error('Unauthorized');
   }
 }

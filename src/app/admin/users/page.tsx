@@ -34,8 +34,12 @@ export default function UsersPage() {
         getAgencies()
       ]);
       
-      if (resUsers.success) setUsers(resUsers.data as any[]);
-      if (resAgencies.success) setAgencies(resAgencies.data as any[]);
+      if (resUsers.success && resUsers.data) {
+        setUsers(resUsers.data as any[]);
+      }
+      if (resAgencies.success && resAgencies.data) {
+        setAgencies(resAgencies.data as any[]);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
       addToast('error', 'Erreur', 'Impossible de charger les données.');

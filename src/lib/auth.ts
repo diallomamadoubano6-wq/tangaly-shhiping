@@ -135,6 +135,9 @@ export const authOptions: NextAuthOptions = {
               mustChangePassword: freshUser.mustChangePassword,
             } as any;
             return session;
+          } else {
+            // L'utilisateur a été supprimé de la base de données (ex: remise à zéro)
+            return null as any;
           }
         } catch (e) {
           console.error("Session refresh error:", e);
