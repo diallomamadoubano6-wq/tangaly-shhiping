@@ -395,6 +395,41 @@ async function main() {
   }
   console.log(`✓ Articles New York initialisés : ${addedArticles} nouveaux ajoutés`);
 
+  // Initialisation / réparation des coordonnées CMS
+  const defaultContact = {
+    email: 'contact@tangalyshipping.com',
+    phoneUSA: '+1 (646) 382-0065',
+    phoneGN: '+224 626 98 52 54',
+    whatsapp: '+1 (646) 382-0065',
+    addressUSA: '3429 3rd Ave, Bronx, NY 10456 (Hub USA)',
+    addressGN: 'Cité Enco 5, Conakry, Guinée (Hub Conakry)',
+    horaires: 'Lundi – Samedi : 8h00 – 20h00',
+    facebook: 'https://www.facebook.com/tangalyshipping',
+    instagram: 'https://www.instagram.com/tangalyshipping'
+  };
+  try {
+    const existing = await prisma.cmsSetting.findUnique({ where: { key: 'contact_info' } });
+    let needsFix = true;
+    if (existing?.value) {
+      try {
+        JSON.parse(existing.value);
+        needsFix = false;
+      } catch (err) {
+        needsFix = true;
+      }
+    }
+    if (needsFix) {
+      await prisma.cmsSetting.upsert({
+        where: { key: 'contact_info' },
+        update: { value: JSON.stringify(defaultContact), description: 'Coordonnées officielles de contact du site' },
+        create: { key: 'contact_info', value: JSON.stringify(defaultContact), description: 'Coordonnées officielles de contact du site' }
+      });
+      console.log('✓ Paramètres de contact CMS réparés/initialisés avec succès.');
+    }
+  } catch (e) {
+    console.log('CMS setting init:', e.message);
+  }
+
   console.log('--- Initialisation terminée : Compte Administrateur et Articles configurés ---');
 }
 

@@ -180,8 +180,8 @@ model Notification {
 model CmsSetting {
   id          String   @id @default(uuid())
   key         String   @unique
-  value       String
-  description String?
+  value       String   @db.Text
+  description String?  @db.Text
   updatedAt   DateTime @updatedAt
 }
 
