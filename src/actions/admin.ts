@@ -36,6 +36,21 @@ export async function getAdminDashboardStats() {
       }
     });
 
+    // Récupérer les expéditions des 365 derniers jours pour la courbe
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const trendShipments = await prisma.shipment.findMany({
+      where: {
+        createdAt: { gte: oneYearAgo }
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        amountPaid: true,
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
     return {
       success: true,
       stats: {
@@ -45,6 +60,10 @@ export async function getAdminDashboardStats() {
         livres: deliveredShipments,
         montantCollecte: result._sum.amountPaid || 0,
       },
+      trendShipments: trendShipments.map(s => ({
+        createdAt: s.createdAt.toISOString(),
+        amountPaid: s.amountPaid || 0
+      })),
       recentShipments: recentShipments.map((s: any) => ({
         id: s.id,
         tracking_number: s.tracking_number,

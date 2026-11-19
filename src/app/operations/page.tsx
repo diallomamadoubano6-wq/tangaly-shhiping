@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 
 import { getShipments } from '@/actions/shipments';
 import { useCurrency } from '@/context/CurrencyContext';
+import TrendChart from '@/components/dashboard/TrendChart';
 
 type Shipment = {
   id: string;
@@ -19,6 +20,7 @@ type Shipment = {
   poids?: number;
   totalAmount?: number;
   amountPaid?: number;
+  createdAt?: string | Date;
 };
 
 export default function AgentDashboard() {
@@ -114,26 +116,7 @@ export default function AgentDashboard() {
       {/* Graphique + Répartition par statut */}
       <div className={styles.middleRow}>
         <div className={styles.chartCard}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2 className={styles.cardTitle}>Expéditions (ce mois)</h2>
-              <p className={styles.cardSubtitle}>Courbe de tendance journalière</p>
-            </div>
-            <select style={{fontSize: 12, padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', outline: 'none', fontWeight: 500}}>
-              <option>Ce mois</option>
-              <option>3 derniers mois</option>
-              <option>Cette année</option>
-            </select>
-          </div>
-          <div style={{height: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', position:'relative'}}>
-            <div style={{position:'absolute', width:'100%', height:'100%', borderBottom:'1px solid #e2e8f0', borderLeft:'1px solid #e2e8f0'}}>
-              <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none">
-                <path d="M0,180 L100,180 L200,180 L250,180 L350,50 L450,180 L500,180" fill="none" stroke="#3b82f6" strokeWidth="3" />
-                <path d="M0,180 L100,180 L200,180 L250,180 L350,50 L450,180 L500,180 L500,200 L0,200 Z" fill="rgba(59, 130, 246, 0.1)" />
-                <circle cx="350" cy="50" r="4" fill="white" stroke="#3b82f6" strokeWidth="2" />
-              </svg>
-            </div>
-          </div>
+          <TrendChart shipments={shipments} />
         </div>
 
         <div className={styles.chartCard}>
