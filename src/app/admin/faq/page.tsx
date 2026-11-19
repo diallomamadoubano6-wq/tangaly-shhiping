@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { ExternalLink } from 'lucide-react';
 
 import Modal from '@/components/ui/Modal';
 import { useToast, useConfirm } from '@/components/ui/ToastProvider';
@@ -103,8 +104,8 @@ export default function FaqAdminPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ margin: 0 }}>Gestion de la FAQ</h2>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-orange-light)', padding: '4px 12px', borderRadius: '999px' }}>
-            🔗 Lié au site public
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'var(--color-orange-light)', padding: '4px 12px', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <ExternalLink size={12} /> Lié au site public
           </span>
           <button className="btn btn-primary" onClick={openCreate}>+ Ajouter une question</button>
         </div>

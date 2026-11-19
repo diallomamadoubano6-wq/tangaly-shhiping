@@ -735,7 +735,7 @@ _Ce devis est une estimation au comptoir valable 7 jours. Merci de votre confian
               <Box size={14} />
               {showVolumetric
                 ? 'Masquer le calcul de volume'
-                : '📐 Colis volumineux ? Calculer le poids volumétrique (L × l × H)'}
+                : 'Colis volumineux ? Calculer le poids volumétrique (L × l × H)'}
             </button>
 
             {showVolumetric && (

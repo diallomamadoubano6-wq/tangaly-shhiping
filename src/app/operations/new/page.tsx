@@ -1216,7 +1216,7 @@ export default function NewShipmentPage() {
                                           : `$${art.prixParKg}/kg`;
                                         return (
                                           <option key={art.id} value={art.id}>
-                                            📦 {art.nom} ({tar})
+                                            {art.nom} ({tar})
                                           </option>
                                         );
                                       })}

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { 
-  Camera, CameraOff, Search, ArrowRight, Package, CheckCircle2, 
-  Loader2, ScanBarcode, Clock, MapPin, User, Weight, 
-  ExternalLink, Volume2, VolumeX, Sparkles, AlertCircle, 
+import {
+  Camera, CameraOff, Search, ArrowRight, Package, CheckCircle2,
+  Loader2, ScanBarcode, Clock, MapPin, User, Weight,
+  ExternalLink, Volume2, VolumeX, Sparkles, AlertCircle,
   RotateCw, Check, Copy, History, Trash2, Zap, Barcode, Tag,
   FileEdit, Cog, Plane, RotateCcw
 } from 'lucide-react';
@@ -143,7 +143,7 @@ export default function AdminScannerPage() {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate([120, 60, 120]);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Load history from localStorage on mount & focus input automatically
@@ -155,7 +155,7 @@ export default function AdminScannerPage() {
         setHistory(parsed);
         setTodayCount(parsed.length);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Focus automatique à l'ouverture de la page
     inputRef.current?.focus();
@@ -201,7 +201,7 @@ export default function AdminScannerPage() {
     setTodayCount(prev => prev + 1);
     try {
       localStorage.setItem('tangaly_scanner_history', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Determine logical next status
@@ -576,7 +576,7 @@ export default function AdminScannerPage() {
     setHistory([]);
     try {
       localStorage.removeItem('tangaly_scanner_history');
-    } catch (e) {}
+    } catch (e) { }
     addToast('info', 'Historique vidé', 'Le journal local des scans a été réinitialisé.');
   };
 
@@ -752,8 +752,9 @@ export default function AdminScannerPage() {
 
               {/* Barre résumé du lot & Annulation */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', paddingTop: '4px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>
-                  📦 {batchLogs.filter(b => b.success).length} colis pointé{batchLogs.filter(b => b.success).length > 1 ? 's' : ''} en lot
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>
+                  <Package size={14} color="#15803d" />
+                  <span>{batchLogs.filter(b => b.success).length} colis pointé{batchLogs.filter(b => b.success).length > 1 ? 's' : ''} en lot</span>
                 </div>
 
                 {lastSuccessfulBatchScan && (
@@ -831,7 +832,7 @@ export default function AdminScannerPage() {
                         if (detectedCodes && detectedCodes.length > 0) {
                           const raw = detectedCodes[0]?.rawValue || (typeof detectedCodes[0] === 'string' ? detectedCodes[0] : null);
                           if (!raw) return;
-                          
+
                           const now = Date.now();
                           if (raw === lastScanRef.current.code && now - lastScanRef.current.time < 3000) {
                             return;

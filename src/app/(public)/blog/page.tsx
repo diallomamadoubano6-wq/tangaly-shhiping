@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Newspaper } from 'lucide-react';
 import styles from './blog.module.css';
 
 export const metadata: Metadata = {
@@ -95,7 +96,9 @@ export default async function BlogPage() {
             {articles.map((art, i) => (
               <li key={art.slug} className={`${styles.card} ${i === 0 ? styles.featured : ''}`}>
                 <div className={styles.cardImg} aria-hidden="true">
-                  <span className={styles.cardImgPlaceholder}>📰</span>
+                  <span className={styles.cardImgPlaceholder}>
+                    <Newspaper size={36} color="#94a3b8" />
+                  </span>
                 </div>
                 <div className={styles.cardBody}>
                   <span className={styles.categorie}>{art.categorie}</span>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Calendar } from 'lucide-react';
+import { TrendingUp, Calendar, Package, Coins } from 'lucide-react';
 
 export interface ShipmentTrendItem {
   createdAt?: string | Date;
@@ -374,10 +374,11 @@ export default function TrendChart({
               pointerEvents: 'none',
               display: 'flex',
               alignItems: 'center',
-              gap: 6
+              gap: 8
             }}
           >
-            <span>📈</span> Courbe prête — les pics s&apos;afficheront au fur et à mesure de vos envois
+            <TrendingUp size={16} color="#2563eb" />
+            <span>Courbe prête — les indicateurs s&apos;ajusteront au fur et à mesure de vos envois</span>
           </div>
         )}
 
@@ -401,15 +402,17 @@ export default function TrendChart({
               transition: 'left 0.1s ease, top 0.1s ease'
             }}
           >
-            <div style={{ fontWeight: 600, fontSize: 11, color: '#94a3b8', textTransform: 'capitalize', marginBottom: 2 }}>
+            <div style={{ fontWeight: 600, fontSize: 11, color: '#94a3b8', textTransform: 'capitalize', marginBottom: 4 }}>
               {activePoint.data.fullDate}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, color: '#60a5fa' }}>
-              <span>📦</span> {activePoint.data.count} colis expédié{activePoint.data.count > 1 ? 's' : ''}
+              <Package size={15} color="#60a5fa" />
+              <span>{activePoint.data.count} colis expédié{activePoint.data.count > 1 ? 's' : ''}</span>
             </div>
             {activePoint.data.totalAmount > 0 && (
-              <div style={{ fontSize: 11, color: '#34d399', marginTop: 2 }}>
-                💰 {activePoint.data.totalAmount.toLocaleString('fr-FR')} encaissés
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#34d399', marginTop: 4 }}>
+                <Coins size={13} color="#34d399" />
+                <span>{activePoint.data.totalAmount.toLocaleString('fr-FR')} encaissés</span>
               </div>
             )}
           </div>

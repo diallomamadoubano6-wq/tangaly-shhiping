@@ -20,15 +20,15 @@ const UNITES = [
 ];
 
 const DIRECTIONS = [
-  { value: 'LES_DEUX', label: '🔄 USA ↔ Conakry (les deux sens)' },
-  { value: 'USA_CONAKRY', label: '➡️ USA → Conakry' },
-  { value: 'CONAKRY_USA', label: '⬅️ Conakry → USA' },
+  { value: 'LES_DEUX', label: 'USA ↔ Conakry (les deux sens)' },
+  { value: 'USA_CONAKRY', label: 'USA → Conakry' },
+  { value: 'CONAKRY_USA', label: 'Conakry → USA' },
 ];
 
 const SERVICES = [
-  { value: 'LES_DEUX', label: '✈️🚢 Aérien & Maritime' },
-  { value: 'AERIEN', label: '✈️ Fret Aérien' },
-  { value: 'MARITIME', label: '🚢 Fret Maritime' },
+  { value: 'LES_DEUX', label: 'Aérien & Maritime' },
+  { value: 'AERIEN', label: 'Fret Aérien' },
+  { value: 'MARITIME', label: 'Fret Maritime' },
 ];
 
 const CATEGORIES = [
@@ -198,8 +198,11 @@ export default function CatalogueArticlesPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-            📦 Catalogue des Articles & Tarifs
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ display: 'inline-flex', padding: 6, background: '#eff6ff', borderRadius: 8, color: '#2563eb' }}>
+              <Package size={22} color="#2563eb" />
+            </span>
+            Catalogue des Articles &amp; Tarifs
           </h1>
           <p style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>
             Définissez les articles expédiés et leurs prix. Les agents les sélectionneront lors de chaque expédition.
