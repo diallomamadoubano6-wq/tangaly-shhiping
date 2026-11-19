@@ -52,7 +52,7 @@ export default function CMSHomepage() {
     setLoading(true);
     try {
       const [config, contactData, servicesData] = await Promise.all([
-        getCmsSettings().catch(() => ({})),
+        getCmsSettings().catch(() => ({} as Record<string, string>)),
         getPublicContactInfo().catch(() => DEFAULT_CONTACT_INFO),
         getServices().catch(() => [])
       ]);
@@ -72,8 +72,9 @@ export default function CMSHomepage() {
         { value: '48h', label: 'Délai moyen traitement express' },
       ];
 
-      setHero(safeJsonParse(config?.['hero'], defaultHero));
-      setStats(safeJsonParse(config?.['stats'], defaultStats));
+      const configMap = (config || {}) as Record<string, string>;
+      setHero(safeJsonParse(configMap['hero'], defaultHero));
+      setStats(safeJsonParse(configMap['stats'], defaultStats));
       setServices(servicesData || []);
     } catch (e) {
       console.error('Erreur chargement CMS:', e);
