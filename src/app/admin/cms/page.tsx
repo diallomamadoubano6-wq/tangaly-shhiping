@@ -19,6 +19,19 @@ import {
 interface CmsStat { value: string; label: string; }
 interface CmsHero { headline: string; subheadline: string; }
 
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (!raw) return fallback;
+  if (typeof raw === 'object') return raw as T;
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
 export default function CMSHomepage() {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'contact' | 'hero' | 'stats' | 'services'>('contact');
@@ -39,37 +52,31 @@ export default function CMSHomepage() {
     setLoading(true);
     try {
       const [config, contactData, servicesData] = await Promise.all([
-        getCmsSettings(),
-        getPublicContactInfo(),
-        getServices()
+        getCmsSettings().catch(() => ({})),
+        getPublicContactInfo().catch(() => DEFAULT_CONTACT_INFO),
+        getServices().catch(() => [])
       ]);
 
       if (contactData) {
         setContact(contactData);
       }
 
-      if (config['hero']) {
-        setHero(typeof config['hero'] === 'string' ? JSON.parse(config['hero']) : config['hero']);
-      } else {
-        setHero({
-          headline: "Expédiez vos colis entre les USA et la Guinée en toute sérénité",
-          subheadline: "La solution logistique de confiance pour tous vos envois : depuis les États-Unis vers la Guinée et depuis la Guinée vers les États-Unis."
-        });
-      }
+      const defaultHero = {
+        headline: "Expédiez vos colis entre les USA et la Guinée en toute sérénité",
+        subheadline: "La solution logistique de confiance pour tous vos envois : depuis les États-Unis vers la Guinée et depuis la Guinée vers les États-Unis."
+      };
+      const defaultStats = [
+        { value: '10,000+', label: 'Colis livrés avec succès' },
+        { value: '99.8%', label: 'Taux de satisfaction client' },
+        { value: '2', label: 'Hubs logistiques (NY & Conakry)' },
+        { value: '48h', label: 'Délai moyen traitement express' },
+      ];
 
-      if (config['stats']) {
-        setStats(typeof config['stats'] === 'string' ? JSON.parse(config['stats']) : config['stats']);
-      } else {
-        setStats([
-          { value: '10,000+', label: 'Colis livrés avec succès' },
-          { value: '99.8%', label: 'Taux de satisfaction client' },
-          { value: '2', label: 'Hubs logistiques (NY & Conakry)' },
-          { value: '48h', label: 'Délai moyen traitement express' },
-        ]);
-      }
-      
+      setHero(safeJsonParse(config?.['hero'], defaultHero));
+      setStats(safeJsonParse(config?.['stats'], defaultStats));
       setServices(servicesData || []);
-    } catch {
+    } catch (e) {
+      console.error('Erreur chargement CMS:', e);
       addToast('error', 'Erreur de chargement des paramètres du site');
     }
     setLoading(false);
