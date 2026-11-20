@@ -129,22 +129,23 @@ export default function MentionsLegalesPage() {
             </ul>
           </section>
 
-          {/* Section 3 : Hébergeur */}
+          {/* Section 3 : Hébergement & Sécurité */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIconWrap}>
                 <Server size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>3. Hébergement de l&apos;Infrastructure / Cloud Hosting</h2>
+              <h2 className={styles.sectionTitle}>3. Sécurité de l&apos;Infrastructure &amp; Hébergement Cloud / Cloud Security</h2>
             </div>
             <p className={styles.paragraph}>
-              L&apos;infrastructure serveur, l&apos;application web Next.js et la base de données sécurisée sont hébergées par :
+              La plateforme numérique TANGALY, les serveurs d&apos;application web et les bases de données de traçabilité sont hébergés au sein d&apos;une infrastructure Cloud sécurisée de premier plan à haute disponibilité :
             </p>
             <div className={styles.infoBox}>
-              <p style={{ margin: 0, fontSize: '0.925rem', color: '#1e293b' }}>
-                <strong>Hostinger International Ltd.</strong><br />
-                61 Lordou Vironos Street, 6023 Larnaca, Chypre<br />
-                Site web officiel : <a href="https://www.hostinger.com" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>www.hostinger.com</a>
+              <p style={{ margin: 0, fontSize: '0.925rem', color: '#1e293b', lineHeight: 1.6 }}>
+                <strong>Protection &amp; Intégrité des Données :</strong><br />
+                • Chiffrement de bout en bout des échanges via certificat SSL/TLS (HTTPS 256 bits).<br />
+                • Sauvegardes automatisées quotidiennes et redondantes pour garantir la continuité de service.<br />
+                • Surveillance continue et protection anti-DDoS pour sécuriser l&apos;accès à vos suivis de colis 24h/24 et 7j/7.
               </p>
             </div>
           </section>
