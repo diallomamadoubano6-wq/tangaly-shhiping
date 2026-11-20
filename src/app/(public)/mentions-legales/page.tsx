@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Building2, ShieldCheck, Server, FileText, Scale, PhoneCall, Mail, MapPin } from 'lucide-react';
+import { Building2, ShieldCheck, Server, FileText, Scale, PhoneCall, Mail, MapPin, Globe } from 'lucide-react';
 import styles from '../legal.module.css';
 
 export const metadata: Metadata = {
-  title: 'Mentions Légales | TANGALY Shipping & Logistics',
-  description: 'Informations légales, identification de la société, hébergement et conditions d\'utilisation du site officiel TANGALY Shipping & Logistics.',
+  title: 'Mentions Légales & Legal Notice | TANGALY Shipping & Logistics',
+  description: 'Informations légales, identification des sociétés (USA & Guinée), hébergement et conditions d\'utilisation du site officiel TANGALY Shipping & Logistics.',
+  alternates: {
+    canonical: 'https://tangalyshipping.com/mentions-legales',
+  },
 };
 
 export default function MentionsLegalesPage() {
@@ -14,16 +17,16 @@ export default function MentionsLegalesPage() {
       <section className={styles.hero}>
         <div className="container">
           <div className={styles.badge}>
-            <Scale size={14} /> Informations Légales & Réglementaires
+            <Scale size={14} /> Informations Légales &amp; Réglementaires / Legal Notice
           </div>
           <h1 className={styles.heroTitle}>Mentions Légales</h1>
           <p className={styles.heroSubtitle}>
-            Transparence, conformité juridique et informations relatives à l’édition et à l’hébergement de la plateforme TANGALY Shipping & Logistics.
+            Transparence, conformité juridique et informations corporatives relatives aux entités américaine et guinéenne de TANGALY Shipping &amp; Logistics.
           </p>
           <div className={styles.heroMeta}>
-            <span>Dernière mise à jour : 30 Octobre 2026</span>
+            <span>Dernière mise à jour : Novembre 2026</span>
             <span>•</span>
-            <span>Version officielle 2.0</span>
+            <span>Version officielle bilingue FR / EN</span>
           </div>
         </div>
       </section>
@@ -31,58 +34,66 @@ export default function MentionsLegalesPage() {
       <main className={styles.contentWrapper}>
         <div className={styles.card}>
           
+          <div className={styles.bilingualNotice}>
+            <Globe size={18} />
+            <div>
+              <strong>Bilingual Corporate Notice / Identification des Entités :</strong><br />
+              TANGALY Shipping operates legitimately in the United States and the Republic of Guinea under dual incorporated entities.
+            </div>
+          </div>
+
           {/* Section 1 : Éditeur */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIconWrap}>
                 <Building2 size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>1. Éditeur de la Plateforme</h2>
+              <h2 className={styles.sectionTitle}>1. Éditeur de la Plateforme / Corporate Identification</h2>
             </div>
             <p className={styles.paragraph}>
-              Le présent site internet accessible à l’adresse <strong>https://tangalyshipping.com</strong> (et ses sous-domaines associés) est édité et exploité conjointement par les entités du groupe <strong>TANGALY Shipping & Logistics</strong> :
+              Le présent site internet accessible à l’adresse <strong>https://tangalyshipping.com</strong> est édité et exploité conjointement par les entités juridiques du groupe <strong>TANGALY Shipping &amp; Logistics</strong> :
             </p>
 
             <div className={styles.contactGrid}>
               <div className={styles.contactCard}>
                 <div className={styles.contactCardTitle}>
-                  <span>🇺🇸</span> Siège Social — États-Unis
+                  <span>🇺🇸</span> États-Unis / United States
                 </div>
                 <p className={styles.contactCardText}>
-                  <strong>TANGALY Shipping & Logistics LLC</strong><br />
-                  Société à responsabilité limitée de droit américain<br />
+                  <strong>TANGALY Shipping &amp; Logistics LLC</strong><br />
+                  Limited Liability Company registered in New York, USA<br />
                   <MapPin size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  New York, NY — United States<br />
+                  3429 3rd Ave, Bronx, NY 10456, United States<br />
                   <Mail size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  contact@tangalylogistics.com<br />
+                  <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb' }}>contact@tangalyshipping.com</a><br />
                   <PhoneCall size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  +1 (234) 567-890
+                  +1 (646) 382-0065
                 </p>
               </div>
 
               <div className={styles.contactCard}>
                 <div className={styles.contactCardTitle}>
-                  <span>🇬🇳</span> Représentation — République de Guinée
+                  <span>🇬🇳</span> Guinée / Republic of Guinea
                 </div>
                 <p className={styles.contactCardText}>
                   <strong>TANGALY Express Logistics SARL</strong><br />
-                  Société enregistrée au Registre du Commerce et du Crédit Mobilier (RCCM)<br />
+                  Société à Responsabilité Limitée immatriculée au RCCM<br />
                   <MapPin size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  Conakry (Madina / Cité Enco5), République de Guinée<br />
+                  Cité Enco 5, Conakry, République de Guinée<br />
                   <Mail size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  contact@tangaly.com<br />
+                  <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb' }}>contact@tangalyshipping.com</a><br />
                   <PhoneCall size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  +224 620 00 00 00
+                  +224 626 98 52 54
                 </p>
               </div>
             </div>
 
             <div className={styles.infoBox} style={{ marginTop: '1.25rem' }}>
               <div className={styles.infoBoxTitle}>
-                <FileText size={16} color="#2563eb" /> Direction de la publication
+                <FileText size={16} color="#2563eb" /> Direction de la Publication / Management
               </div>
               <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>
-                <strong>Directeur de la publication :</strong> Mamadou Bah, Fondateur &amp; Gérant Général de TANGALY Shipping &amp; Logistics.
+                <strong>Directeur de la publication :</strong> Mamadou Bano Diallo, Fondateur &amp; Directeur Général de TANGALY Shipping &amp; Logistics.
               </p>
             </div>
           </section>
@@ -93,27 +104,27 @@ export default function MentionsLegalesPage() {
               <div className={styles.sectionIconWrap}>
                 <ShieldCheck size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>2. Nature des Activités &amp; Services</h2>
+              <h2 className={styles.sectionTitle}>2. Nature des Activités / Nature of Services</h2>
             </div>
             <p className={styles.paragraph}>
-              TANGALY Shipping &amp; Logistics propose des services d&apos;acheminement de fret, transport de colis commerciaux et personnels, et solutions d&apos;expédition internationale spécialisées entre l&apos;Amérique du Nord (USA) et la Guinée :
+              TANGALY Shipping &amp; Logistics fournit des solutions logistiques intégrées de transport international de fret bilatéral entre l&apos;Amérique du Nord (USA) et la Guinée :
             </p>
             <ul className={styles.list}>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Fret Aérien (Air Freight) :</strong> Expéditions express régulières par avion avec délais optimisés (7 à 10 jours ouvrés).</span>
+                <span><strong>Fret Aérien Express (Air Freight) :</strong> Expéditions aériennes rapides hebdomadaires dans les deux sens (USA ➔ Guinée et Guinée ➔ USA).</span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Fret Maritime (Ocean Freight) :</strong> Envois de conteneurs, cartons volumineux, véhicules et marchandises industrielles.</span>
+                <span><strong>Fret Maritime Sécurisé (Ocean Freight) :</strong> Envois de conteneurs de groupage, barils et cartons volumineux.</span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Suivi en Ligne &amp; Tracking QR Code :</strong> Plateforme numérique de pointage en temps réel à chaque étape (New York, Transit, Conakry, Agences régionales).</span>
+                <span><strong>Traçabilité QR Code &amp; Plateforme Web :</strong> Système propriétaire de pointage et de suivi en temps réel pour l&apos;expéditeur et le destinataire.</span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Formalités Douanières &amp; Réception :</strong> Prise en charge des démarches de dédouanement et mise à disposition sécurisée dans nos agences de distribution.</span>
+                <span><strong>Dédouanement &amp; Distribution Locale :</strong> Prise en charge des formalités douanières et mise à disposition dans les agences de Conakry et villes régionales.</span>
               </li>
             </ul>
           </section>
@@ -124,17 +135,16 @@ export default function MentionsLegalesPage() {
               <div className={styles.sectionIconWrap}>
                 <Server size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>3. Hébergement du Site</h2>
+              <h2 className={styles.sectionTitle}>3. Hébergement de l&apos;Infrastructure / Cloud Hosting</h2>
             </div>
             <p className={styles.paragraph}>
-              L&apos;infrastructure d&apos;hébergement et les serveurs de la plateforme web et de la base de données sont assurés par :
+              L&apos;infrastructure serveur, l&apos;application web Next.js et la base de données sécurisée sont hébergées par :
             </p>
             <div className={styles.infoBox}>
               <p style={{ margin: 0, fontSize: '0.925rem', color: '#1e293b' }}>
                 <strong>Hostinger International Ltd.</strong><br />
                 61 Lordou Vironos Street, 6023 Larnaca, Chypre<br />
-                Site web officiel : <a href="https://www.hostinger.com" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>www.hostinger.com</a><br />
-                Contact assistance : support@hostinger.com
+                Site web officiel : <a href="https://www.hostinger.com" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>www.hostinger.com</a>
               </p>
             </div>
           </section>
@@ -145,77 +155,54 @@ export default function MentionsLegalesPage() {
               <div className={styles.sectionIconWrap}>
                 <FileText size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>4. Propriété Intellectuelle &amp; Marques</h2>
+              <h2 className={styles.sectionTitle}>4. Propriété Intellectuelle / Intellectual Property</h2>
             </div>
             <p className={styles.paragraph}>
-              Tous les éléments présents sur ce site (structure générale, code source, graphismes, logos, textes, photographies, vidéos, base de données, algorithme de tarification, système de génération de reçus et QR codes) sont la propriété exclusive de <strong>TANGALY Shipping &amp; Logistics</strong> ou de ses partenaires habilités.
-            </p>
-            <p className={styles.paragraph}>
-              Toute reproduction, représentation, diffusion, adaptation ou exploitation, totale ou partielle, sans l&apos;accord exprès, préalable et écrit de la direction est formellement interdite et constitue une contrefaçon sanctionnée par les dispositions légales en vigueur.
+              L&apos;ensemble des contenus (marques TANGALY, logotypes, logiciels, code source, interfaces de suivi, système de QR codes et base de données) sont protégés par les lois internationales sur la propriété intellectuelle. Toute reproduction non autorisée est strictement interdite.
             </p>
           </section>
 
-          {/* Section 5 : Données personnelles */}
+          {/* Section 5 : Liens contractuels */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIconWrap}>
                 <Scale size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>5. Données Personnelles &amp; Confidentialité</h2>
+              <h2 className={styles.sectionTitle}>5. Conditions Contractuelles &amp; Vie Privée</h2>
             </div>
             <p className={styles.paragraph}>
-              Conformément aux normes internationales de protection de la vie privée, TANGALY traite vos données personnelles uniquement dans le cadre de l&apos;exécution du contrat de transport, de la facturation et du suivi de vos colis.
+              Pour connaître le cadre détaillé de nos prestations de transport, les barèmes de responsabilité en cas de perte de colis et les règles de protection de vos données, veuillez consulter :
             </p>
-            <p className={styles.paragraph}>
-              Pour consulter le détail de vos droits (accès, rectification, suppression) et notre politique de conservation des données, veuillez vous référer à notre{' '}
-              <Link href="/confidentialite" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}>
-                Politique de Confidentialité
-              </Link>.
-            </p>
-          </section>
-
-          {/* Section 6 : Limitation de responsabilité */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionIconWrap}>
-                <ShieldCheck size={20} />
-              </div>
-              <h2 className={styles.sectionTitle}>6. Responsabilité &amp; Disponibilité</h2>
+            <div className="flex gap-4 flex-wrap" style={{ marginTop: '0.75rem' }}>
+              <Link href="/cgv" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
+                Consulter les CGV (Terms of Service)
+              </Link>
+              <Link href="/confidentialite" className="btn btn-outline" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
+                Politique de Confidentialité (Privacy Policy)
+              </Link>
             </div>
-            <p className={styles.paragraph}>
-              TANGALY met en œuvre tous les moyens raisonnables pour assurer un accès continu et sécurisé à sa plateforme ainsi que l&apos;exactitude des statuts de suivi affichés. Toutefois, TANGALY ne saurait être tenue pour responsable en cas d&apos;interruption temporaire due à une opération de maintenance, à un cas de force majeure, ou aux aléas climatiques et contrôles douaniers impactant le fret international.
-            </p>
-            <p className={styles.paragraph}>
-              Les conditions relatives à la responsabilité transporteur en cas de retard, avarie ou perte de marchandise sont régies par nos{' '}
-              <Link href="/cgv" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}>
-                Conditions Générales de Vente (CGV)
-              </Link>.
-            </p>
           </section>
 
-          {/* Section 7 : Contact */}
+          {/* Section 6 : Contact */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIconWrap}>
                 <PhoneCall size={20} />
               </div>
-              <h2 className={styles.sectionTitle}>7. Contact &amp; Réclamations</h2>
+              <h2 className={styles.sectionTitle}>6. Service Client &amp; Support Bilingue (FR / EN)</h2>
             </div>
-            <p className={styles.paragraph}>
-              Pour toute question d&apos;ordre juridique ou demande d&apos;information concernant ces mentions légales, vous pouvez contacter notre service juridique et support client :
-            </p>
             <ul className={styles.list}>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Par courrier électronique :</strong> contact@tangalylogistics.com</span>
+                <span><strong>Email officiel :</strong> <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb', fontWeight: 600 }}>contact@tangalyshipping.com</a></span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Par téléphone :</strong> +1 (234) 567-890 (USA) ou +224 620 00 00 00 (Guinée)</span>
+                <span><strong>Bureau New York (USA) :</strong> +1 (646) 382-0065</span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Via notre formulaire en ligne :</strong> <Link href="/contact" style={{ color: '#2563eb', textDecoration: 'underline' }}>Page Contact</Link></span>
+                <span><strong>Bureau Conakry (Guinée) :</strong> +224 626 98 52 54</span>
               </li>
             </ul>
           </section>
