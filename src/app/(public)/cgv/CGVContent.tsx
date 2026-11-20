@@ -4,8 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FileCheck, Plane, Ship, AlertCircle, DollarSign, PackageCheck, ShieldAlert, PhoneCall, ShieldCheck, HelpCircle } from 'lucide-react';
 import styles from '../legal.module.css';
+import { SiteContactInfo, DEFAULT_CONTACT_INFO } from '@/lib/contact';
 
-export default function CGVContent() {
+interface CGVContentProps {
+  contact?: SiteContactInfo;
+}
+
+export default function CGVContent({ contact = DEFAULT_CONTACT_INFO }: CGVContentProps) {
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
 
   return (
@@ -228,15 +233,15 @@ export default function CGVContent() {
                 <ul className={styles.list}>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>Email :</strong> <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb', fontWeight: 600 }}>contact@tangalyshipping.com</a></span>
+                    <span><strong>Email :</strong> <a href={`mailto:${contact.email}`} style={{ color: '#2563eb', fontWeight: 600 }}>{contact.email}</a></span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>Téléphone USA :</strong> +1 (646) 382-0065</span>
+                    <span><strong>Téléphone USA :</strong> {contact.phoneUSA}</span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>Téléphone Guinée :</strong> +224 626 98 52 54</span>
+                    <span><strong>Téléphone Guinée :</strong> {contact.phoneGN}</span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
@@ -411,15 +416,15 @@ export default function CGVContent() {
                 <ul className={styles.list}>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>Email:</strong> <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb', fontWeight: 600 }}>contact@tangalyshipping.com</a></span>
+                    <span><strong>Email:</strong> <a href={`mailto:${contact.email}`} style={{ color: '#2563eb', fontWeight: 600 }}>{contact.email}</a></span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>USA Phone:</strong> +1 (646) 382-0065</span>
+                    <span><strong>USA Phone:</strong> {contact.phoneUSA}</span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
-                    <span><strong>Guinea Phone:</strong> +224 626 98 52 54</span>
+                    <span><strong>Guinea Phone:</strong> {contact.phoneGN}</span>
                   </li>
                   <li className={styles.listItem}>
                     <span className={styles.listBullet} />
@@ -435,3 +440,4 @@ export default function CGVContent() {
     </>
   );
 }
+

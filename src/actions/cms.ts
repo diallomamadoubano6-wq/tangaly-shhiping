@@ -46,6 +46,9 @@ export async function updateContactInfo(info: Partial<SiteContactInfo>) {
   });
   revalidatePath('/');
   revalidatePath('/contact');
+  revalidatePath('/mentions-legales');
+  revalidatePath('/cgv');
+  revalidatePath('/confidentialite');
   revalidatePath('/admin/cms');
   return { success: true, data: updated };
 }
@@ -66,6 +69,9 @@ export async function updateCmsSetting(key: string, value: string, description?:
   });
   revalidatePath('/');
   revalidatePath('/contact');
+  revalidatePath('/mentions-legales');
+  revalidatePath('/cgv');
+  revalidatePath('/confidentialite');
   revalidatePath('/admin/cms');
 }
 

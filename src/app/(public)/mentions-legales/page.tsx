@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Building2, ShieldCheck, Server, FileText, Scale, PhoneCall, Mail, MapPin, Globe } from 'lucide-react';
 import styles from '../legal.module.css';
+import { getPublicContactInfo } from '@/actions/cms';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Mentions Légales & Legal Notice | TANGALY Shipping & Logistics',
@@ -11,7 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MentionsLegalesPage() {
+export default async function MentionsLegalesPage() {
+  const contact = await getPublicContactInfo();
+
   return (
     <>
       <section className={styles.hero}>
@@ -63,11 +68,11 @@ export default function MentionsLegalesPage() {
                   <strong>TANGALY Shipping &amp; Logistics LLC</strong><br />
                   Limited Liability Company registered in New York, USA<br />
                   <MapPin size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  3429 3rd Ave, Bronx, NY 10456, United States<br />
+                  {contact.addressUSA}<br />
                   <Mail size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb' }}>contact@tangalyshipping.com</a><br />
+                  <a href={`mailto:${contact.email}`} style={{ color: '#2563eb' }}>{contact.email}</a><br />
                   <PhoneCall size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  +1 (646) 382-0065
+                  {contact.phoneUSA}
                 </p>
               </div>
 
@@ -79,11 +84,11 @@ export default function MentionsLegalesPage() {
                   <strong>TANGALY Express Logistics SARL</strong><br />
                   Société à Responsabilité Limitée immatriculée au RCCM<br />
                   <MapPin size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  Cité Enco 5, Conakry, République de Guinée<br />
+                  {contact.addressGN}<br />
                   <Mail size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb' }}>contact@tangalyshipping.com</a><br />
+                  <a href={`mailto:${contact.email}`} style={{ color: '#2563eb' }}>{contact.email}</a><br />
                   <PhoneCall size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  +224 626 98 52 54
+                  {contact.phoneGN}
                 </p>
               </div>
             </div>
@@ -195,15 +200,15 @@ export default function MentionsLegalesPage() {
             <ul className={styles.list}>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Email officiel :</strong> <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb', fontWeight: 600 }}>contact@tangalyshipping.com</a></span>
+                <span><strong>Email officiel :</strong> <a href={`mailto:${contact.email}`} style={{ color: '#2563eb', fontWeight: 600 }}>{contact.email}</a></span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Bureau New York (USA) :</strong> +1 (646) 382-0065</span>
+                <span><strong>Bureau New York (USA) :</strong> {contact.phoneUSA}</span>
               </li>
               <li className={styles.listItem}>
                 <span className={styles.listBullet} />
-                <span><strong>Bureau Conakry (Guinée) :</strong> +224 626 98 52 54</span>
+                <span><strong>Bureau Conakry (Guinée) :</strong> {contact.phoneGN}</span>
               </li>
             </ul>
           </section>

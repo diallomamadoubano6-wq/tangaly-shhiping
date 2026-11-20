@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Lock, Eye, Database, Shield, Cookie, Mail, PhoneCall, Globe } from 'lucide-react';
 import styles from '../legal.module.css';
+import { getPublicContactInfo } from '@/actions/cms';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité & Privacy Policy | TANGALY Shipping & Logistics',
@@ -11,7 +13,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ConfidentialitePage() {
+export default async function ConfidentialitePage() {
+  const contact = await getPublicContactInfo();
+
   return (
     <>
       <section className={styles.hero}>
@@ -144,9 +148,9 @@ export default function ConfidentialitePage() {
               <p style={{ margin: 0, fontSize: '0.925rem', color: '#1e293b' }}>
                 <strong>Délégué à la Protection des Données — TANGALY Shipping</strong><br />
                 <Mail size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                Email : <a href="mailto:contact@tangalyshipping.com" style={{ color: '#2563eb', fontWeight: 600 }}>contact@tangalyshipping.com</a><br />
+                Email : <a href={`mailto:${contact.email}`} style={{ color: '#2563eb', fontWeight: 600 }}>{contact.email}</a><br />
                 <PhoneCall size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                Téléphone USA : +1 (646) 382-0065 | Téléphone Guinée : +224 626 98 52 54
+                Téléphone USA : {contact.phoneUSA} | Téléphone Guinée : {contact.phoneGN}
               </p>
             </div>
           </section>

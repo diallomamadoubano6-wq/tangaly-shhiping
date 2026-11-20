@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import CGVContent from './CGVContent';
+import { getPublicContactInfo } from '@/actions/cms';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente (CGV) & Terms of Service | TANGALY Shipping & Logistics',
@@ -9,6 +12,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CGVPage() {
-  return <CGVContent />;
+export default async function CGVPage() {
+  const contact = await getPublicContactInfo();
+  return <CGVContent contact={contact} />;
 }
