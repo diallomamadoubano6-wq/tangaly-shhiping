@@ -15,9 +15,9 @@ async function checkAdminAuth() {
 }
 
 export async function getUsers() {
-  await checkAdminAuth();
-  
   try {
+    await checkAdminAuth();
+    
     const users = await prisma.user.findMany({
       include: {
         agency: true,
@@ -35,9 +35,9 @@ export async function getUsers() {
     });
     
     return { success: true, data: safeUsers };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching users:", error);
-    return { success: false, data: [] };
+    return { success: false, data: [], message: error?.message || 'Erreur lors du chargement des utilisateurs' };
   }
 }
 

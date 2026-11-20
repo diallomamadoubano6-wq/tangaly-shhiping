@@ -36,6 +36,8 @@ export default function UsersPage() {
       
       if (resUsers.success && resUsers.data) {
         setUsers(resUsers.data as any[]);
+      } else if (!resUsers.success && (resUsers as any).message) {
+        addToast('error', 'Erreur', (resUsers as any).message);
       }
       if (resAgencies.success && resAgencies.data) {
         setAgencies(resAgencies.data as any[]);
