@@ -243,7 +243,7 @@ export default async function HomePage() {
                 <li key={s.id}>
                   <Link href={s.href || '/services'} className={styles.serviceCard}>
                     <div className={styles.serviceImageWrap}>
-                      <Image src={s.image_url} alt={s.titre} fill sizes="(max-width: 768px) 100vw, 50vw" />
+                      <Image src={s.image_url} alt={s.titre} fill sizes="(max-width: 768px) 100vw, 50vw" priority />
                     </div>
                     <div className={styles.serviceContent}>
                       <h3 className={styles.serviceTitle}>{s.titre}</h3>
