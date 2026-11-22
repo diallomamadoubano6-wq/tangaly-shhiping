@@ -120,22 +120,27 @@ export const authOptions: NextAuthOptions = {
               }
             }
           });
-          if (freshUser) {
-            session.user = {
-              ...session.user,
-              id: freshUser.id,
-              name: freshUser.nom,
-              nom: freshUser.nom,
-              email: freshUser.email,
-              telephone: freshUser.telephone,
-              role: freshUser.role,
-              localisation: freshUser.localisation || 'Agence Principale',
-              agencyId: freshUser.agencyId,
-              agency: freshUser.agency,
-              mustChangePassword: freshUser.mustChangePassword,
-            } as any;
-            return session;
+
+          // Si le compte a été supprimé de la base de données, invalider immédiatement la session
+          if (!freshUser) {
+            console.warn(`User ${token.id} not found in DB. Invalidation de la session.`);
+            return null as any;
           }
+
+          session.user = {
+            ...session.user,
+            id: freshUser.id,
+            name: freshUser.nom,
+            nom: freshUser.nom,
+            email: freshUser.email,
+            telephone: freshUser.telephone,
+            role: freshUser.role,
+            localisation: freshUser.localisation || 'Agence Principale',
+            agencyId: freshUser.agencyId,
+            agency: freshUser.agency,
+            mustChangePassword: freshUser.mustChangePassword,
+          } as any;
+          return session;
         } catch (e) {
           console.error("Session refresh error:", e);
         }

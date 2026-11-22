@@ -78,7 +78,7 @@ export default function SettingsPage() {
   const handleResetDatabase = async () => {
     const ok = await confirm({
       title: 'Remise à zéro de la base de données',
-      message: `Êtes-vous absolument sûr ?\n\nCette action supprimera DÉFINITIVEMENT toutes les données de test (colis, expéditions, factures, paiements, clients et devis).\n\nLe compte Administrateur (${user?.email || 'admin@tangaly.com'}) et vos accès seront intégralement conservés.`,
+      message: `Êtes-vous absolument sûr ?\n\nCette action supprimera DÉFINITIVEMENT toutes les données opérationnelles (colis, expéditions, factures, paiements, documents et devis).\n\nTOUS vos comptes utilisateurs créés (Administrateurs, Agents, Gérants, Clients) seront intégralement conservés.`,
       type: 'danger',
       confirmText: 'Oui, tout remettre à zéro',
       cancelText: 'Annuler',
@@ -220,8 +220,8 @@ export default function SettingsPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
-            <span style={{ fontSize: 12, color: '#991b1b', fontWeight: 600 }}>
-              * Le compte Super Admin (admin@tangaly.com) ne sera jamais supprimé.
+            <span style={{ fontSize: 12, color: '#15803d', fontWeight: 600 }}>
+              ✓ Tous les comptes utilisateurs créés (Admins, Agents, Gérants, Clients) sont intégralement conservés.
             </span>
             <button
               onClick={handleResetDatabase}

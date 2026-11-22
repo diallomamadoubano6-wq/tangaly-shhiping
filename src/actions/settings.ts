@@ -100,19 +100,12 @@ export async function resetDatabaseAction(keepArticles: boolean = true) {
     await prisma.notification.deleteMany({});
     await prisma.cashRemittance.deleteMany({});
     const deletedShipments = await prisma.shipment.deleteMany({});
-    const deletedClients = await prisma.client.deleteMany({});
     await prisma.quote.deleteMany({});
-    await prisma.passkey.deleteMany({
-      where: { userId: { not: adminId } }
-    });
     await prisma.auditLog.deleteMany({});
     await prisma.syncLog.deleteMany({});
-    const deletedUsers = await prisma.user.deleteMany({
-      where: {
-        id: { not: adminId },
-        role: { not: 'SUPER_ADMIN' }
-      }
-    });
+
+    // TOUS les comptes utilisateurs créés (Admin, Agents, Gérants, Clients) sont intégralement conservés.
+    // Aucun utilisateur ni passkey n'est supprimé.
 
     revalidatePath('/admin');
     revalidatePath('/admin/operations');
@@ -128,7 +121,7 @@ export async function resetDatabaseAction(keepArticles: boolean = true) {
 
     return {
       success: true,
-      message: `Base de données remise à zéro avec succès ! (${deletedShipments.count} expéditions, ${deletedClients.count} clients, ${deletedInvoices.count} factures, ${deletedPayments.count} paiements, ${deletedUsers.count} utilisateurs supprimés. ${catalogMsg})`
+      message: `Base de données remise à zéro avec succès ! (${deletedShipments.count} expéditions, ${deletedInvoices.count} factures, ${deletedPayments.count} paiements supprimés. Tous les comptes utilisateurs créés ont été conservés intacts. ${catalogMsg})`
     };
   } catch (error: unknown) {
     console.error("Error resetting database:", error);

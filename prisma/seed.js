@@ -107,15 +107,8 @@ async function main() {
       console.log(`✓ Sync logs supprimés : ${sl.count}`);
     } catch (e) {}
 
-    try {
-      const u = await prisma.user.deleteMany({
-        where: {
-          id: { not: admin.id },
-          role: { not: 'SUPER_ADMIN' }
-        }
-      });
-      console.log(`✓ Utilisateurs de test supprimés : ${u.count}`);
-    } catch (e) {}
+    // Conservation intégrale de tous les utilisateurs créés
+    console.log('✓ Tous les comptes utilisateurs sont conservés intacts.');
 
     try {
       await prisma.cmsSetting.upsert({
